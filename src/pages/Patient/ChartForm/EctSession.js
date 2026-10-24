@@ -37,13 +37,6 @@ const SESSION_LOCAL_FIELDS = new Set(["date", "timeOfProcedure"]);
 // The patient/admission record is the authoritative source for these, so it
 // takes precedence over the previous session (which holds the same data, only
 // staler). The previous session is still used as a fallback.
-const PATIENT_DERIVED_FIELDS = new Set([
-  "patientName",
-  "sex",
-  "uhid",
-  "age",
-  "diagnosis",
-]);
 
 const formatSourceDate = (date) => {
   if (!date) return "";

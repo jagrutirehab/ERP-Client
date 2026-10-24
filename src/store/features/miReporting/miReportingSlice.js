@@ -371,7 +371,6 @@ export const fetchRefundAmountMOM = createAsyncThunk(
       const response = await getRefundAmountMOM(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Refund amount mom"
       );
@@ -596,7 +595,6 @@ export const fetchRoundNotesDOD = createAsyncThunk(
       const response = await getRoundNotesDOD(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Round notes dod"
       );
@@ -612,7 +610,6 @@ export const fetchClinicalNotesDOD = createAsyncThunk(
       const response = await getClinicalNotesDOD(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Clinical notes dod"
       );
@@ -644,7 +641,6 @@ export const fetchVitalSignsDOD = createAsyncThunk(
       const response = await getVitalSignsDOD(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Vital Signs DOD"
       );
@@ -659,7 +655,6 @@ export const fetchPatientDocs = createAsyncThunk(
       const response = await getPatientDocs(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Patient Docs"
       );
@@ -674,7 +669,6 @@ export const fetchOpdPatientDocs = createAsyncThunk(
       const response = await getOpdPatientDocs(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch OPD Patient Docs"
       );
@@ -690,7 +684,6 @@ export const fetchDailyInvoices = createAsyncThunk(
       const response = await getDailyInvoices(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Daily Invoices"
       );
@@ -705,7 +698,6 @@ export const fetchCounsellingSessions = createAsyncThunk(
       const response = await getCounsellingSessions(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Counselling Sessions"
       );
@@ -720,7 +712,6 @@ export const fetchCounsellingRecordings = createAsyncThunk(
       const response = await getCounsellingRecordings(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Counselling Recordings"
       );
@@ -798,7 +789,6 @@ export const fetchDailyDashboard = createAsyncThunk(
       const response = await getDailyDashboard(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Daily Dashboard"
       );

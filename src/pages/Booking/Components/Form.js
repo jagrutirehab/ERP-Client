@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import PropTypes from "prop-types";
 import {
   Col,
   Form,
@@ -11,10 +10,8 @@ import {
   DropdownMenu,
   DropdownItem,
   DropdownToggle,
-  UncontrolledDropdown,
   Dropdown,
   Spinner,
-  Alert,
 } from "reactstrap";
 
 //flatpicker
@@ -47,15 +44,12 @@ import {
   areIntervalsOverlapping,
   differenceInHours,
   differenceInMinutes,
-  eachMinuteOfInterval,
   format,
   isValid,
-  isWithinInterval,
   setDate,
   setHours,
   setMonth,
   setYear,
-  subMinutes,
 } from "date-fns";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 
@@ -195,7 +189,6 @@ const EventForm = ({
       phoneNumber: Yup.string()
         .required("Please Enter Phone number")
         .test("is-valid-phone", "Invalid phone number", function (value) {
-          const phoneNumber = parsePhoneNumberFromString(value)?.nationalNumber;
 
           return isValidPhoneNumber(value);
         }),
@@ -484,8 +477,6 @@ const EventForm = ({
     if (uidPatient?.length > 0 && !uidDropdown) setUidDropdown(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uidPatient]);
-
-  console.log({ isOPDPatient });
 
   return (
     <React.Fragment>

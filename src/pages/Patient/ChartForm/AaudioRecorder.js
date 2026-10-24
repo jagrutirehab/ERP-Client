@@ -118,7 +118,6 @@ const AudioRecorder = ({ onReady }) => {
         drawVisualizer();
         handleStart();
       } catch (err) {
-        console.error(err);
         setError("Microphone access denied or unavailable.");
       }
     };
@@ -135,6 +134,7 @@ const AudioRecorder = ({ onReady }) => {
       cancelAnimationFrame(animationRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // const buildAndSendFile = () => {
@@ -319,6 +319,7 @@ const AudioRecorder = ({ onReady }) => {
     if (onReady) {
       onReady(null, stopAndFinalize);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -488,7 +489,6 @@ export default AudioRecorder;
 //         drawVisualizer();
 //         handleStart();
 //       } catch (err) {
-//         console.error(err);
 //         setError("Microphone access denied or unavailable.");
 //       }
 //     };

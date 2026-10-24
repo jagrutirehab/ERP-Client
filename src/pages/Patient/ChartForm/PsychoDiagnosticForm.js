@@ -12,7 +12,7 @@ import {
 import PropTypes from "prop-types";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { FilePond, registerPlugin } from "react-filepond";
+import { registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
@@ -52,9 +52,6 @@ const PsychoDiagnosticForm = ({
   const [loadingMap, setLoadingMap] = useState({});
 
   const editPsychoForm = editChartData?.psychoDiagnosticForm;
-
-  console.log({ chartDate });
-
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -125,6 +122,7 @@ const PsychoDiagnosticForm = ({
     if (!editChartData) {
       validation.resetForm();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, editChartData]);
 
   const closeForm = () => {
@@ -140,6 +138,7 @@ const PsychoDiagnosticForm = ({
         editPsychoForm.reports.map((r) => r.description || ""),
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editChartData]);
 
   const handleGenerateSummary = async (file, idx, name) => {
@@ -161,7 +160,6 @@ const PsychoDiagnosticForm = ({
         return updated;
       });
     } catch (error) {
-      console.log("Summary Error", error);
       toast.error(error?.message || "Error generating summary");
     } finally {
       setLoadingMap((prev) => ({ ...prev, [idx]: false }));

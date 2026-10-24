@@ -97,6 +97,7 @@ const AssetCategoryList = ({ level, onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, search, refreshFlag]);
 
   const handleDelete = async (id) => {

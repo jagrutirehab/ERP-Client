@@ -5,7 +5,6 @@ import {
   CardTitle,
   Badge,
   CardFooter,
-  Button,
   UncontrolledTooltip,
   Row,
   Col,
@@ -14,7 +13,6 @@ import PreviewFile from "../../../Components/Common/PreviewFile";
 import userDummayImage from "../../../assets/images/users/user-dummy-img.jpg";
 import { Link } from "react-router-dom";
 import { format, isValid } from "date-fns";
-import Divider from "../../../Components/Common/Divider";
 
 const statusColors = {
   suicidal: { color: "danger", border: "#ffcdd2" },

@@ -76,6 +76,7 @@ const ApprovalHistory = ({ activeTab }) => {
         }, 500);
 
         return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     useEffect(() => {
@@ -85,6 +86,7 @@ const ApprovalHistory = ({ activeTab }) => {
         setDebouncedSearch(q);
         setSelectedCenter(c);
         setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
 
@@ -114,6 +116,7 @@ const ApprovalHistory = ({ activeTab }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchAdjustmentsHistory();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
     const columns = [

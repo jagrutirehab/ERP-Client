@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import PropTypes from "prop-types";
 import {
   Accordion,
   AccordionBody,
@@ -15,7 +14,6 @@ import {
   addClinicalNote,
   createEditBill,
   createEditChart,
-  fetchPatientAppointmentData,
   fetchPatientAppointments,
   removeBill,
   removeChart,
@@ -31,7 +29,6 @@ import OPDInvoice from "../Bills/OPDInvoice";
 import OnlineTransaction from "../Bills/OnlineTransaction";
 import {
   INVOICE,
-  PRESCRIPTION,
   OPD,
   GENERAL,
 } from "../../../Components/constants/patient";

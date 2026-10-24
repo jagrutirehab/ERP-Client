@@ -27,6 +27,7 @@ const FixedGridField = ({ field, values, onChange, error }) => {
         rowLabels.map((label) => ({ [rowLabelKey]: label, ...emptyRowShape })),
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path]);
 
   const rows = Array.isArray(currentValue) ? currentValue : [];

@@ -85,6 +85,7 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, centers: userAccessib
         if (activeTab === "UTR_CONFIRMATION") {
             fetchApprovedPayments();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [centerAccess, dispatch, page, limit, activeTab, selectedCenter]);
 
 

@@ -47,7 +47,6 @@ export const parseGeminiResponse = (text) => {
       result.coaching = coachingMatch[1].trim();
     }
   } catch (err) {
-    console.log("Parsing error:", err);
   }
 
   return result;

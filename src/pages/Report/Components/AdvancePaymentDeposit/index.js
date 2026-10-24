@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Spinner } from "reactstrap";
 import {
@@ -11,7 +11,6 @@ import PropTypes from "prop-types";
 import { endOfDay, format, startOfDay } from "date-fns";
 import Header from "./Header";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
-import Banner from "./Banner";
 
 const AdvancePaymentDeposit = ({ centers, centerAccess }) => {
   const [reportDate, setReportDate] = useState({
@@ -38,8 +37,6 @@ const AdvancePaymentDeposit = ({ centers, centerAccess }) => {
   const [selectedCentersIds, setSelectedCentersIds] = useState(
     centerOptions?.map((c) => c._id) || [],
   );
-
-  console.log({ centerOptions, selectedCentersIds, centerAccess });
 
   useEffect(() => {
     setCenterOptions(
@@ -75,7 +72,6 @@ const AdvancePaymentDeposit = ({ centers, centerAccess }) => {
       setTotalRows(res?.total || 0);
       setGrandTotal(res?.grandTotal || 0);
     } catch (err) {
-      console.error("Failed to fetch advance payment data", err);
       setData([]);
       setTotalRows(0);
     } finally {
@@ -85,6 +81,7 @@ const AdvancePaymentDeposit = ({ centers, centerAccess }) => {
 
   useEffect(() => {
     fetchData(currentPage, perPage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, perPage]);
 
   // Manual trigger for View Report button - resets to page 1
@@ -132,7 +129,6 @@ const AdvancePaymentDeposit = ({ centers, centerAccess }) => {
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Failed to export CSV", err);
       alert("Failed to export CSV. Please try again.");
     } finally {
       setExportLoading(false);

@@ -13,9 +13,6 @@ const statusBadge = {
   Missed: "bg-red-100 text-red-700 border-red-300",
 };
 
-const visitTypes = ["First", "Follow-up"];
-const statusOptions = ["Planned", "Missed", "Completed"];
-const agents = ["Agent A", "Agent B", "Agent C"];
 
 const visitDateOptions = [
   { label: "All", value: "" },
@@ -35,7 +32,7 @@ const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
   } = useSelector((state) => state.HubspotContacts);
 
   // UI state
-  const [filters, setFilters] = useState({
+  const [filters] = useState({
     visitType: "",
     status: "",
     assignedTo: "",
@@ -62,7 +59,6 @@ const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
       // leadDate: leadDate,
       // visitDate: visitDateFilter,
     };
-    console.log({ access });
 
     if (access) params.centers = access;
     if (visitDateFilter === "planned") {
@@ -97,9 +93,6 @@ const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
 
   // Filtering (client-side for visitType, status, assignedTo)
   const filteredContacts = useMemo(() => {
-    const access = centers
-      .filter((cn) => centerAccess.includes(cn._id))
-      .map((cn) => cn.title);
 
     let filtered = contacts;
     if (filters.visitType) {
@@ -120,11 +113,8 @@ const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contacts, centerAccess, filters]);
 
-  console.log({ filteredContacts, contacts, filters });
-
   // Pagination controls
   const totalPages = pagination?.totalPages || 1;
-  const totalItems = pagination?.totalItems || 0;
 
   return (
     <div className="p-2 sm:p-6 max-w-7xl mx-auto">

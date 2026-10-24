@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
 import Wrapper from "../../Components/Wrapper";
-import RenderWhen from "../../../../Components/Common/RenderWhen";
 import Invoice from "../../Bills/Invoice";
 import { connect, useDispatch } from "react-redux";
 import DeleteModal from "../../../../Components/Common/DeleteModal";

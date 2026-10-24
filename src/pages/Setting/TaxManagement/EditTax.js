@@ -105,7 +105,6 @@ const EditModal = ({ modal, toggle, data, setApiFlag, apiFlag }) => {
 
         } catch (error) {
             if (!handleAuthError(error)) {
-                console.error("Edit tax failed:", error);
                 toast.error(error.message || "Failed to update tax.");
             }
         }

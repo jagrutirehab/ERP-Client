@@ -190,6 +190,7 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, debouncedSearch, filter, refreshFlag]);
 
   const confirmDelete = async () => {

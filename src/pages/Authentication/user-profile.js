@@ -6,23 +6,17 @@ import {
   Row,
   Col,
   Card,
-  Alert,
   CardBody,
   Button,
   Label,
   Input,
-  FormFeedback,
-  Form,
   ButtonGroup,
-  CardHeader,
 } from "reactstrap";
 
 //compress image
 import Compressor from "compressorjs";
 
 // Formik Validation
-import * as Yup from "yup";
-import { useFormik } from "formik";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -48,13 +42,13 @@ const UserProfile = () => {
   const dispatch = useDispatch();
   const [tab, setTab] = useState(GENERAL_INFORMATION);
 
-  const [email, setemail] = useState("admin@gmail.com");
-  const [idx, setidx] = useState("1");
+  const [, setemail] = useState("admin@gmail.com");
+  const [, setidx] = useState("1");
   const [profileLoader, setProfileLoader] = useState(false);
-  const [profileError, setProfileError] = useState("");
+  const [, setProfileError] = useState("");
   const [employeeProfile, setEmployeeProfile] = useState(null)
 
-  const [userName, setUserName] = useState("Admin");
+  const [, setUserName] = useState("Admin");
   const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
 
   const { user } = useSelector((state) => ({
@@ -81,19 +75,6 @@ const UserProfile = () => {
     }
   }, [dispatch, user]);
 
-  const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
-    enableReinitialize: true,
-
-    initialValues: {
-      first_name: userName || "Admin",
-      idx: idx || "",
-    },
-    validationSchema: Yup.object({
-      first_name: Yup.string().required("Please Enter Your UserName"),
-    }),
-    onSubmit: (values) => { },
-  });
 
   const handleTab = (tab) => {
     setTab(tab);

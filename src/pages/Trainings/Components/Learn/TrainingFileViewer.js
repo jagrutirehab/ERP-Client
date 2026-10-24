@@ -43,6 +43,7 @@ const TrainingFileViewer = ({ file, onLoaded }) => {
     } else {
       setLoading(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file?.url]);
 
   if (kind === "none") return null;

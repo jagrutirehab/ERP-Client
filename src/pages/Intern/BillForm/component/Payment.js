@@ -3,9 +3,8 @@ import PropTypes from "prop-types";
 import { Row, Col, Label, Input, Button } from "reactstrap";
 
 //redux
-import { connect, useDispatch } from "react-redux";
+import { connect } from "react-redux";
 import {
-  BANK,
   CARD,
   CASH,
   CHEQUE,
@@ -13,7 +12,6 @@ import {
 } from "../../../../Components/constants/intern";
 
 const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
-  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     const idx = e.target.id;

@@ -7,7 +7,6 @@ import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import Logo from "../../../../assets/images/logo.png";
 // import Logo from "../../../../assets/images/jagruti-logo.svg";
 import { differenceInYears, format } from "date-fns";
-import { INVOICE } from "../../../constants/patient";
 
 Font.register({
   family: "Roboto",
@@ -86,12 +85,9 @@ const styles = StyleSheet.create({
 });
 
 const PrintHeader = ({ patient, center, bill, admission }) => {
-  console.log("WRITE OFF BILL DATA", bill);
   const renderImage = () => (
     <Image src={center?.logo ? center.logo?.url : Logo} style={styles.logo} />
   );
-  const formatDateTime = (date) =>
-    date ? format(new Date(date), "dd MMM yyyy hh:mm a") : "--";
 
   const formatDate = (date) =>
     date ? format(new Date(date), "dd MMM yyyy") : "--";

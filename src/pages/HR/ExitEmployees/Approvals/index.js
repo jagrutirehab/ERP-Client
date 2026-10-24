@@ -86,6 +86,7 @@ const ExitApprovals = () => {
         }, 500);
 
         return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     const fetchPendingExitEmployeeList = async () => {
@@ -114,6 +115,7 @@ const ExitApprovals = () => {
         if (hasUserPermission) {
             fetchPendingExitEmployeeList();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess]);
 
     const handleDelete = async () => {

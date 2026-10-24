@@ -11,7 +11,6 @@ export const BiometricReqsColumn = ({
   type,
   hasWritePermission,
 } = {}) => {
-  console.log("Type", type);
 
   return [
     {
@@ -120,7 +119,6 @@ export const BiometricReqsColumn = ({
       sortable: true,
       minWidth: "130px",
       cell: (row) => {
-        console.log("Row status", row?.status);
         return renderStatusBadge(row?.status?.toUpperCase());
       },
     },

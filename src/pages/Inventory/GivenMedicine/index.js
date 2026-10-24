@@ -15,8 +15,7 @@ import {
 import Select from "react-select";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { useSelector, useDispatch } from "react-redux";
-import { fetchCenters } from "../../../store/actions";
+import { useSelector } from "react-redux";
 import { Button } from "../Components/Button";
 import { Card, CardBody, Col, Input, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
 import GiveMedicine from "../GiveMedicine";
@@ -25,7 +24,6 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const GivenMedicine = () => {
-  const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const centerList = useSelector((state) => state.Center.data);
   const handleAuthError = useAuthError();
@@ -155,7 +153,6 @@ const GivenMedicine = () => {
       });
 
       const body = response || {};
-      // console.log(body);
       setGivenMedicines(Array.isArray(body.data) ? body.data : []);
       setTotalItems(Number(body.total ?? 0));
       setTotalPages(Number(body.pages ?? 1));

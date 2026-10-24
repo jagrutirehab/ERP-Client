@@ -472,7 +472,6 @@ const MachineStatus = ({ centerId, showHeading = true }) => {
         }));
         return payload?.commands || [];
       } catch (err) {
-        console.error(err);
         return [];
       }
     },
@@ -562,7 +561,6 @@ const MachineStatus = ({ centerId, showHeading = true }) => {
       await fetchCommands(machine.machineId);
       pollCommand(machine.machineId, commandId);
     } catch (err) {
-      console.error(err);
       toast.error(
         err?.response?.data?.message ||
           err?.message ||
@@ -596,7 +594,6 @@ const MachineStatus = ({ centerId, showHeading = true }) => {
       setReport(payload?.machines ? payload : null);
       setFetchedAt(new Date());
     } catch (err) {
-      console.error(err);
       setError(
         err?.response?.data?.message ||
           err?.message ||

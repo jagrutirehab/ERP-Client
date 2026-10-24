@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Alert, Col, Form, FormFeedback, Row } from "reactstrap";
+import { Alert, Col, Form, Row } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import InvoiceTable from "./Components/InvoiceTable";
@@ -8,7 +8,6 @@ import InvoiceFooter from "./Components/InvoiceFooter";
 import {
   evaluateEvidenceGuard,
   evaluatePosGuards,
-  usePosTerminal,
 } from "./Components/billGuards";
 import SubmitForm from "./Components/SubmitForm";
 import { connect, useDispatch, useSelector } from "react-redux";
@@ -24,9 +23,7 @@ import Inovice from "../Dropdowns/Inovice";
 import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 import {
   getProceduresByCenterid,
-  getProceduresByid,
 } from "../../../helpers/backend_helper";
-import InvoiceDateRange from "./Components/InvoiceDateRange";
 import FromDateModal from "./Components/FromDateModal";
 
 // Each paymentModes row may carry a transient `evidenceFiles` array (Files, never sent as-is).
@@ -103,11 +100,6 @@ const DuePayment = ({
 }) => {
   const dispatch = useDispatch();
 
-  // console.log("Data : ", {
-  //   patient,
-  //   center,
-  // });
-
   const editData = editBillData
     ? type === OPD
       ? editBillData.receiptInvoice
@@ -123,11 +115,11 @@ const DuePayment = ({
   const [totalDiscount, setTotalDiscount] = useState(0);
   const [totalTax, setTotalTax] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
-  const [arrayToSend, setArrayToSend] = useState(null);
+  const [, setArrayToSend] = useState(null);
   const [availablePrices, setAvailablePrices] = useState([]);
-  const [whileEditAvailablePrices, setWhileEditAvailablePrices] = useState([]);
-  const [initialFromDate, setInitialFromDate] = useState("");
-  const [initialToDate, setInitialToDate] = useState("");
+  const [, setWhileEditAvailablePrices] = useState([]);
+  const [, setInitialFromDate] = useState("");
+  const [, setInitialToDate] = useState("");
   const [wholeDiscount, setWholeDiscount] = useState({
     unit: "₹",
     value: 0,
@@ -225,7 +217,6 @@ const DuePayment = ({
   // Charging on the terminal is optional — a payment collected elsewhere is
   // recorded with an evidence screenshot instead. Once a charge HAS been
   // approved though, the form cannot be abandoned: the money is already gone.
-  const { posAvailable } = usePosTerminal(ptCenter);
   const posGuard = evaluatePosGuards(paymentModes, {
     readOnly: isPosRecovery,
   });
@@ -426,7 +417,6 @@ const DuePayment = ({
   });
 
   useEffect(() => {
-    console.log({ ptCenter });
     if (ptCenter) {
       dispatch(
         fetchPaymentAccounts({
@@ -485,7 +475,6 @@ const DuePayment = ({
             // }
             // FromDate and to Date Carry Forward
 
-            console.log("latestInvoice", latestInvoice);
             const sendingArray = latestInvoice?.invoice?.invoiceList || [];
 
             setArrayToSend(sendingArray);
@@ -510,10 +499,8 @@ const DuePayment = ({
               );
             }
           } else if (fetchBills.rejected.match(resultAction)) {
-            console.log("❌ Rejected error:", resultAction.error);
           }
         } catch (err) {
-          console.error("Dispatch error:", err);
         }
       })();
     } else {
@@ -681,12 +668,10 @@ const DuePayment = ({
     });
 
     if (!checkItem) {
-      console.log("item", item);
       const centerMatch = item?.center?.find(
         (d) =>
           String(d?.center?._id) === String(patient?.center?._id || center),
       );
-      // console.log("centerMatch", centerMatch);
 
       const defaultPriceObj =
         centerMatch?.prices && centerMatch.prices.length > 0
@@ -725,8 +710,6 @@ const DuePayment = ({
       });
     }
   };
-
-  // console.log("patient from invoice", patient);
 
   const handleUOMChange = (index, newUnit) => {
     setInvoiceList((prevList) => {
@@ -769,7 +752,6 @@ const DuePayment = ({
 
       setAvailablePrices(procedurePriceMap);
     } catch (error) {
-      console.log("error", error);
     }
   };
 
@@ -777,6 +759,7 @@ const DuePayment = ({
     if (!invoiceList?.length) return;
 
     fetchValidCosts(invoiceList[0]?.slot);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoiceList[0]?.slot]);
 
   // useEffect(() => {

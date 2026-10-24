@@ -162,12 +162,14 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   useEffect(() => {
     formik.setFieldValue("attachment", attachment);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attachment]);
 
   useEffect(() => {
     if (attachmentTouched) {
       formik.validateField("attachment");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attachment, attachmentTouched]);
 
   const handleAttachmentChange = (file) => {

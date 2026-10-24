@@ -23,15 +23,16 @@ const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles
             hasZero,
             updated: updatedDispenseData
         });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [updatedDispenseData]);
 
     useEffect(() => {
         onRemarks(remarks);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [remarks]);
 
     const handleDispensedCountChange = (rowId, value) => {
         const num = Number(value);
-        console.log(medicines)
         setMedicines(prev =>
             prev.map(m =>
                 m._id === rowId

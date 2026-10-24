@@ -76,6 +76,7 @@ const EmployeeSearch = ({ row, centerAccess, disabled, onSelect, error }) => {
         }, 400);
 
         return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchText]);
 
     return (

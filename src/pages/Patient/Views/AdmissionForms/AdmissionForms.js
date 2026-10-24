@@ -246,7 +246,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       })
       .catch((err) => {
         if (cancelled) return;
-        console.error("Error fetching charts:", err);
         setChartData(null);
       });
 
@@ -274,7 +273,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     }));
   }, [addmissionId, addmissionsCharts]);
 
-  const { register, handleSubmit, setValue, reset, watch } = useForm();
+  const { register, handleSubmit, setValue, reset } = useForm();
 
   // Belt and braces for the write paths. The scoping above should already make a
   // foreign addmissionId unreachable, but every handler below PATCHes a patient
@@ -415,7 +414,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       } catch (previewError) {
         // The form IS saved — never report that as a failure. It can be
         // downloaded from the forms list instead.
-        console.error("PDF preview failed:", previewError);
         toast.warn("Form submitted, but the PDF preview could not be opened");
       }
 
@@ -644,7 +642,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         setPreviewModal2(true);
       } catch (previewError) {
         // The form IS saved — never turn that into a failure.
-        console.error("PDF preview failed:", previewError);
         toast.warn("Form submitted, but the PDF preview could not be opened");
       }
 
@@ -851,7 +848,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         setPdfUrl3(url);
         setPreviewModal3(true);
       } catch (previewError) {
-        console.error("PDF preview failed:", previewError);
         toast.warn("Form submitted, but the PDF preview could not be opened");
       }
 
@@ -1557,7 +1553,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   className="sr-only"
                                   // style={{ display: "none" }}
                                   onChange={(e) => {
-                                    console.log("incorrect is hitted");
                                     handleFileChangeundertakingDishcharge(e);
                                   }}
                                 />
@@ -1658,7 +1653,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   className="sr-only"
                                   // style={{ display: "none" }}
                                   onChange={(e) => {
-                                    console.log("Discharge Form is hitted");
                                     handleFileChangeDishcharge(e);
                                   }}
                                 />

@@ -13,7 +13,7 @@ import {
 
 const Medicine = ({ centerAccess, medicines }) => {
   const dispatch = useDispatch();
-  const [medicine, setMedicine] = useState({ data: null, isOpen: false });
+  const [, setMedicine] = useState({ data: null, isOpen: false });
   const [deleteMedicine, setDeleteMedicine] = useState({
     data: null,
     isOpen: false,

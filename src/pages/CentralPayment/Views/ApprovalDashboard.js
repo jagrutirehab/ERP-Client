@@ -139,6 +139,7 @@ const ApprovalDashboard = ({ centerAccess, centers, loading, approvals }) => {
     }
 
     fetchPendingApprovals();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerAccess, selectedCenter, dispatch, page, limit, paymentTypeFilter]);
 
 

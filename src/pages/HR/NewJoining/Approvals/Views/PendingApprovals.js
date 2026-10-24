@@ -123,6 +123,7 @@ const PendingApprovals = ({
     }, 500);
 
     return () => clearTimeout(handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   useEffect(() => {
@@ -132,6 +133,7 @@ const PendingApprovals = ({
     setDebouncedSearch(q);
     setSelectedCenter(c);
     setPage(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchMasterEmployeeList = async () => {
@@ -164,6 +166,7 @@ const PendingApprovals = ({
     if (activeTab === "PENDING" && hasUserPermission) {
       fetchMasterEmployeeList();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

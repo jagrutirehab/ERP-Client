@@ -44,6 +44,7 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
             setShowReturned(false);
             reload();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, approvalId, dispatch]);
 
     const medicines = (approval?.medicines || []).filter((m) => m.alreadyDispensed);

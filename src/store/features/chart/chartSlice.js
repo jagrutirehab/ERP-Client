@@ -85,7 +85,6 @@ import {
 } from "../booking/bookingSlice";
 import {
   fetchPatientById,
-  replacePatient,
   setMedicines,
   viewPatient,
 } from "../../actions";
@@ -287,7 +286,6 @@ export const updatePrescription = createAsyncThunk(
       );
 
       const payload = response?.payload;
-      const patient = response?.patient;
       const appointment = payload.appointment;
       if ((payload.type === OPD || payload.type === IPD) && appointment) {
         dispatch(
@@ -1271,11 +1269,9 @@ export const updateOutpass = createAsyncThunk(
 export const addDischargeSummary = createAsyncThunk(
   "postDischargeSummary",
   async (data, { rejectWithValue, dispatch }) => {
-    console.log("datan", data);
 
     try {
       const response = await postDischargeSummary(data);
-      console.log("responseon", response);
 
       dispatch(
         setAlert({
@@ -1614,7 +1610,6 @@ export const addCapacityAssessment = createAsyncThunk(
   async ({ addmissionId, formData }, { dispatch, rejectWithValue }) => {
     try {
       const response = await submitAssessment(addmissionId, formData);
-      console.log("Capacity Response:", response);
 
       dispatch(
         setAlert({
@@ -1878,7 +1873,6 @@ export const chartSlice = createSlice({
       }
     },
     createEditChart: (state, { payload }) => {
-      console.log({ payload });
 
       state.chartForm = payload;
     },
@@ -1962,7 +1956,6 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(fetchCounsellingNote.fulfilled, (state, { payload }) => {
-        console.log({ payload });
 
         state.loading = false;
         state.patientLatestCounsellingNote = payload.payload;
@@ -2112,7 +2105,6 @@ export const chartSlice = createSlice({
       })
       .addCase(updatePrescription.fulfilled, (state, { payload }) => {
         state.loading = false;
-        console.log({ payload });
 
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
@@ -2121,7 +2113,6 @@ export const chartSlice = createSlice({
           state.charts[findIndex] = payload.payload;
         } else if (payload.type !== "OPD" && state.data?.length > 0) {
           // && !payload.appointment
-          console.log("INSIDE IPD CHARTS");
 
           //IPD CHARTS
           const findIndex = state.data.findIndex(
@@ -3009,8 +3000,6 @@ export const chartSlice = createSlice({
       .addCase(addMentalExamination.fulfilled, (state, { payload }) => {
         state.loading = false;
 
-        console.log({ payload });
-
         if (
           (payload?.payload?.type === OPD || payload?.payload?.type === IPD) &&
           payload?.payload?.appointment
@@ -3068,8 +3057,6 @@ export const chartSlice = createSlice({
       })
       .addCase(updateMentalExamination.fulfilled, (state, { payload }) => {
         state.loading = false;
-
-        console.log({ payload });
 
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(

@@ -43,15 +43,11 @@ const AttendanceLogs = ({ employeeId, centerId, type, passedStart, passedEnd }) 
     allViewPermissionRoles.includes(roles.name) &&
     employeeId;
 
-  const hasWrite = hasPermission("HR", "MY_ATTENDANCE", "WRITE");
-  const hasDelete = hasPermission("HR", "MY_ATTENDANCE", "DELETE");
 
   // const hasWriteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "WRITE");
   // const hasDeleteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "DELETE");
 
   const hasMyRegularizationPermission = hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "WRITE") || hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "DELETE");
-
-  // console.log("typeinlogs", type);
 
 
   const loadMyAttendanceLogs = async () => {
@@ -80,6 +76,7 @@ const AttendanceLogs = ({ employeeId, centerId, type, passedStart, passedEnd }) 
 
   useEffect(() => {
     loadMyAttendanceLogs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, reportDate.start, reportDate.end, viewMode]);
 
   useEffect(() => {

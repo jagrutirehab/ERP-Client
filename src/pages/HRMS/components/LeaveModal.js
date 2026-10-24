@@ -22,7 +22,6 @@ import {
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import {
   leaveTypeOptions,
-  leaveTypes,
   shiftTimeOptions,
 } from "../../../Components/constants/HRMS";
 
@@ -75,6 +74,7 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
       fetchManager();
       getLeavesAndRegularizations();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   useEffect(() => {
@@ -127,7 +127,6 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
       let res;
       if (leaveType === "COMP_OFF_REQUEST") {
         res = await postCompOffRequest(compOffPayload, token);
-        console.log("res", res);
       } else {
         res = await postLeaveRequest(payload, token);
       }
@@ -145,14 +144,11 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   };
 
   const getLeavesAndRegularizations = async () => {
-    console.log("fetching regs for", employeeId);
     try {
       const response = await getLeavesAndRegs(employeeId);
-      console.log("response", response);
       setRegularizationDates(response?.regularizations || []);
       setIsHeadOffice(Boolean(response?.isHeadOffice));
     } catch (error) {
-      console.log("Error", error);
     }
   };
 

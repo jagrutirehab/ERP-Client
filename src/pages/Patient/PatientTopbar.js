@@ -42,7 +42,6 @@ import PreviewFile from "../../Components/Common/PreviewFile";
 import CheckPermission from "../../Components/HOC/CheckPermission";
 import AddNoteModal from "../Nurse/Views/Components/AddNoteModal";
 import AssignNurseModal from "./Views/Components/AssignNurseModal";
-import { unAssignNurse } from "../../store/features/patient/patientSlice";
 import {
   getCurrentAdmissionType,
   admissionTypeLabel,
@@ -85,8 +84,6 @@ const PatientTopbar = ({
     (admission) => admission._id === patient.addmission._id,
   );
 
-  // console.log("admission", admission.center?._id);
-
   useEffect(() => {
     if (admission?.center?._id) {
       dispatch(fetchDoctors({ center: admission.center?._id }));
@@ -107,6 +104,7 @@ const PatientTopbar = ({
         }),
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, currentAdmissionId]);
 
   // getFinalDiagnosis already walks the chart timeline (most recent first)
@@ -185,14 +183,6 @@ const PatientTopbar = ({
     setsettings_Menu(!settings_Menu);
   };
 
-  const handleUnAssignNurse = async () => {
-    try {
-      await dispatch(unAssignNurse(patient?._id)).unwrap();
-      toast.success("Nurse unassigned successfully");
-    } catch (err) {
-      toast.error(err || "something went wrong");
-    }
-  };
 
   return (
     <React.Fragment>

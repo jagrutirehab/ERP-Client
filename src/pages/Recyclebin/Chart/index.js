@@ -18,7 +18,7 @@ import { Button, Spinner } from "reactstrap";
 
 const Chart = ({ centerAccess, charts }) => {
   const dispatch = useDispatch();
-  const [chart, setChart] = useState({ data: null, isOpen: false });
+  const [, setChart] = useState({ data: null, isOpen: false });
   const [deleteChart, setDeleteChart] = useState({
     data: null,
     isOpen: false,
@@ -42,6 +42,7 @@ const Chart = ({ centerAccess, charts }) => {
       }
     };
     loadDeletedCharts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const onCloseClick = () => {

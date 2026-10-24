@@ -24,7 +24,6 @@ export const usePermissions = (token) => {
       setError(null);
       try {
         const response = await getRoles(token);
-        // console.log("response", response)
         rolesCache = response.data;
         setRoles(response.data);
       } catch (error) {
@@ -43,10 +42,6 @@ export const usePermissions = (token) => {
   const hasPermission = (module, subModule, requiredType = "NONE") => {
     if (!roles) return false;
     const requiredRank = typeRank[requiredType];
-
-    // console.log("Checking:", module, subModule, requiredType);
-    // console.log("Roles:", roles);
-    // console.log("Permissions:", roles.permissions);
 
     return roles.permissions?.some((perm) => {
       if (perm.module !== module) return false;

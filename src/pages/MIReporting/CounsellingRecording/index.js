@@ -24,12 +24,9 @@ const CounsellingRecording = () => {
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    // console.log(counsellingRecordings)
-
     useEffect(() => {
         dispatch(fetchCounsellingRecordings({ centerAccess  }));
     }, [dispatch, centerAccess]);
-    // console.log(counsellingRecordings)
     // Extract unique months and sort them descending
 
     useEffect(() => {

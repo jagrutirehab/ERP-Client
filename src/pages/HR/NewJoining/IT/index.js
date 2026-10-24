@@ -41,13 +41,11 @@ const NEWJoiningIT = () => {
         const fetchDesignations = async () => {
             try {
                 const res = await getDesignations();
-                console.log("Res", res);
                 
                 setDesignationOptions(
                     res?.data
                 );
             } catch (err) {
-                console.log(err);
             }
         };
         fetchDesignations();

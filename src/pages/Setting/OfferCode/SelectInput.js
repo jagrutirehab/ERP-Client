@@ -8,7 +8,7 @@ const SearchableSelect = ({
   isMulti = false,
   defaultValue,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [, setSearchTerm] = useState('');
   const [selectedOption, setSelectedOption] = useState(null);
 
   useEffect(() => {
@@ -19,6 +19,7 @@ const SearchableSelect = ({
         setSelectedOption(options.find(opt => opt.value === defaultValue) || null);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValue, options]);
 
   const handleInputChange = (newValue) => {

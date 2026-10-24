@@ -25,14 +25,13 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { generateGRNNumber, getBatchesByMedicines } from "../../../../helpers/backend_helper";
 import {
-    fetchInternalTransferRequisitions,
-    fetchInternalTransferById,
-    reviewInternalTransfer,
-    requestingReviewInternalTransfer,
-    dispatchInternalTransfer,
-    packageInternalTransfer,
-    grnInternalTransfer,
-    searchPharmacyInventory,
+  fetchInternalTransferRequisitions,
+  fetchInternalTransferById,
+  reviewInternalTransfer,
+  requestingReviewInternalTransfer,
+  dispatchInternalTransfer,
+  packageInternalTransfer,
+  grnInternalTransfer,
 } from "../../../../store/features/pharmacy/pharmacySlice";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
@@ -93,7 +92,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     const [reviewModal, setReviewModal] = useState({ open: false, mode: null, row: null });
     const [approveItems, setApproveItems] = useState([]);
     const [reviewRemarks, setReviewRemarks] = useState("");
-    const [batchesByMedicine, setBatchesByMedicine] = useState({});
+    const [, setBatchesByMedicine] = useState({});
     const [batchesLoading, setBatchesLoading] = useState(false);
     const [allocationErrors, setAllocationErrors] = useState({});
 
@@ -126,8 +125,8 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
 
     const [pdfModal, setPdfModal] = useState({ open: false, row: null });
     const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
-    const [pdfLoading, setPdfLoading] = useState(false);
-    const [pdfError, setPdfError] = useState(false);
+    const [, setPdfLoading] = useState(false);
+    const [, setPdfError] = useState(false);
     const pdfBlobUrlRef = useRef(null);
 
     const [expandedRows, setExpandedRows] = useState({});
@@ -610,7 +609,6 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
         } catch (error) {
             setBatchesLoading(false);
             toast.error("Failed to load batches");
-            console.error(error);
         }
     };
 
@@ -659,18 +657,6 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
         }
     };
 
-    const handleSelectPharmacy = (itemId, pharmacy) => {
-        setApproveItems((prev) =>
-            prev.map((item) =>
-                item.itemId === itemId
-                    ? {
-                        ...item,
-                        selectedPharmacyId: pharmacy._id,
-                    }
-                    : item
-            )
-        );
-    };
 
     const handleReviewSubmit = async () => {
         const { mode, row } = reviewModal;
@@ -739,10 +725,6 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
         userCenterAccess: user?.centerAccess || []
     });
 
-    const hasFulfillingAccess = (req) => {
-        const fulCenterId = req?.fulfillingCenter?._id || req?.fulfillingCenter;
-        return (user?.centerAccess || []).includes(fulCenterId?.toString());
-    };
 
     return (
         <CardBody
@@ -1349,7 +1331,6 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                     {approveItems.map((item, idx) => {
                                         const isSkipped = Number(item.approvedQty) === 0;
                                         const totalAllocated = (item.allocations || []).reduce((sum, a) => sum + (a.qty || 0), 0);
-                                        const isOverAllocated = totalAllocated > Number(item.approvedQty);
                                         const isProperlyAllocated = totalAllocated > 0 && totalAllocated <= Number(item.approvedQty);
                                         const conv = item.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
                                         const factor = (conv.baseQuantity || 1) / (conv.purchaseQuantity || 1);

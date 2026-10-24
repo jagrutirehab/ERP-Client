@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import {
-    Row,
-    Col,
-    Card,
-    CardBody,
-    Button,
-    Progress,
-    Spinner,
-    UncontrolledTooltip,
-    ModalFooter,
-    Modal,
-    ModalHeader,
-    ModalBody,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  Button,
+  Progress,
+  Spinner,
+  ModalFooter,
+  Modal,
+  ModalHeader,
+  ModalBody,
 } from "reactstrap";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { gettodayMyAttendanceStatus, postEmployeeCheckIn, updateEmployeeCheckOut } from "../../../../../helpers/backend_helper";
@@ -122,12 +121,14 @@ const Dashboard = () => {
         if (hasUserPermission) {
             fetchTodayAttendanceStatus();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if (hasUserPermission) {
             fetchAttendanceSummaryByMonth();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedMonth]);
 
     const handleMarkAttendance = async () => {

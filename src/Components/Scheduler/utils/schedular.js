@@ -1,12 +1,9 @@
 import {
-  format,
   addDays,
   subDays,
   startOfWeek,
   eachDayOfInterval,
-  isEqual,
   isWithinInterval,
-  addMinutes,
   areIntervalsOverlapping,
 } from "date-fns";
 
@@ -45,8 +42,6 @@ const getDay = (currentDate, actionType) => {
 const traverseCrossingEvents = (events, event) => {
   // { date, name }  [ { date, name } ]
   return (events || []).filter((e) => {
-    // console.table(format(event.startDate, 'dd MMMM yyyy h:mm a'));
-    // console.table(format(e.startDate, 'dd MMMM yyyy h:mm a'));
 
     return (
       // event.id !== e.id &&

@@ -17,7 +17,7 @@ const InternTopbar = ({ setDeleteIntern }) => {
   const { id } = useParams();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { roles, hasPermission } = usePermissions(token);
+  const { roles } = usePermissions(token);
 
   useEffect(() => { }, [id]);
   const dispatch = useDispatch();

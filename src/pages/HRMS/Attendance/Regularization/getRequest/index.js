@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
@@ -59,8 +59,6 @@ const [selectedMonth, setSelectedMonth] = useState("all");
     "GET_REGULARIZATIONS_REQUESTS",
     "DELETE",
   );
-  const loggedInUser = JSON.parse(localStorage.getItem("authUser"));
-  const managerId = loggedInUser?.data?._id;
 
   const centerOptions = useCenterOptions();
 
@@ -117,6 +115,7 @@ const [selectedMonth, setSelectedMonth] = useState("all");
   useEffect(() => {
     if (!hasUserPermission) navigate("/unauthorized");
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,
@@ -145,6 +144,7 @@ const [selectedMonth, setSelectedMonth] = useState("all");
     }, 500);
 
     return () => clearTimeout(handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const allYears = Array.from({ length: 2031 - 2015 + 1 }, (_, i) => 2015 + i);

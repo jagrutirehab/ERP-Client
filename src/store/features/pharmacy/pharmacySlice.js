@@ -1,34 +1,33 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
-    deleteAuditById,
-    getAuditsByStatus,
-    getDetailedPrescription,
-    getMedineApprovalsByStatus,
-    getNurseGivenMedicines as getNurseGivenMedicinesApi,
-    getPendingPatientApprovals,
-    updateMedicineApprovalStatus,
-    getInternalTransferRequisitions,
-    createInternalTransferRequisition,
-    searchPharmacyMedicines,
-    getInternalTransferRequisitionById,
-    updateInternalTransferRequisition,
-    reviewInternalTransferRequisition,
-    dispatchInternalTransferRequisition,
-    packageInternalTransferRequisition,
-    grnInternalTransferRequisition,
-    requestingReviewInternalTransferRequisition,
-    getPharmacyConsolidated,
-    getMatchingMedicines,
-    getSareyaanInventoryImports,
-    getApprovalMedicines as getApprovalMedicinesApi,
-    approvePilotApproval as approvePilotApprovalApi,
-    returnMedicine as returnMedicineApi,
-    getPharmacyReturns as getPharmacyReturnsApi,
-    getExpiredStock as getExpiredStockApi,
-    getExpiredStockHistory as getExpiredStockHistoryApi,
-    discardExpiredStock as discardExpiredStockApi,
-    getExpiredStockDetails as getExpiredStockDetailsApi,
-    getInventoryHealthReport as getInventoryHealthReportApi,
+  deleteAuditById,
+  getAuditsByStatus,
+  getDetailedPrescription,
+  getMedineApprovalsByStatus,
+  getNurseGivenMedicines as getNurseGivenMedicinesApi,
+  getPendingPatientApprovals,
+  updateMedicineApprovalStatus,
+  getInternalTransferRequisitions,
+  createInternalTransferRequisition,
+  searchPharmacyMedicines,
+  getInternalTransferRequisitionById,
+  updateInternalTransferRequisition,
+  reviewInternalTransferRequisition,
+  dispatchInternalTransferRequisition,
+  packageInternalTransferRequisition,
+  grnInternalTransferRequisition,
+  requestingReviewInternalTransferRequisition,
+  getPharmacyConsolidated,
+  getSareyaanInventoryImports,
+  getApprovalMedicines as getApprovalMedicinesApi,
+  approvePilotApproval as approvePilotApprovalApi,
+  returnMedicine as returnMedicineApi,
+  getPharmacyReturns as getPharmacyReturnsApi,
+  getExpiredStock as getExpiredStockApi,
+  getExpiredStockHistory as getExpiredStockHistoryApi,
+  discardExpiredStock as discardExpiredStockApi,
+  getExpiredStockDetails as getExpiredStockDetailsApi,
+  getInventoryHealthReport as getInventoryHealthReportApi,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -482,7 +481,6 @@ export const pharmacySlice = createSlice({
             });
         builder
             .addCase(updateApprovalStatus.fulfilled, (state, { payload }) => {
-                console.log(payload)
                 if (payload.type === "single" && payload.update !== "pendingPatients") {
                     state.medicineApprovals.data = state.medicineApprovals.data.filter((data) => data._id !== payload._id);
                 }

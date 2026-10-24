@@ -94,7 +94,6 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
           setTotalRows(response.pagination.total);
         }
       } catch (error) {
-        console.error("Failed to fetch tally logs:", error);
       } finally {
         setLoading(false);
       }
@@ -169,7 +168,6 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Failed to export CSV:", error);
     } finally {
       setExporting(false);
     }

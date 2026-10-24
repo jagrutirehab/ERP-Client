@@ -89,7 +89,6 @@ const IncidentReporting = ({
 
   // Initialize center options when centers or centerAccess changes
   useEffect(() => {
-    console.log({ centerAccess, centers });
 
     setCenterOptions(
       centers

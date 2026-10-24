@@ -6,7 +6,6 @@ import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import { convertSnakeToTitle } from "../../../utils/convertSnakeToTitle";
 import {
-  COUNSELLING_NOTE,
   mentalExaminationV2Fields,
 } from "../../../Components/constants/patient";
 import { SPECIAL_REQUIREMENT_LABELS } from "../../../utils/specialRequirements";
@@ -151,8 +150,6 @@ const DetailAdmission = ({ data }) => {
     psychiatric: "Psychiatric Assessment",
     geriatric: "Geriatric / Dementia / Palliative Assessment",
   };
-
-  console.log("data", data);
 
   return (
     <React.Fragment>

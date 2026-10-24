@@ -297,7 +297,6 @@
                                 </tr>
                                 <tr>
                                     {labels.map((label, i) => {
-                                        const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
                                         return (
                                         <th
                                             key={label}

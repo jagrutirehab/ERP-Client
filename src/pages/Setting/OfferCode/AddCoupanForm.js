@@ -1,4 +1,4 @@
-import { Formik, Form, ErrorMessage, useFormikContext, getIn } from 'formik';
+import { Formik, Form, useFormikContext, getIn } from 'formik';
 import { Input, Button } from 'reactstrap';
 import * as Yup from 'yup';
 import SearchableSelect from './SelectInput';
@@ -162,7 +162,6 @@ const CouponForm = ({ toggle, apiFlag, setApiFlag }) => {
 
         } catch (error) {
             if(!handleAuthError(error)) {
-                console.error("Add offer failed:", error);
                 toast.error(error.message || "Failed to add offer.");
             }
         }

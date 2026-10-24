@@ -755,8 +755,7 @@ const Doc = () =>
 const OUT = path.join(__dirname, "SOP_INTAKE_FORM.pdf");
 
 renderToFile(e(Doc), OUT)
-  .then(() => console.log(`[SOP] wrote ${OUT}`))
+  .then(() => {})
   .catch((err) => {
-    console.error("[SOP] PDF generation failed:", err);
     process.exit(1);
   });

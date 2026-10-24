@@ -284,7 +284,6 @@ const InternAddmissionForms = (intern) => {
       });
       addCanvasAsSinglePage(c, isFirstPage);
     } catch (err) {
-      console.error("captureSection error:", err);
     } finally {
       try {
         document.body.removeChild(clone);
@@ -310,7 +309,6 @@ const InternAddmissionForms = (intern) => {
       setPdfUrl(url);
       setPreviewModal(true);
     } catch (err) {
-      console.error("PDF generation failed:", err);
     } finally {
       setIsGenerating(false);
     }

@@ -60,7 +60,6 @@ import MedicineGiven from "./MedicineGiven";
 import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 import { io } from "socket.io-client";
 import {
-  getCharts,
   getCarryForward,
   toggleCarryForward,
 } from "../../../helpers/backend_helper";
@@ -89,7 +88,6 @@ const Charts = ({
   const latestHistoryDetailAdmissionId = isHistoryView
     ? (charts || []).find((c) => c.chart === DETAIL_ADMISSION)?._id
     : undefined;
-  const [, forceUpdate] = useState(0);
   // Prescriptions the current user has staged for carry-forward, loaded from
   // the server rather than kept in redux — so the selection survives a page
   // reload and stays private to this user, instead of resetting on refresh
@@ -141,9 +139,7 @@ const Charts = ({
     addmissionRef.current = addmission;
   }, [addmission]);
 
-  // console.log("Admission ID:", addmissionRef.current._id);
   useEffect(() => {
-    console.log(" useEffect triggered");
 
     const SOCKET_BASE_URL = api.API_URL.replace("/api/v1", "");
 
@@ -154,16 +150,13 @@ const Charts = ({
     });
 
     socketRef.current.on("connect", () => {
-      console.log(" Socket connected:", socketRef.current.id);
       setSocketReady(true);
     });
 
     socketRef.current.on("connect_error", (err) => {
-      console.log(" Socket error:", err.message);
     });
 
     socketRef.current.on("audioProcessingDone", (data) => {
-      console.log(" Processing Done:", data);
 
       const isRelevant = chartsRef.current?.some(
         (c) =>
@@ -172,9 +165,6 @@ const Charts = ({
       );
 
       if (!isRelevant) {
-        console.log(
-          "Ignoring audioProcessingDone — not relevant to this admission",
-        );
         return;
       }
 
@@ -189,13 +179,12 @@ const Charts = ({
       socketRef.current?.off("audioProcessingDone");
       socketRef.current?.disconnect();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!socketReady || !socketRef.current) return;
     if (!charts?.length) return;
-
-    console.log("[AI] Registering onAny listener");
 
     const handler = (eventName, data) => {
       if (
@@ -215,10 +204,6 @@ const Charts = ({
       );
 
       if (!isRelevant) return;
-
-      console.log(`[AI] Socket received: ${eventName}`, data);
-      console.log("addmissionRef.current?._id", addmissionRef.current?._id);
-      console.log("Addmission ref", addmissionRef);
 
       setTimeout(() => {
         if (addmissionRef.current?._id) {
@@ -243,6 +228,7 @@ const Charts = ({
     return () => {
       socketRef.current?.offAny(handler);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socketReady, charts]);
 
   const editChart = (chart) => {
@@ -312,8 +298,6 @@ const Charts = ({
     );
   };
 
-  console.log("CHARTING", charts);
-
   const handleAddAdditionalDetails = (chart) => {
     setAdditionalDetailsModal({ isOpen: true, chart });
   };
@@ -341,6 +325,7 @@ const Charts = ({
         }),
       );
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [charts]);
 
   return (
@@ -349,18 +334,6 @@ const Charts = ({
         <div className="timeline-continue">
           <Row className="timeline-right">
             {(charts || []).map((chart) => {
-              console.log("chart.addmission:", String(chart.addmission));
-              console.log("currentAddmissionId:", String(currentAddmissionId));
-              console.log(
-                "match:",
-                String(chart.addmission) === String(currentAddmissionId),
-              );
-              // console.log("HISTORY CHART ITEM:", {
-              //   chartId: chart._id,
-              //   chartType: chart.chart,
-              //   addmission: chart.addmission,
-              //   patient: chart.patient,
-              // });
               return (
                 <Wrapper
                   key={chart._id}

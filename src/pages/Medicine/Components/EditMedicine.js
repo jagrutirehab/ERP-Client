@@ -12,7 +12,6 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import {
   medicineTypes,
-  medicineUnits,
   medicineForms,
   baseUnits,
   purchaseUnits,
@@ -57,7 +56,6 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
         setDupError("");
       }
     } catch (err) {
-      console.error(err);
     }
   };
 

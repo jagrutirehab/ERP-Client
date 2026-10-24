@@ -90,6 +90,7 @@ const UOMList = ({ onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, refreshFlag]);
 
   const confirmDelete = async () => {

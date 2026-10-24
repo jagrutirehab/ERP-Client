@@ -14,7 +14,6 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
 
       return JSON.parse(cleaned);
     } catch (e) {
-      console.error("Parsing failed:", rawData);
       return null;
     }
   };

@@ -6,7 +6,6 @@ import Payment from "./Components/Payment";
 import {
   evaluateEvidenceGuard,
   evaluatePosGuards,
-  usePosTerminal,
 } from "./Components/billGuards";
 
 //data
@@ -16,7 +15,6 @@ import {
   CASH,
   CHEQUE,
   UPI,
-  IPD,
   DEPOSIT,
 } from "../../../Components/constants/patient";
 
@@ -78,7 +76,6 @@ const Deposit = ({
   posPrefill,
   onCloseLockChange,
 }) => {
-  console.log(admission, "admission");
 
   const dispatch = useDispatch();
   const [paymentModes, setPaymentModes] = useState([]);
@@ -139,7 +136,6 @@ const Deposit = ({
   // Charging on the terminal is optional — a payment collected elsewhere is
   // recorded with an evidence screenshot instead. Once a charge HAS been
   // approved though, the form cannot be abandoned: the money is already gone.
-  const { posAvailable } = usePosTerminal(patient?.center?._id);
   const posGuard = evaluatePosGuards(paymentModes, {
     readOnly: isPosRecovery,
   });

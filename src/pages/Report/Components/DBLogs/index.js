@@ -18,7 +18,7 @@ import DBLogsTable from "./components/DBLogsTable";
 
 const DBLogs = ({ data, loading, pagination }) => {
   const dispatch = useDispatch();
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,31 +116,8 @@ const DBLogs = ({ data, loading, pagination }) => {
   }, []);
 
   // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  };
 
   // Get action badge color and icon
-  const getActionBadge = (action) => {
-    switch (action?.toLowerCase()) {
-      case "delete":
-        return { color: "danger", icon: "🗑️", text: "Delete" };
-      case "update":
-        return { color: "warning", icon: "✏️", text: "Update" };
-      case "create":
-        return { color: "success", icon: "➕", text: "Create" };
-      default:
-        return { color: "secondary", icon: "📝", text: action || "Unknown" };
-    }
-  };
 
   return (
     <React.Fragment>

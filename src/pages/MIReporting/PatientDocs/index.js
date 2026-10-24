@@ -37,13 +37,10 @@ const PatientDocs = () => {
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    // console.log(patientDocs)
-
     useEffect(() => {
 
         dispatch(fetchPatientDocs({ centerAccess,selectedMonth ,selectedStatus,selectedDocsType }));
     }, [dispatch, centerAccess,selectedCenter,selectedMonth,selectedStatus,selectedDocsType]);
-    // console.log(patientDocs)
     // Extract unique months and sort them descending
 
    

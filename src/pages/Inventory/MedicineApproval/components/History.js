@@ -129,6 +129,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     useEffect(() => {
         if (activeSubTab !== "HISTORY" || !hasUserPermission) return;
         fetchMedicineApprovals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess])
 
     const columns = [

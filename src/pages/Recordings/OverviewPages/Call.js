@@ -10,11 +10,9 @@ const Call = () => {
 
   const loadOverviews = async () => {
     try {
-      const response = await getCallOverview();
-      console.log("Response", response);
+      await getCallOverview();
 
     } catch (error) {
-      console.log(error);
 
     }
   }

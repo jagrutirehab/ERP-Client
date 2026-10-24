@@ -18,6 +18,7 @@ export const useAccordion = (ids, { openFirst = false } = {}) => {
     }
 
     previousIds.current = ids;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   const toggle = useCallback(

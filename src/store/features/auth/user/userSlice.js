@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import history from "../../../../Routes/HistoryRoute";
 import Cookies from "js-cookie";
 import {
   deleteUser,

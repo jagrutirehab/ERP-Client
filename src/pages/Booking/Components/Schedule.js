@@ -7,7 +7,6 @@ import React, {
   memo,
 } from "react";
 //flatpicker
-import Flatpicker from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
 
 //react-select
@@ -394,7 +393,6 @@ const Schedule = ({
   // track ids to delete
   const [deleteScheduleIds, setDeleteScheduleIds] = useState([]);
   const [deleteSlotIds, setDeleteSlotIds] = useState([]);
-  console.log(deleteSlotIds);
 
   useEffect(() => {
     if (sessionPricing) {
@@ -402,6 +400,7 @@ const Schedule = ({
     }
   }, [sessionPricing]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const date = new Date();
 
   const initialSchedule = useMemo(
@@ -526,16 +525,6 @@ const Schedule = ({
     });
   }, []);
 
-  const bulkEditSchedule = useCallback((values) => {
-    setSchedule((prevSchedule) =>
-      prevSchedule.map((s) => ({
-        ...s,
-        workingSchedule: s.workingSchedule.map((w) => ({
-          ...(w.startTime ? w : values),
-        })),
-      }))
-    );
-  }, []);
 
   const handleSubmit = useCallback(
     async (values) => {
@@ -678,7 +667,6 @@ const Schedule = ({
       ).unwrap();
       setApiFlag((f) => !f);
     } catch (err) {
-      console.error("Update failed:", err);
     }
   };
 
@@ -1206,7 +1194,6 @@ export default connect(mapStateToProps)(Schedule);
 //   // track ids to delete
 //   const [deleteScheduleIds, setDeleteScheduleIds] = useState([]);
 //   const [deleteSlotIds, setDeleteSlotIds] = useState([]);
-//   console.log(deleteSlotIds);
 
 //   useEffect(() => {
 //     if (sessionPricing) {
@@ -1410,11 +1397,9 @@ export default connect(mapStateToProps)(Schedule);
 //   }, [isOpen, userSchedule]);
 
 //   useEffect(() => {
-//     console.log(doctor, "run change listing");
 //     const fetchSchedule = async () => {
 //       if (doctor?._id) {
 //         const resultAction = await dispatch(fetchUserSchedule(doctor._id));
-//         console.log(resultAction, "resultAction of listing");
 //         setToggled(resultAction?.payload?.user?.isHideFromSearch);
 //       }
 //     };
@@ -1433,12 +1418,10 @@ export default connect(mapStateToProps)(Schedule);
 //   }, [doctor]);
 
 //   const handleUserHide = async (e) => {
-//     console.log(e, "website listing");
 //     if (!doctor) return;
 //     const newStatus = e.target.checked;
 //     setToggled(newStatus);
 
-//     console.log(newStatus, "newStatus");
 //     try {
 //       await dispatch(
 //         markedUserActiveOrInactive({
@@ -1447,7 +1430,6 @@ export default connect(mapStateToProps)(Schedule);
 //       ).unwrap();
 //       setApiFlag(!apiFlag); // or show a toast/snackbar here
 //     } catch (err) {
-//       console.error("Update failed:", err);
 //     }
 //   };
 

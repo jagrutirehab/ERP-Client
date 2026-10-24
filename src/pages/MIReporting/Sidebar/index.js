@@ -60,7 +60,7 @@ const Sidebar = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
    const hasHubspotReportingPermission = hasPermission(
     "HUBSPOT_REPORTING",
     null,

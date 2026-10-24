@@ -204,7 +204,6 @@ const HiringForm = ({
 
       setEmployees(options);
     } catch (error) {
-      console.log("Error loading employees", error);
     } finally {
       setLoadingEmployees(false);
     }

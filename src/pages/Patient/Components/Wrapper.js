@@ -195,8 +195,6 @@ const Wrapper = ({
     }
   };
 
-  console.log("item", item);
-
   const chartName = chart
     ? chart
         .toLowerCase()
@@ -221,10 +219,6 @@ const Wrapper = ({
   const carryForwardSourceId = item?.carryForwardedFrom?.id
     ? `${item.carryForwardedFrom.id.prefix}${item.carryForwardedFrom.id.patientId}-${item.carryForwardedFrom.id.value}`
     : null;
-
-  console.log("chartDiagnosis:", chartDiagnosis);
-  console.log("item._id:", item._id);
-  console.log("additionalDiagnosis array:", additionalDiagnosis);
 
   return (
     <motion.div

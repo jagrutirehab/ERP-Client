@@ -53,7 +53,6 @@ const RefundAmountMOM = () => {
         }
     });
 
-    // console.log(allMonths);
     return Array.from(allMonths).sort().reverse();
     }, [refundAmountMOM]);
 

@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet, Font } from "@react-pdf/renderer";
 import { formatDosage } from "../../../../../helpers/prescriptionFrequency";
 
-import Montserrat from "../../../../assets/fonts/Montserrat-ExtraBold.ttf";
 import RobotoHeavy from "../../../../assets/fonts/Roboto-Black.ttf";
 import Helvetica from "../../../../assets/fonts/Helvetica-Neue-Bold.ttf";
 import HelveticaNarrow from "../../../../assets/fonts/Helvetica-Neue-Medium.ttf";

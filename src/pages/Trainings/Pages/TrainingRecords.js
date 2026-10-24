@@ -170,13 +170,11 @@ const TrainingRecords = () => {
     const handleDelete = async () => {
         setDeleteLoading(true)
         try {
-            console.log("deleteRecord._id", deleteRecord._id);
             await deleteTrainerRecord(deleteRecord._id)
             toast.success("Record deleted successfully")
             setDeleteRecord(null)
             fetchRecords()
         } catch (error) {
-            console.log("Error", error)
             toast.error(error?.message || "Error deleting record")
         } finally {
             setDeleteLoading(false);

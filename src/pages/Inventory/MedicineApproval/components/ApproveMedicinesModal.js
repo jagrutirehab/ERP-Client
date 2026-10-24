@@ -245,10 +245,6 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
         }
     };
 
-    const handleUnselectAll = () => {
-        setSelected({});
-        setOpenPickers(new Set());
-    };
 
     const openPicker = (med) => {
         setOpenPickers((prev) => new Set(prev).add(med.prescriptionMedicineId));
@@ -474,17 +470,12 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
             autoSelectRef.current = "done";
             handleSelectAll();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, canAct, loading, approval]);
 
     // Whether every currently-selectable medicine (resolved + eligible, not
     // already given/rejected) is checked — flips the toggle button between
     // "Select All" and "Unselect All".
-    const selectableMeds = medicines.filter(
-        (m) => !m.alreadyDispensed && !m.rejected && isEligible(m)
-    );
-    const allSelectable =
-        selectableMeds.length > 0 &&
-        selectableMeds.every((m) => !!selected[m.prescriptionMedicineId]);
 
     const completedMeds = medicines.filter((m) => m.alreadyDispensed || m.rejected);
     const visibleMeds =

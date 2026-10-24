@@ -88,6 +88,7 @@ const PendingApprovals = ({ activeTab }) => {
         }, 500);
 
         return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     useEffect(() => {
@@ -97,6 +98,7 @@ const PendingApprovals = ({ activeTab }) => {
         setDebouncedSearch(q);
         setSelectedCenter(c);
         setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
     const fetchFNFExitEmployeeList = async () => {
@@ -125,6 +127,7 @@ const PendingApprovals = ({ activeTab }) => {
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchFNFExitEmployeeList();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab]);
 
     const handleDelete = async () => {

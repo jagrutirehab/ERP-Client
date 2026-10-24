@@ -228,6 +228,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                 navigate(isSareyaanOrder ? "/pharmacy/requisition/sareyaan-orders" : "/pharmacy/requisition/internal-transfer");
             })
             .finally(() => setPageLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [requisitionId]);
 
     const searchMedicines = async (inputValue) => {
@@ -261,6 +262,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                 searchMedicines(inputValue).then(callback);
             }, 350);
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [fulfillingCenter]
     );
 
@@ -298,36 +300,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
         setMedicineKey((k) => k + 1);
     };
 
-    const handleAddFromTable = (med) => {
-        if (items.some((i) => i.pharmacyId === med._id)) {
-            toast.warning(`${med.medicineName} is already in the list.`);
-            return;
-        }
-        const centerEntry = (med.centers || []).find(
-            (c) => (c.centerId?._id || c.centerId) === fulfillingCenter?.value
-        );
-        setItems((prev) => [
-            ...prev,
-            {
-                medicineId: med.medicineId?._id || med.medicineId || null,
-                pharmacyId: med._id,
-                customId: med.id || "—",
-                medicineName: str(med.medicineName),
-                type: str(med.medicineId?.type),
-                strength: str(med.Strength) || str(med.strength),
-                unit: str(med.unitType) || str(med.unit),
-                genericName: str(med.medicineId?.genericName),
-                brandName: str(med.medicineId?.brandName) || str(med.medicineId?.name),
-                baseUnit: str(med.medicineId?.baseUnit),
-                purchaseUnit: str(med.medicineId?.purchaseUnit),
-                conversion: med.medicineId?.conversion || { purchaseQuantity: 1, baseQuantity: 1 },
-                availableStock: centerEntry?.stock ?? 0,
-                requestedQty: 1,
-                itemRemarks: "",
-            },
-        ]);
-        toast.success(`${med.medicineName} added to cart!`);
-    };
 
     const updateItem = (pharmacyId, field, value) =>
         setItems((prev) =>

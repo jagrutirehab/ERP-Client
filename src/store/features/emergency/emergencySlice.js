@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
-  assignPatientType,
   getAllEmergencyPatients,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";

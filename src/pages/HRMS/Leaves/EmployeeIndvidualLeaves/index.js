@@ -18,7 +18,6 @@ const IndividualLeavesOfEmp = () => {
 
   const leaves = location?.state?.leaves || [];
   const employee = location?.state?.employeeId;
-  // console.log("leaves", location?.state);
 
   const [activeTab, setActiveTab] = useState("pending");
   const [monthFilter, setMonthFilter] = useState("ALL");
@@ -26,6 +25,7 @@ const IndividualLeavesOfEmp = () => {
 
   useEffect(() => {
     if (!hasUserPermission) navigate("/unauthorized");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredLeaves = useMemo(() => {
@@ -33,8 +33,6 @@ const IndividualLeavesOfEmp = () => {
       if (l?.status !== activeTab) return false;
 
       const created = new Date(l?.fromDate);
-      // console.log("created", created.getMonth());
-      // console.log("monthFilter", monthFilter);
 
       if (monthFilter !== "ALL" && created.getMonth() !== Number(monthFilter))
         return false;
@@ -48,6 +46,7 @@ const IndividualLeavesOfEmp = () => {
 
       return true;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leaves, activeTab, monthFilter, yearFilter])?.reverse();
 
   return (

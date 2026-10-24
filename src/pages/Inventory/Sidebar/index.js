@@ -154,6 +154,7 @@ const Sidebar = () => {
         setOpenSection(page.id);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   return (
@@ -331,6 +332,7 @@ const Sidebar = () => {
                 return (
                   <li key={page.id} className="mb-1">
                     <a
+                      href={`#${page.id}`}
                       ref={(el) => (triggerRefs.current[page.id] = el)}
                       onClick={(e) => {
                         e.preventDefault();

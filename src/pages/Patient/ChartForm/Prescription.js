@@ -8,7 +8,6 @@ import {
   CardBody,
   Input,
   Button,
-  FormFeedback,
   Label,
   CardHeader,
   Spinner,
@@ -53,7 +52,6 @@ import {
   createEditChart,
   fetchOPDPrescription,
   setPtLatestOPDPrescription,
-  toggleAppointmentForm,
   updatePrescription,
 } from "../../../store/actions";
 import Wrapper from "../Components/Wrapper";
@@ -66,7 +64,6 @@ import LabReport from "../Charts/LabReport";
 import DetailAdmission from "../Charts/DetailAdmission";
 import PrescriptionChart from "../Charts/Prescription";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import {
   getICDCodes,
@@ -206,7 +203,6 @@ const Prescription = ({
 }) => {
   const dispatch = useDispatch();
   const [medicines, setMedicines] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [allICDCodes, setAllICDCodes] = useState([]);
   const [icdOptions, setIcdOptions] = useState([]);
   // Previous IPD prescription, used to prefill the clinical notes on a new
@@ -219,7 +215,6 @@ const Prescription = ({
   // shows a loader while its request is in flight.
   const [togglingCarryForwardId, setTogglingCarryForwardId] = useState(null);
   const [opdLatestCharts, setOpdLatestCharts] = useState([]);
-  const icd2Initialized = React.useRef(false);
 
   const editPrescription = editChartData?.prescription;
   const ptLatestOPDPrescription = patientLatestOPDPrescription?.prescription;
@@ -309,6 +304,7 @@ const Prescription = ({
 
       return [...carried, ...handAdded];
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [carryForwardMedicines, isIPD, isEditMode, chartDate]);
 
   // Clinical text comes from the chart being edited, the previous OPD visit
@@ -322,13 +318,6 @@ const Prescription = ({
         ? lastIpdPrescription
         : null;
 
-  // console.log(patient.referredBy, "this is patient")
-
-  console.log("------------------");
-  console.log({ patient, type });
-  console.log("------------------");
-
-  console.log("type", type);
   useEffect(() => {
     if (!isIPD && populatePreviousAppointment)
       dispatch(
@@ -470,7 +459,6 @@ const Prescription = ({
         ),
     }),
     onSubmit: async (values) => {
-      // console.log("values", values);
       const formattedICD2 = Array.isArray(values.icdCode2)
         ? values.icdCode2.map((item) => ({
           code_id: item?.value,
@@ -685,6 +673,7 @@ const Prescription = ({
       setMedicines([]);
       dispatch(setPtLatestOPDPrescription(null));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditMode, isCarryForwardMode, isPopulateMode]);
 
   const closeForm = () => {
@@ -737,7 +726,6 @@ const Prescription = ({
         startDate,
         endDate: getMedicineEndDate(startDate, { duration: "30", unit: "Day (s)" }),
       };
-      // console.log(medicine);
 
       setMedicines((prevMeds) => [medicine, ...prevMeds]);
     }
@@ -814,6 +802,7 @@ const Prescription = ({
         />
       </Col>
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drugs, medicines]);
 
   const medicineTable = useMemo(() => {
@@ -834,8 +823,6 @@ const Prescription = ({
   useEffect(() => {
     const fetchICD = async () => {
       const res = await getICDCodes();
-
-      console.log("res", res);
 
       const options = res?.map((item) => ({
         label: `${item?.code} - ${item.text}`,
@@ -905,6 +892,7 @@ const Prescription = ({
       .filter(Boolean);
 
     validation.setFieldValue("icdCode2", selected);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allICDCodes, sourcePrescription]);
 
   return (

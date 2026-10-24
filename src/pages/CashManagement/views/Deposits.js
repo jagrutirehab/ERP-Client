@@ -116,12 +116,14 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
 
   useEffect(() => {
     formik.setFieldValue("attachment", attachment);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attachment]);
 
   useEffect(() => {
     if (attachmentTouched) {
       formik.validateField("attachment");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attachment, attachmentTouched]);
 
   const handleAttachmentChange = (file) => {
@@ -142,7 +144,6 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
       ).unwrap();
     } catch (error) {
       if (!handleAuthError(error)) {
-        console.error("Error fetching bank deposits:", error);
         toast.error(error.message || "Failed to fetch bank deposits.");
       }
     }

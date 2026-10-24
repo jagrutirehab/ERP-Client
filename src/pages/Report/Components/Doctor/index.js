@@ -59,7 +59,7 @@ const Doctor = ({ centers, centerAccess }) => {
       title: c.title,
     }));
 
-  const [selectedCenters, setSelectedCenters] = useState(centerOptions);
+  const [, setSelectedCenters] = useState(centerOptions);
   const [selectedCentersIds, setSelectedCentersIds] = useState(
     centerOptions.map((c) => c._id),
   );
@@ -114,7 +114,6 @@ const Doctor = ({ centers, centerAccess }) => {
         csvRef.current.link.click();
       }, 100);
     } catch (error) {
-      console.error("Failed to fetch full doctor analytics", error);
     } finally {
       setCsvLoading(false);
     }
@@ -136,7 +135,6 @@ const Doctor = ({ centers, centerAccess }) => {
       });
       setData(res || { data: [], pagination: { totalPages: 1, totalDocs: 0 } });
     } catch (err) {
-      console.error("Failed to fetch doctor analytics", err);
       setData({ data: [], pagination: { totalPages: 1, totalDocs: 0 } });
     } finally {
       setLoading(false);
@@ -145,6 +143,7 @@ const Doctor = ({ centers, centerAccess }) => {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     debouncedSearch,

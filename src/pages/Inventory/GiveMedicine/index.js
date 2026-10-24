@@ -147,7 +147,6 @@ const Givemedicine = ({
         toast.error(response.data.message || "Something went wrong");
       }
     } catch (error) {
-      console.error(error);
       toast.error(error?.message || "Server Error");
     } finally {
       setLoading(false);

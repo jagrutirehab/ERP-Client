@@ -73,6 +73,7 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
         };
 
         loadDesignations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -118,6 +119,7 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
         };
 
         loadPositions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const form = useFormik({

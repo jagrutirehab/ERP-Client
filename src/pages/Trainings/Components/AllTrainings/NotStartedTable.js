@@ -58,6 +58,7 @@ const NotStartedTable = ({ trainingId, cycle, cntrs, onSummary }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trainingId, cycle, cntrs, search, page]);
 
   const rows = data?.rows || [];

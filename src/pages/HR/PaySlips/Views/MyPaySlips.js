@@ -20,7 +20,6 @@ import {
 import { getMyPayslipById } from "../../../../helpers/backend_helper";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
-import {capitalizeWords} from "../../../../utils/toCapitalize";
 
 const FILTER_KEY = "hr_my_payslip_filters";
 

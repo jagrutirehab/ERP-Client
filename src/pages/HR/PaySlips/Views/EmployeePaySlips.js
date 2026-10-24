@@ -42,7 +42,7 @@ const initialFilters = readStickyFilters(FILTER_KEY, {
 const EmployeePaySlipsTab = () => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
-  const [cardWidth, setCardWidth] = useState(
+  const [, setCardWidth] = useState(
     window.innerWidth > 990 ? "80%" : "100%",
   );
 
@@ -161,6 +161,7 @@ const EmployeePaySlipsTab = () => {
   useEffect(() => {
     if (!hasUserPermission) return;
     fetchPayslips();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

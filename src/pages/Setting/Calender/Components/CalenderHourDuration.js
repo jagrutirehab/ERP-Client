@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Col, Input, Label } from "reactstrap";
+import { Input, Label } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import {
   addCalenderDuration,

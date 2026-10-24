@@ -39,6 +39,5 @@ const logSlice = createSlice({
   },
 });
 
-export const {} = logSlice.actions;
 
 export default logSlice.reducer;

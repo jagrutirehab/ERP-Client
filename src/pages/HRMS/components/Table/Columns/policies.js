@@ -1,4 +1,4 @@
-import { Button, Badge } from "reactstrap";
+import { Badge } from "reactstrap";
 
 export const policyColumn = (onWeekOffClick = () => { }) => [
   {

@@ -1,10 +1,9 @@
 import React from "react";
 import { Card, CardBody, Col, Input, Label, Row, Spinner } from "reactstrap";
-import { connect, useDispatch } from "react-redux";
+import { connect } from "react-redux";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 
 const DashboardBar = ({ search, setSearch, flag, setFlag, loading }) => {
-  const dispatch = useDispatch();
   const handleFlagChange = (e) => {
     setFlag(e.target.value);
   };

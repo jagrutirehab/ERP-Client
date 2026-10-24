@@ -4,8 +4,6 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
-  ModalFooter,
-  Button,
   Card,
   CardBody,
   Nav,
@@ -14,7 +12,6 @@ import {
 } from "reactstrap";
 import { Check } from "lucide-react";
 import { markUnreadAlert } from "../../../../store/features/nurse/nurseSlice";
-import { useParams } from "react-router-dom";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const InfoModal = ({
@@ -35,7 +32,6 @@ const InfoModal = ({
     (item) => item.type === "medicine" || item.flag === "other"
   );
   const testAlerts = content.filter((item) => item.type === "test");
-  const otherAlerts = content.filter((item) => item.flag === "other");
 
   const getSeverityColor = (flag) => {
     switch (flag) {

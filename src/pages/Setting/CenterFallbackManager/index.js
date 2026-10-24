@@ -52,7 +52,6 @@ const CenterFallbackManager = () => {
           })) || [];
         setCenters(options);
       } catch (err) {
-        console.log("Error fetching centers", err);
       } finally {
         setLoadingCenters(false);
       }
@@ -70,7 +69,6 @@ const CenterFallbackManager = () => {
       );
       setFallbackList(withFallback);
     } catch (err) {
-      console.log("Error fetching fallback list", err);
     } finally {
       setLoadingList(false);
     }
@@ -116,7 +114,6 @@ const CenterFallbackManager = () => {
         setIsFallbackActive(false);
       }
     } catch (err) {
-      console.log("Error checking centre manager", err);
     } finally {
       setCheckingManager(false);
     }
@@ -148,7 +145,6 @@ const CenterFallbackManager = () => {
         })) || [];
       setEmployeeOptions(options);
     } catch (err) {
-      console.log("Error fetching employees", err);
     } finally {
       setLoadingEmployees(false);
     }

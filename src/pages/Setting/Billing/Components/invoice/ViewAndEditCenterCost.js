@@ -36,7 +36,6 @@
 //       const response = await getProceduresByid(data._id);
 //       setproData(response?.data || null);
 //     } catch (error) {
-//       console.error("Error Loading Data", error);
 //       toast.error("Error Loading Data");
 //     } finally {
 //       setLoading(false);
@@ -98,7 +97,6 @@
 //       setCostValues({});
 //       loadProcedures();
 //     } catch (err) {
-//       console.error("Update failed", err);
 //       toast.error("Error Updating Data");
 //     }
 //   };
@@ -117,7 +115,6 @@
 //       toast.success(response?.message || "Center Deleted Successfully");
 //       loadProcedures();
 //     } catch (error) {
-//       console.error("Error", error);
 //       toast.error("Error Deleting Center");
 //     } finally {
 //       setLoading(false);
@@ -362,6 +359,7 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
       setEditingId(null);
       setCostValues({});
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, data?._id]);
 
   useEffect(() => {
@@ -401,7 +399,6 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
       setCostValues({});
       loadProcedures();
     } catch (err) {
-      console.error(err);
       toast.error("Error Updating Data");
     }
   };
@@ -427,16 +424,13 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
   };
 
   const handleSaveCenters = async (payload) => {
-    console.log("payload from handle save centers function", payload);
     try {
-      const response = await addCentersToProcedure(payload);
-      console.log("response", response);
+      await addCentersToProcedure(payload);
 
       toast.success("Centers added successfully...");
       setShowCentersModal(false);
       loadProcedures();
     } catch (err) {
-      console.log("err", err);
       toast.error(err?.message || "Failed to add centers");
     }
   };
@@ -622,8 +616,7 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
 
 export default ViewAndEditCenterCost;
 
-{
-  /* <tbody>
+/* <tbody>
                 {prodata?.center
                   ?.slice()
                   .reverse()
@@ -715,4 +708,3 @@ export default ViewAndEditCenterCost;
                     );
                   })}
               </tbody> */
-}

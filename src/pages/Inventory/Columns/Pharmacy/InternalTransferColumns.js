@@ -76,7 +76,6 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                 return (
                     <div className="d-flex flex-column w-100 my-2 gap-1 rounded">
                         {visibleItems.map((item, i) => {
-                            const isPending = ["PENDING_REQUESTING", "PENDING_FULFILLING"].includes(row.status);
 
                             let customId, medType, medName, strength, unit;
                             const med = item.medicineId || {};

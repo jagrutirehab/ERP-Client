@@ -134,6 +134,7 @@ const NurseGivenMedicine = () => {
         if (!loading && hasUserPermission) {
             fetchGivenMedicines();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, currentPage, limit, debouncedSearch, selectedCenter, user?.centerAccess, reportDate, hasUserPermission, loading]);
 
     const handleOpenDetails = async (row) => {

@@ -5,8 +5,6 @@ import { connect, useDispatch, useSelector } from "react-redux";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
-import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { toast } from "react-toastify";
 import SearchBar from "./components/SearchBar";
 import TherapiesTable from "./components/TherapiesTable";
 import PaginationControls from "./components/PaginationControls";
@@ -44,7 +42,6 @@ const Therapies = (props) => {
     "THERAPIESSETTING",
     "READ"
   );
-  const handleAuthError = useAuthError();
 
   const isLoading = useSelector((state) => state.Setting.loading);
   const therapies = props.therapies || [];
@@ -143,7 +140,6 @@ const Therapies = (props) => {
       (t.title || "").toLowerCase().includes(searchItem.toLowerCase()) ||
       (t.description || "").toLowerCase().includes(searchItem.toLowerCase())
   );
-  const totalPages = Math.ceil(filteredTherapies.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentTherapies = filteredTherapies.slice(startIndex, endIndex);

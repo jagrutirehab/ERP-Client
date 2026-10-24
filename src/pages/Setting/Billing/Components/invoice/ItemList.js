@@ -24,10 +24,6 @@ const InvoiceProcedureList = ({
   onPageChange,
   onItemsPerPageChange,
 }) => {
-  const [updateItem, setUpdateItem] = useState({
-    isOpen: false,
-    formData: null,
-  });
   const [editRowId, setEditRowId] = useState(null);
   const [editCost, setEditCost] = useState(false);
   const [selectedItemData, setSelectedItemData] = useState(null);
@@ -37,26 +33,8 @@ const InvoiceProcedureList = ({
 
   const { roles } = usePermissions(token);
 
-  const toggleUpdateForm = (idx, data) =>
-    setUpdateItem({
-      isForm: true,
-      formIndex: idx,
-      formData: data,
-    });
 
-  const toggleUpdateModal = () => {
-    setUpdateItem({
-      isOpen: false,
-      formData: null,
-    });
-  };
 
-  const openEditModal = (item) => {
-    setUpdateItem({
-      isOpen: true,
-      formData: item,
-    });
-  };
 
   const start = (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(start + items.length - 1, totalItems);

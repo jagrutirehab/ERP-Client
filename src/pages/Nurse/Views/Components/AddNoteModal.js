@@ -8,7 +8,6 @@ import {
   Button,
   Badge,
   Spinner,
-  Alert
 } from "reactstrap";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -36,7 +35,6 @@ const AddNoteModal = ({ isOpen, toggle, patientId }) => {
       resetForm();
       toggle();
     } catch (error) {
-      console.error("Error creating note:", error);
     } finally {
       setSubmitting(false);
     }

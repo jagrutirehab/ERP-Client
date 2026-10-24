@@ -254,7 +254,6 @@ export const addDeposit = createAsyncThunk(
           message: "Deposit Saved Successfully",
         })
       );
-      console.log("Deposit Added Response:", response);
       if (response.addmission) {
         dispatch(fetchBills(response.addmission));
       }
@@ -374,7 +373,6 @@ export const billSlice = createSlice({
       }
     },
     createEditBill: (state, { payload }) => {
-      console.log(payload, "payload");
       state.billForm = payload;
     },
 
@@ -564,11 +562,6 @@ export const billSlice = createSlice({
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.addmission
           );
-          const findBillIndex = state.data[findIndex].bills.findIndex(
-            (bill) => bill._id === payload.bill?._id
-          );
-          const currentBillInAddmission =
-            state.data[findIndex].bills[findBillIndex];
           state.totalInvoicePayment -=
             state.data[findIndex]?.totalInvoicePayable;
           state.totalInvoicePayment +=
@@ -669,9 +662,6 @@ export const billSlice = createSlice({
           (el) => el._id === payload.addmission
         );
         /* ------update calculations when advance payament is updated------ */
-        const findBillIndex = state.data[findIndex]?.bills?.findIndex(
-          (bill) => bill._id === payload.bill?._id
-        );
         /* ------ Global Calculations ------- */
         state.totalAdvancePayment -= state.data[findIndex]?.totalAdvancePayment;
         state.totalAdvancePayment +=
@@ -737,9 +727,6 @@ export const billSlice = createSlice({
         state.loading = false;
         const findIndex = state.data.findIndex(
           (el) => el._id === payload.addmission
-        );
-        const findBillIndex = state.data[findIndex]?.bills?.findIndex(
-          (bill) => bill._id === payload.bill?._id
         );
         state.data[findIndex].bills = payload.payload;
       })

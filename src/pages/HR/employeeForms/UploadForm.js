@@ -127,15 +127,10 @@ const UploadForm = ({ onSuccess, onCancel }) => {
   const [searchText, setSearchText] = useState("");
 
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const user = JSON.parse(localStorage.getItem("micrologin"))?.user?._id;
 
-  const { hasPermission, loading: isLoading } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "UPLOAD_EMPLOYEE_FORM", "READ");
+  const { hasPermission } = usePermissions(token);
 
   const hasWrite = hasPermission("HR", "UPLOAD_EMPLOYEE_FORM", "WRITE");
-  const hasDelete = hasPermission("HR", "UPLOAD_EMPLOYEE_FORM", "DELETE");
-  console.log("hasWrite:", hasWrite);
-  console.log("isLoading:", isLoading);
 
   const fetchEmployees = async (text) => {
     if (!text || text.length < 2) return setEmployees([]);

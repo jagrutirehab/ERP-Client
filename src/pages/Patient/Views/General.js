@@ -9,7 +9,6 @@ const General = ({
   currentAddmissionId,
   isPatientDischarged,
 }) => {
-  console.log("GENERAL TAB charts:", charts);
   return (
     <React.Fragment>
       <div className="">

@@ -110,8 +110,6 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
                                     ? "Elderly Functional and Daily Living Checklist"
                                     : "Detail Admission";
 
-  // console.log({ type });
-
   return (
     <React.Fragment>
       <CustomModal

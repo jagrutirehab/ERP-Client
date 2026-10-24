@@ -4,7 +4,6 @@ import Select from "react-select";
 import Flatpickr from "react-flatpickr";
 import { format } from "date-fns";
 import {
-  Alert,
   Button,
   Input,
   Label,
@@ -98,7 +97,6 @@ const RotationalShiftBulkModal = ({
         const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         setPreviewData(json.slice(0, 11)); // Header + 10 rows
       } catch (err) {
-        console.error("Error parsing excel for preview", err);
         setPreviewData([]);
       }
     };

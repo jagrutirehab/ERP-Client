@@ -1,4 +1,4 @@
-import { Badge, Button, Spinner } from "reactstrap";
+import { Badge, Button } from "reactstrap";
 import { Eye, Check, X } from "lucide-react";
 
 const Center = ({ children }) => (

@@ -179,6 +179,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
       }
     }
     fetchBaseBalance();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formik.values.center, dispatch, hasReadPermission]);
 
   const hasSelectedCenter = !!formik.values.center;

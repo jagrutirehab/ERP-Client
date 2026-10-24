@@ -1,19 +1,16 @@
 import React, { useEffect } from "react";
-import { getAppointmentsByDates, sortEvents } from "../data";
+import { getAppointmentsByDates } from "../data";
 
 //redux
 import { useDispatch } from "react-redux";
 
 // import AppointmentWidget from './AppointmentWidget';
 import {
-  addMinutes,
   areIntervalsOverlapping,
   differenceInMinutes,
   eachMinuteOfInterval,
   format,
-  isWithinInterval,
 } from "date-fns";
-import AppointmentWidget from "../EventWidget";
 import {
   stringToRgbaColor,
   traverseCrossingEvents,

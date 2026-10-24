@@ -76,7 +76,7 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
     const [uploadFile, setUploadFile] = useState(null);
     const [uploadSummary, setUploadSummary] = useState(null);
     const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(12);
+    const [limit] = useState(12);
     const [previewRows, setPreviewRows] = useState([]);
     const [modalSelectedCenter, setModalSelectedCenter] = useState(null);
     const [reportDate, setReportDate] = useState({
@@ -87,7 +87,7 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
     const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
     const [totalChunks, setTotalChunks] = useState(0);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [skippedCountTotal, setSkippedCountTotal] = useState(0);
+    const [skippedCountTotal] = useState(0);
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const centerOptions = [
@@ -154,6 +154,7 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchAudits();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, selectedCenter, reportDate, activeTab, dispatch, user?.centerAccess,]);
 
 
@@ -331,7 +332,6 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
             setPreviewRows(rows.slice(0, 10));
             toast.success("Preview loaded");
         } catch (err) {
-            console.error(err);
             toast.error("Failed to read file");
         }
     };

@@ -99,6 +99,7 @@ const ReporteesLeaveBalance = () => {
         if (hasUserPermission) {
             loadReporteesLeaveBalance();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, year, user?.centerAccess]);
 
 

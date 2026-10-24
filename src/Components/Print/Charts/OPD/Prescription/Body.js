@@ -89,7 +89,6 @@ const styles = StyleSheet.create({
 });
 
 const PrescriptionBody = ({ chart, doctor, baseDate, isCurrentMedicinesPrint }) => {
-  // console.log('chart',chart)
   const renderImage = (src, _width) => {
     if (!src) return null;
     return <Image src={src} style={styles.image} />;

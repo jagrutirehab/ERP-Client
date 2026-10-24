@@ -5,7 +5,6 @@ import "flatpickr/dist/themes/material_green.css";
 import {
   getLeavesAndRegs,
   getMyManager,
-  getTemporaryManager,
   postCompOffRequest,
   postLeaveRequest,
 } from "../../../../helpers/backend_helper";
@@ -31,7 +30,7 @@ const LeaveApplications = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [managerName, setManagerName] = useState("");
-  const [manager, setManager] = useState();
+  const [, setManager] = useState();
   const [regularizationDates, setRegularizationDates] = useState([]);
   const [isHeadOffice, setIsHeadOffice] = useState(false);
   const handleAuthError = useAuthError();
@@ -43,10 +42,8 @@ const LeaveApplications = () => {
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "APPLY_LEAVE", "READ");
 
-  const hasRead = hasPermission("HR", "APPLY_LEAVE", "READ");
   const hasWrite = hasPermission("HR", "APPLY_LEAVE", "WRITE");
   const hasDelete = hasPermission("HR", "APPLY_LEAVE", "DELETE");
-  const isReadOnly = hasRead && !hasWrite && !hasDelete;
 
   useEffect(() => {
     if (!hasUserPermission) navigate("/unauthorized");
@@ -60,7 +57,6 @@ const LeaveApplications = () => {
         setManager(res?.data?.manager || {});
         setApprovalAuthority(res?.data?.manager?._id || "");
       } catch (error) {
-        // console.log(error);
         if (!handleAuthError(error)) {
           toast.error(error.message || "Failed to fetch data");
         }
@@ -70,6 +66,7 @@ const LeaveApplications = () => {
     };
 
     getMyManagers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async (e) => {
@@ -103,7 +100,6 @@ const LeaveApplications = () => {
       let res;
       if (leaveType === "COMP_OFF_REQUEST") {
         res = await postCompOffRequest(compOffPayload, token);
-        console.log("res", res);
       } else {
         res = await postLeaveRequest(payload, token);
       }
@@ -114,7 +110,6 @@ const LeaveApplications = () => {
       setToDate(null);
       setLeaveReason("");
     } catch (err) {
-      // console.log("err", err);
       toast.error(err?.message || "Something went wrong");
     } finally {
       setLoading(false);
@@ -128,7 +123,6 @@ const LeaveApplications = () => {
       setRegularizationDates(response?.regularizations || []);
       setIsHeadOffice(Boolean(response?.isHeadOffice));
     } catch (error) {
-      console.log("Error", error);
     }
   };
 

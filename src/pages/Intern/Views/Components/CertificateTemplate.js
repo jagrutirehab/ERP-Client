@@ -129,8 +129,6 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
       } the best of luck for future endeavors.`
       : `We wish ${pronoun2} the best of luck for ${pronoun2} future endeavors.`;
 
-  console.log({ nameWithPronoun });
-
   return (
     <div style={styles.page}>
       <img src={InternBg} alt="certificate background" style={styles.bgImg} />

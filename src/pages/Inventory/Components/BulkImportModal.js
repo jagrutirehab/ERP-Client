@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Modal, ModalHeader, ModalBody, Progress, Card, CardBody, CardTitle, ListGroup, ListGroupItem } from "reactstrap";
+import { Modal, ModalHeader, ModalBody, Progress, ListGroup, ListGroupItem } from "reactstrap";
 import { Button } from "../Components/Button";
 import * as XLSX from "xlsx";
 import axios from "axios";
@@ -234,7 +234,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
 
   //     return obj;
   //   });
-  //   // console.log(mapped[0])
   //   const filtered = mapped.filter((o) => {
   //     const keys = Object.keys(o).filter(
   //       (k) => k !== "deleted" && k !== "centers"
@@ -310,10 +309,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           },
         });
 
-        // console.log("resp", resp);
-
         const data = resp || {};
-        // console.log(data)
         const inserted = Number(data.insertedCount ?? data.count ?? 0);
         const skipped =
           Number(
@@ -485,7 +481,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       }
     } catch (err) {
       toast.error("Upload failed unexpectedly");
-      console.error(err);
     } finally {
       setUploading(false);
       window.removeEventListener("beforeunload", beforeUnload);
@@ -690,7 +685,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       setUploadDone(false);
       toggle();
       toast.error("Failed to download failed medicines file.");
-      console.error("Download error:", error);
     }
   };
 

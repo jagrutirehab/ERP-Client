@@ -34,7 +34,6 @@ const formatDate = (isoDateStr) => {
 };
 
 const DetailInfo = ({ chart, patient, data, styles, admission }) => {
-  // console.log(data)
   // const age = () =>
   //   differenceInYears(new Date(), new Date(patient?.dateOfBirth));
 

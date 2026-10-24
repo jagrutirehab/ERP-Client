@@ -12,8 +12,6 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import CheckPermission from "../../../../../Components/HOC/CheckPermission";
-import { toast } from "react-toastify";
 import {
   medicineTypes2,
   baseUnits,
@@ -26,7 +24,6 @@ import {
 import { checkDuplicateMedicineRequisition } from "../../../../../helpers/backend_helper";
 import { normalizeLabel } from "../../../../../Components/constants/medicine";
 import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
-import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 
 function useDebounce(callback, delay) {
   const timer = useRef(null);
@@ -61,8 +58,6 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
   const aiSuggested = initialData?.aiSuggestions || {};
   const pickProposed = (key) => initialData?.proposedMedicine?.[key] || aiSuggested[key] || "";
 
-  const microUser = localStorage.getItem("micrologin");
-  const token = microUser ? JSON.parse(microUser).token : null;
 
   const user = useSelector((state) => state.User);
   const centerList = useSelector((state) => state.Center.data);
@@ -89,7 +84,6 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
         setDuplicateError("");
       }
     } catch (err) {
-      console.error("Duplicate check failed", err);
     }
   };
 

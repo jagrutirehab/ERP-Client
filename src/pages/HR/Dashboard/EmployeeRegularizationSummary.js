@@ -105,6 +105,7 @@ const EmployeeRegularizationSummaryDashboard = () => {
         if (hasUserPermission) {
             loadAllEmployeeRegularizations();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, selectedMonth, user?.centerAccess]);
 
 

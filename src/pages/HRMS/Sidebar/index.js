@@ -56,6 +56,7 @@ const Sidebar = () => {
                 setOpenSection(page.id);
             }
         });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.pathname]);
 
     return (

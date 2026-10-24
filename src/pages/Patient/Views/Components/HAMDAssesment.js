@@ -86,10 +86,8 @@ const HAMDAssesment = () => {
     }
 
     const totalScore = calculateScores(answers);
-    console.log(totalScore);
     const { severity, interpretation, recommendations } =
       getInterpretationAndRecommendations(totalScore);
-    console.log(severity, interpretation, recommendations);
     const formattedQuestions = hamdQuestions.filter((q) => answers[q.id] !== undefined).map((q) => ({
       questionId: q.id,
       question: q.question[language],

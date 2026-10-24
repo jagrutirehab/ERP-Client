@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Spinner } from "reactstrap";
 import {
@@ -75,7 +75,6 @@ const Finance = ({ centers, centerAccess }) => {
       setData(res?.payload || []);
       setTotalRows(res?.total || 0);
     } catch (err) {
-      console.error("Failed to fetch finance analytics", err);
       setData([]);
       setTotalRows(0);
     } finally {
@@ -85,6 +84,7 @@ const Finance = ({ centers, centerAccess }) => {
 
   useEffect(() => {
     fetchData(currentPage, perPage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, perPage]);
 
   // Manual trigger for View Report button - resets to page 1
@@ -116,8 +116,6 @@ const Finance = ({ centers, centerAccess }) => {
         centerAccess: selectedCentersIds,
       });
 
-      console.log({ response });
-
       // Create blob from response
       const blob = new Blob([response.data], {
         type: "text/csv;charset=utf-8;",
@@ -138,7 +136,6 @@ const Finance = ({ centers, centerAccess }) => {
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Failed to export CSV", err);
       alert("Failed to export CSV. Please try again.");
     } finally {
       setExportLoading(false);
@@ -333,32 +330,6 @@ const Finance = ({ centers, centerAccess }) => {
     },
   ];
 
-  const customStyles = {
-    headCells: {
-      style: {
-        paddingLeft: "8px",
-        paddingRight: "8px",
-      },
-    },
-    header: {
-      style: {
-        minHeight: "56px",
-      },
-    },
-    headRow: {
-      style: {
-        // Allows the header row to expand vertically
-        height: "auto",
-        minHeight: "56px",
-      },
-    },
-    cells: {
-      style: {
-        // Optional: wrap cell content too
-        whiteSpace: "normal",
-      },
-    },
-  };
 
   return (
     <>

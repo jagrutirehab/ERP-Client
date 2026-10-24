@@ -31,6 +31,7 @@ const PendingApprovals = ({ centerAccess, loading, approvals, activeTab, hasCrea
         }
 
         fetchPendingApprovals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [centerAccess, dispatch, activeTab, page, limit]);
 
 

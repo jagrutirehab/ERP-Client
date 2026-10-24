@@ -110,7 +110,6 @@ const Print = ({
           success = true;
           break;
         } catch (err) {
-          console.error(`Batch ${i + 1} attempt ${attempt + 1} failed:`, err);
         }
       }
       if (!success) failed.push(i + 1);

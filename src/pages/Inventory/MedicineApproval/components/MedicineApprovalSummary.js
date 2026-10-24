@@ -11,7 +11,6 @@ import { getMedicineApprovals, updateApprovalStatus, submitPilotApproval } from 
 import Select from "react-select";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
-import CheckPermission from "../../../../Components/HOC/CheckPermission";
 import * as XLSX from "xlsx";
 import { isPilotCenterRow } from "../../../../helpers/pilotCenter";
 import ApproveMedicinesModal from "./ApproveMedicinesModal";
@@ -150,6 +149,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     useEffect(() => {
         if (activeSubTab !== "ALL" || !hasUserPermission) return;
         fetchMedicineApprovals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, activeTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess, hasUserPermission]);
 
     useEffect(() => {

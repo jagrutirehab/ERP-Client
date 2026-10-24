@@ -68,12 +68,10 @@ const FestiveLeaves = () => {
   const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "FESTIVE_LEAVES", "READ");
-  const canRead = hasPermission("HR", "FESTIVE_LEAVES", "READ");
   const canWrite = hasPermission("HR", "FESTIVE_LEAVES", "WRITE");
   const canDelete = hasPermission("HR", "FESTIVE_LEAVES", "DELETE");
   const canEdit = canWrite;
   const canAdd = canWrite;
-  console.log("hasUserPermission", hasUserPermission);
 
   const fetchFestiveLists = async (year = selectedYear?.value) => {
     try {
@@ -97,6 +95,7 @@ const FestiveLeaves = () => {
 
   useEffect(() => {
     if (!hasUserPermission) return navigate("/unauthorized");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -108,30 +107,26 @@ const FestiveLeaves = () => {
     setIsModalOpen(false);
 
     fetchFestiveLists(selectedYear?.value);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
 
   const handleAddFestiveList = async (payload) => {
     try {
       setLoading(true);
       const response = await addFestiveLeavesList(payload);
-      // console.log("response for add", response);
       await fetchFestiveLists();
       toast.success(response?.message || "ADDED");
     } catch (err) {
-      console.log("err", err);
       toast.error(err?.message || "FAILED");
     } finally {
       setLoading(false);
     }
   };
 
-  console.log("fullData", fullData);
-
   const handleUpdateFestiveList = async (payload) => {
     try {
       setLoading(true);
       const response = await addLeavesToExistingList(selectedListId, payload);
-      // console.log("response for update", response);
       await fetchFestiveLists();
       toast.success(response?.message || "UPDATED");
     } catch (err) {
@@ -148,12 +143,10 @@ const FestiveLeaves = () => {
         date: toISODateStartOfDay(editedRow.date),
         particulars: editedRow.particulars,
       });
-      console.log("response update", response);
       fetchFestiveLists(selectedYear?.value);
       setEditingRowId(null);
       toast.success(response?.message || "Leave Updated");
     } catch (error) {
-      console.error("Update failed", error);
       toast.error(error?.message || "Error Updating Data");
     }
   };

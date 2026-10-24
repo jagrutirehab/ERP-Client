@@ -69,16 +69,10 @@ const Charts = ({
   admission,
   additionalDiagnosis,
 }) => {
-  console.log("Print additionalDiagnosis:", additionalDiagnosis);
   return (
     <React.Fragment>
       <Document>
         {(charts || []).map((chart) => {
-          console.log("Print chart._id:", chart._id);
-          console.log(
-            "additionalDiagnosis chart_ids:",
-            additionalDiagnosis?.map((d) => d.chart_id),
-          );
           return (
             <Page size="A4" style={styles.page} wrap={true}>
               <RenderWhen isTrue={chart?.chart === PRESCRIPTION}>

@@ -4,10 +4,7 @@ import DashboardEcommerce from "../pages/DashboardEcommerce";
 import Patient from "../pages/Patient";
 import MyMeetingUI from "../pages/Meeting/MeetingPage.jsx";
 import Intern from "../pages/Intern/index.js";
-import SopConfigs from "../pages/SopConfigs/index.js";
-import { element } from "prop-types";
 const GrievancePage = React.lazy(() => import("../pages/Grievance"));
-const GrievanceAdmin = React.lazy(() => import("../pages/GrievanceAdmin"));
 const PrivacyPolicyPage = React.lazy(() => import("../pages/PrivacyPolicy"));
 const Login = React.lazy(() => import("../pages/Authentication/Login"));
 const ForgetPasswordPage = React.lazy(
@@ -97,10 +94,6 @@ const allElements = [
   { element: Compliance, label: "Compliance" },
 ];
 
-console.log("SOP:", SOP);
-console.log("Recordings:", Recordings);
-console.log("HR:", HR);
-// console.log("Recordings lazy:", Recordings);
 const authProtectedRoutes = [
   { path: "/dashboard", component: DashboardEcommerce },
   { path: "/index", component: DashboardEcommerce },

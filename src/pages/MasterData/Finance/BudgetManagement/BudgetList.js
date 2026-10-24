@@ -151,6 +151,7 @@ const BudgetList = ({ onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, filter, refreshFlag]);
 
   const loadUsage = (id) => {

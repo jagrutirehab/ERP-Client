@@ -36,7 +36,6 @@ const HrConfigurations = () => {
   const {
     loading: permissionLoader,
     hasPermission,
-    roles: userRoles,
   } = usePermissions(token);
   const hasUserPermission = hasPermission(
     "SETTING",

@@ -1,18 +1,12 @@
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import {
   Col,
   Row,
-  UncontrolledDropdown,
-  DropdownMenu,
-  DropdownItem,
-  DropdownToggle,
   Input,
   Button,
 } from "reactstrap";
 
 import "flatpickr/dist/themes/material_green.css";
-import Flatpickr from "react-flatpickr";
-import { endOfDay, startOfDay } from "date-fns";
 import SearchPatient from "./Report/SeachPatient";
 import { payments } from "./Report/data";
 import DateRangeFilter from "../../../Components/Common/DateRangeFilter";
@@ -36,48 +30,8 @@ const Header = ({
   //   setReportDate({ start: startOfDay(start), end: endOfDay(today) });
   // };
 
-  const changeDate = (days) => {
-    const today = new Date();
 
-    if (!days) {
-      setReportDate({
-        start: startOfDay(today),
-        end: endOfDay(today),
-      });
-      return;
-    }
 
-    const start = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate() - (days - 1),
-    );
-
-    setReportDate({
-      start: startOfDay(start),
-      end: endOfDay(today),
-    });
-  };
-
-  const changeToMonth = () => {
-    const date = new Date(),
-      y = date.getFullYear(),
-      m = date.getMonth();
-    const firstDay = new Date(y, m, 1);
-    setReportDate({ start: startOfDay(firstDay), end: endOfDay(new Date()) });
-  };
-
-  const changeToLastMonth = () => {
-    const now = new Date();
-
-    const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
-
-    setReportDate({
-      start: startOfDay(firstDay),
-      end: endOfDay(lastDay),
-    });
-  };
 
   const handleChange = (e) => {
     if (e) setBillType(e.target.value);

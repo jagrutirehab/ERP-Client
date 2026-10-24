@@ -38,6 +38,7 @@ const Patient = ({ centerAccess, patients }) => {
     };
 
     loadDeletedUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, centerAccess]);
 
   const onCloseClick = () => {

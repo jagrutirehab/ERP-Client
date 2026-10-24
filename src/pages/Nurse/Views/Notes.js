@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
-import { Row, Badge, Tooltip } from "reactstrap";
+import { Row, Badge } from "reactstrap";
 import { getNotesByPatientId } from "../../../store/features/nurse/nurseSlice";
 import { useParams } from "react-router-dom";
 import moment from "moment";
@@ -13,7 +13,6 @@ const Notes = () => {
   const { notesData, notesLoading } = useSelector((state) => state.Nurse);
 
   const [expandedNotes, setExpandedNotes] = useState({});
-  const [tooltipOpen, setTooltipOpen] = useState(null);
 
   const MAX_NOTE_LENGTH = 250;
 
@@ -29,9 +28,6 @@ const Notes = () => {
     }));
   };
 
-  const toggleTooltip = (noteId) => {
-    setTooltipOpen(tooltipOpen === noteId ? null : noteId);
-  };
 
   const getBadgeColor = (flag) => {
     switch (flag?.toLowerCase()) {
@@ -162,7 +158,6 @@ const Notes = () => {
                         ? note?.note
                         : `${note?.note.substring(0, MAX_NOTE_LENGTH)}...`;
 
-                    const authorRole = note?.author?.role;
 
                     return (
                       <div

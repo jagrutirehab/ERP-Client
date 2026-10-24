@@ -22,8 +22,6 @@ const EmployeeAttendance = () => {
     const [selectedMonth, setSelectedMonth] = useState(new Date());
     const passedStart = location.state?.startDate || searchParams.get('startDate');
     const passedEnd = location.state?.endDate || searchParams.get('endDate');
-    console.log("passedStart : ", passedStart);
-    console.log("passedEnd : ", passedEnd);
 
     const usedPassedDates = useRef(false);
     const handleAuthError = useAuthError();
@@ -35,7 +33,6 @@ const EmployeeAttendance = () => {
     const { data: summary, loading: summaryLoader } = attendanceSummary;
 
     const type = location.state?.type;
-    console.log("Typein", type);
 
 
     const fetchEmployeeAttendanceSummaryByMonth = async () => {
@@ -65,6 +62,7 @@ const EmployeeAttendance = () => {
 
     useEffect(() => {
         fetchEmployeeAttendanceSummaryByMonth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedMonth]);
 
     return (

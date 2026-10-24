@@ -18,14 +18,6 @@ if (microToken) {
 reportsMakerAxios.interceptors.response.use(
   (response) => (response.data ? response.data : response),
   (error) => {
-    console.error("❌ Reports Maker API Error:", {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-      code: error.code,
-      noResponseReceived: !error.response,
-    });
     return Promise.reject(
       error.response?.data || { message: error.message || "Reports Maker service error!" }
     );

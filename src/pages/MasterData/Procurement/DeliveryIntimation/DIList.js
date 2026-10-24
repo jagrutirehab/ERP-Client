@@ -7,7 +7,6 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
-const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
 const dateTimeFmt = (d) =>
   d
     ? new Date(d).toLocaleString("en-IN", {
@@ -79,6 +78,7 @@ const DIList = ({ onAdd }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, refreshFlag]);
 
   const handleMarkReceived = async (id) => {

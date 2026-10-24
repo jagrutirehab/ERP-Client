@@ -1,8 +1,7 @@
-import React, { useState } from "react";
-import { Button, Card, CardBody, Col, Input, Row, Spinner } from "reactstrap";
+import React from "react";
+import { Card, CardBody, Col, Input, Row, Spinner } from "reactstrap";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 import NurseFilters from "./NurseFilters";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 
 const NurseBar = ({ search, setSearch, flag, setFlag, loading }) => {

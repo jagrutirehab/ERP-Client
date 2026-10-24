@@ -425,7 +425,6 @@ export const Issues = (
                 row.assignedTo.name.slice(1).toLowerCase()
               : "-";
 
-            const eCode = row?.assignedTo?.eCode;
 
             return (
               <div className="text-center">
@@ -452,7 +451,6 @@ export const Issues = (
                 row.assignedTo.name.slice(1).toLowerCase()
               : "-";
 
-            const eCode = row?.assignedTo?.eCode;
 
             return (
               <div className="text-center">

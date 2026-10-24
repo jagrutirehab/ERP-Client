@@ -3,7 +3,7 @@ import React from "react";
 import { Row, Col, Alert, Card, CardBody, Container, FormFeedback, Input, Label, Form } from "reactstrap";
 
 //redux
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { Link } from "react-router-dom";
 import withRouter from "../../Components/Hooks/withRouter";
@@ -19,7 +19,6 @@ import logoLight from "../../assets/images/logo-light.png";
 import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
 
 const ForgetPasswordPage = props => {
-  const dispatch = useDispatch();
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed

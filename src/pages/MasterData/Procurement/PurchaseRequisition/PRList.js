@@ -106,6 +106,7 @@ const PRList = ({ onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, filter, refreshFlag]);
 
   const handleSubmitForApproval = async (id) => {

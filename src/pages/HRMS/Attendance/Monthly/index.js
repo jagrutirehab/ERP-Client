@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import Select from "react-select";
-import { Button, CardBody, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner, UncontrolledTooltip } from 'reactstrap';
+import { Button, CardBody, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from 'reactstrap';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { format } from 'date-fns';
-import { Calendar, CloudUpload, FileSpreadsheet, History, RotateCw } from 'lucide-react';
+import { Calendar, CloudUpload, FileSpreadsheet, History } from 'lucide-react';
 import { downloadMonthlyPayrollTemplate } from '../../../../helpers/backend_helper';
 import MonthlyAttendanceUploadModal from '../../components/MonthlyAttendanceUploadModal';
 import { toast } from 'react-toastify';
@@ -132,6 +132,7 @@ const AttendanceMonthly = () => {
         if (hasUserPermission) {
             fetchEmployeeAttendanceMonthly();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         page,
         limit,

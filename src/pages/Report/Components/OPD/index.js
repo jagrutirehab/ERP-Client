@@ -134,13 +134,10 @@
 
 //   const csvOPD = () => {
 //     return data?.map((d, i) => {
-//       console.log({ opd: d });
 
 //       const opdCharges = d.bill?.receiptInvoice?.invoiceList?.find((inv) =>
 //         opdChargesLabels.includes(inv.slot)
 //       );
-
-//       console.log({ opdCharges });
 
 //       return {
 //         ...d,
@@ -243,14 +240,12 @@
 // export default connect(mapStateToProps)(OPDAnalytics);
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import PropTypes from "prop-types";
 import { differenceInMinutes, endOfDay, format, startOfDay } from "date-fns";
 import { connect, useDispatch, useSelector } from "react-redux";
 
 // components
 import Header from "../Header";
 import Divider from "../../../../Components/Common/Divider";
-import DataTableComponent from "../../../../Components/Common/DataTable";
 import { fetchOPDAnalytics } from "../../../../store/actions";
 import { CSVLink } from "react-csv";
 import Select from "react-select";
@@ -261,7 +256,6 @@ import { columns } from "./Columns";
 const OPDAnalytics = ({ data, centerAccess, total }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
-  const loading = useSelector((state) => state.Report.loading);
 
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
@@ -275,11 +269,9 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
   const [debouncedDoctor, setDebouncedDoctor] = useState("");
 
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(30);
+  const [limit] = useState(30);
 
   const activeDateRef = useRef(reportDate);
-
-  // console.log("total", total);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -312,6 +304,7 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
         }),
       );
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       dispatch,
       reportDate,
@@ -326,6 +319,7 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
 
   useEffect(() => {
     fetchReport(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedCenter,
     page,
@@ -424,9 +418,6 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
       };
     }) || [];
 
-  // console.log("mappedData", mappedData);
-
-  const opds = mappedData.filter((d) => Number(d?.calculatedOpdCharges) > 0);
 
   return (
     <React.Fragment>

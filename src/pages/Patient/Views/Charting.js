@@ -6,13 +6,11 @@ import {
   addClinicalNote,
   addGeneralClinicalNote,
   admitDischargePatient,
-  fetchCharts,
   fetchGeneralCharts,
   updateClinicalNote,
 } from "../../../store/actions";
 import ChartDate from "../Modals/ChartDate";
 import ChartForm from "../ChartForm";
-import { clearCharts } from "../../../store/features/chart/chartSlice";
 
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import {
@@ -36,7 +34,6 @@ import AdmissionSummary from "./AdmissionSummary";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import BioData from "./BioData";
 import CurrentMedicines from "./CurrentMedicines";
-import { getCharts } from "../../../helpers/backend_helper";
 
 const Charting = ({
   patient,
@@ -59,8 +56,6 @@ const Charting = ({
   const [dateModal, setDateModal] = useState(false);
   const [chartType, setChartType] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [filterChartType, setFilterChartType] = useState({});
-  const [isFetchingCharts, setIsFetchingCharts] = useState(false);
   const prevLoading = useRef(false);
 
   useEffect(() => {
@@ -72,26 +67,19 @@ const Charting = ({
   const toggleModal = () => setDateModal(!dateModal);
 
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const user = JSON.parse(localStorage.getItem("micrologin"))?.user?._id;
 
-  const { hasPermission, loading: isLoading } = usePermissions(token);
-  const hasUserPermission = hasPermission(
-    "PATIENTS",
-    "ADDMISSIONSUMMARY",
-    "READ",
-  );
+  const { hasPermission } = usePermissions(token);
 
   const hasRead = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "READ");
   const hasWrite = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "WRITE");
   const hasDelete = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "DELETE");
-  const isReadOnly = hasRead && !hasWrite && !hasDelete;
   const canAccessAdmissionSummary = hasRead || hasWrite || hasDelete;
 
   const handleAdmitPatient = () => {
     dispatch(admitDischargePatient({ data: null, isOpen: ADMIT_PATIENT }));
   };
 
-  const [addmissionId, setAddmissionId] = useState();
+  const [, setAddmissionId] = useState();
 
   const [open, setOpen] = useState(addmissionsCharts?.length > 0 ? "0" : null);
   const toggleAccordian = (id) => {
@@ -120,17 +108,10 @@ const Charting = ({
   // }, [patient?._id]);
 
   // useEffect(() => {
-  //   console.log(
-  //     "addmissionsCharts changed:",
-  //     addmissionsCharts.length,
-  //     "addmissionId:",
-  //     addmissionId,
-  //   );
   //   if (
   //     addmissionsCharts.length > 0 &&
   //     !addmissionsCharts.find((ch) => ch._id === addmissionId)
   //   ) {
-  //     console.log("setting addmissionId to:", addmissionsCharts[0]?._id);
   //     setOpen("0");
   //     setAddmissionId(addmissionsCharts[0]?._id);
   //   }
@@ -168,7 +149,6 @@ const Charting = ({
   //         }
   //       } catch (error) {
   //         if (!cancelled) {
-  //           console.log("getCharts error:", error);
   //           dispatch({ type: "getCharts/rejected" });
   //         }
   //       } finally {
@@ -264,6 +244,7 @@ const Charting = ({
         />
       )
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, patient]);
 
   // addmissionsCharts (state.Chart.data) is a shared, upsert-merged slice that
@@ -302,19 +283,6 @@ const Charting = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addmissionsCharts, tab, clinicalTestLoading, open, patient]);
 
-  console.log("addmissionsCharts", addmissionsCharts);
-  console.log("loading from Redux:", loading);
-  console.log("isFetchingCharts:", isFetchingCharts);
-  console.table(
-    "Table",
-    addmissionsCharts.map((a) => ({
-      admissionDate: a.addmissionDate,
-      dischargeDate: a.dischargeDate || "Active",
-      totalCharts: a.charts?.length ?? 0,
-      admissionId: a._id,
-    })),
-  );
-
   const generalComponent = useMemo(() => {
     return (
       <General
@@ -329,8 +297,6 @@ const Charting = ({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [charts, generalLoading, currentPatientAddmissionsCharts]);
-
-  console.log("patient", patient);
 
   return (
     <div className="mt-3">

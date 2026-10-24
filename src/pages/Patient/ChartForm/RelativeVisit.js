@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import PropTypes, { element } from "prop-types";
+import React, { useEffect } from "react";
+import PropTypes from "prop-types";
 import { Form, Row, Col, Card, CardBody, Input, Button } from "reactstrap";
 
 // Formik Validation

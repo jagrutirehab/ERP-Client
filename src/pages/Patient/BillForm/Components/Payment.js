@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { Row, Col, Label, Input, Button, Badge } from "reactstrap";
 import { connect } from "react-redux";
 import {
-  BANK,
   CARD,
   CASH,
   CHEQUE,

@@ -70,6 +70,7 @@ const GRNList = ({ onAdd }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const columns = [

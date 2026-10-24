@@ -318,7 +318,6 @@ const UserForm = ({
       role: Yup.string().required("Please Select User Role"),
     }),
     onSubmit: async (values) => {
-      console.log("here");
       const formData = new FormData();
       formData.append("authorId", values.authorId);
       formData.append("name", values.name);
@@ -400,7 +399,6 @@ const UserForm = ({
             onComplete(newUser.data[0]._id);
           }
         } catch (error) {
-          console.log(error);
           if (!handleAuthError(error)) {
             toast.error(error.message || "Failed to add new user.");
           }

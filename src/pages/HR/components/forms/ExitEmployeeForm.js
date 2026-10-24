@@ -74,6 +74,7 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
         }
 
         return debouncedSearch.cancel;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchText]);
 
     const resetAll = () => {

@@ -103,8 +103,6 @@ const IncidentList = ({
   //   "Closed",
   // ].incident.status
 
-  console.log({ hasIncidentRaisePermission });
-
   const hasActionPermission = (incident) => {
     if (incident.status === "Closed" || incident.status === "Rejected")
       return false;
@@ -128,12 +126,9 @@ const IncidentList = ({
     else return false;
   };
 
-  // console.log({ hasActionPermission: hasActionPermission(incidents[1]) });
-
   const totalPages = Math.max(1, pagination?.totalPages || 1);
 
   const renderPagination = () => {
-    console.log("hello");
 
     // if (!totalPages || totalPages <= 1) return null;
     const current = filters.page || 1;

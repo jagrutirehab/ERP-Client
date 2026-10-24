@@ -19,12 +19,11 @@ import AsyncSelect from "react-select/async";
 import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import {
   uploadOCRBill,
-  checkPharmacyBatch,
   checkExistingMedicineInPharmacy,
   confirmOCRMedicines,
   getMatchingMedicines,
@@ -86,8 +85,6 @@ const formatMedicineLabel = (m) => {
 
 const OCRBillImport = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.User);
   const centerList = useSelector((state) => state.Center.data);
   const location = useLocation();
   const navigate = useNavigate();
@@ -126,19 +123,19 @@ const OCRBillImport = () => {
   const [errorMedicinesFormData, setErrorMedicinesFormData] = useState({});
   const [selectedErrorMedicineIds, setSelectedErrorMedicineIds] = useState({});
   const [errorMatchingMedicinesMap, setErrorMatchingMedicinesMap] = useState({});
-  const [errorCheckedMedicines, setErrorCheckedMedicines] = useState({});
+  const [, setErrorCheckedMedicines] = useState({});
 
   // Pharmacy check results
   const [pharmacyCheckResults, setPharmacyCheckResults] = useState({});
 
   // Medicine confirmation
-  const [confirmedMedicines, setConfirmedMedicines] = useState({});
+  const [, setConfirmedMedicines] = useState({});
   const [matchingMedicinesMap, setMatchingMedicinesMap] = useState({});
   const [confirmationLoading, setConfirmationLoading] = useState(false);
 
   // User input for filling forms
   const [medicineFormData, setMedicineFormData] = useState({});
-  const [pharmacyStatus, setPharmacyStatus] = useState({});
+  const [, setPharmacyStatus] = useState({});
   const [successResult, setSuccessResult] = useState(null);
   const [billSupplier, setBillSupplier] = useState("");
   const [billNumber, setBillNumber] = useState("");
@@ -152,10 +149,6 @@ const OCRBillImport = () => {
   const [isResuming, setIsResuming] = useState(!!location.state?.resumeBillId || !!location.state?.retryBillId);
 
   // Edit missing medicine modal
-  const [editingMissingMedicineIdx, setEditingMissingMedicineIdx] = useState(null);
-  const [editingMissingMedicineData, setEditingMissingMedicineData] = useState({});
-  const [editingMissingMatches, setEditingMissingMatches] = useState([]);
-  const [editingMissingLoading, setEditingMissingLoading] = useState(false);
 
   // Per-row search-again state for the missing medicines table (extract step)
   const [errorSearchLoading, setErrorSearchLoading] = useState({});
@@ -554,10 +547,6 @@ const OCRBillImport = () => {
   // Helper Functions
   // ============================================
 
-  const getMissingMasterFields = (masterData) => {
-    const required = ["form", "baseUnit", "category", "storageType"];
-    return required.filter((field) => !masterData[field]);
-  };
 
   const downloadMissingFieldsCSV = async (medicines) => {
     if (medicines.length === 0) {
@@ -618,7 +607,6 @@ const OCRBillImport = () => {
 
       toast.success("Excel downloaded! Add these medicines to your master database.");
     } catch (err) {
-      console.error("Excel generation error:", err);
       toast.error("Failed to generate Excel report");
     }
   };
@@ -671,7 +659,6 @@ const OCRBillImport = () => {
 
       toast.success("Failed medicines list downloaded!");
     } catch (err) {
-      console.error("Excel generation error:", err);
       toast.error("Failed to generate Excel report");
     }
   };
@@ -724,11 +711,9 @@ const OCRBillImport = () => {
   // strict: false: name only - used for missing medicines (search, edit, retry).
   const fetchMatchingMedicines = async (extractedName, extractedStrength, { strict = true } = {}) => {
     if (!extractedName || extractedName.trim() === "") {
-      console.warn("⚠️ fetchMatchingMedicines: Empty name provided");
       return [];
     }
     try {
-      console.log(`🔍 CALLING API: getMatchingMedicines("${extractedName}", "${extractedStrength || ""}")`);
 
       // Create a promise that rejects after 10 seconds
       const timeoutPromise = new Promise((_, reject) =>
@@ -745,12 +730,10 @@ const OCRBillImport = () => {
 
       const medicinesArray = result?.data || [];
       if (Array.isArray(medicinesArray) && medicinesArray.length > 0) {
-        console.log(`   Sample match:`, medicinesArray[0]);
       }
 
       return Array.isArray(medicinesArray) ? medicinesArray : [];
     } catch (err) {
-      console.error(`❌ API Error for "${extractedName}":`, err?.message || err);
       return [];
     }
   };
@@ -840,25 +823,15 @@ const OCRBillImport = () => {
       setProcessingStatus("extracting");
       const response = await uploadOCRBill(formData);
 
-      console.log("📤 Full upload response:", response);
-      console.log("   response.data:", response.data);
-
       // Handle both response.data.data and response.data structures
       const result = response.data || response;
-      console.log("📤 Extracted result:", result);
 
       // Validation
       if (!result || !result.billImportId) {
-        console.error("❌ Invalid response:", result);
         throw new Error("Invalid response structure: missing billImportId");
       }
 
-      console.log("✅ Upload successful, bill ID:", result.billImportId);
-      console.log("   Extracted medicines count:", (result.extractedMedicines || []).length);
-      console.log("   Missing medicines count:", (result.errorMedicines || []).length);
       if (result.createdRequisitions?.length > 0) {
-        console.log(`✅ Created ${result.createdRequisitions.length} medicine requisitions`);
-        console.log("   Justification:", result.requisitionJustification);
       }
 
       setBillImportId(result.billImportId);
@@ -867,7 +840,6 @@ const OCRBillImport = () => {
       setErrorMedicines(addIdsToMedicines(result.errorMedicines || []));
 
       // Initialize extracted form data with OCR data
-      console.log("📋 Building extracted form data from medicines...");
       const initialExtractedData = {};
       let extractedSupplier = result.billMetadata?.supplier || "";
       let extractedBillNumber = result.billMetadata?.billNumber || result.extractedBillNumber || "";
@@ -880,7 +852,6 @@ const OCRBillImport = () => {
       let totalBillAmount = result.billMetadata?.totalAmount || (extractedFinalAmount + extractedTax) || 0;
 
       if (result.extractedMedicines && Array.isArray(result.extractedMedicines)) {
-        console.log(`   Processing ${result.extractedMedicines.length} medicines`);
         result.extractedMedicines.forEach((med, idx) => {
           const quantity = parseFloat(med.ocrExtracted?.quantity) || 0;
           const unitPrice = parseFloat(med.ocrExtracted?.unitPrice) || 0;
@@ -897,10 +868,8 @@ const OCRBillImport = () => {
             unitPrice: med.ocrExtracted?.unitPrice || "",
             totalPrice: med.ocrExtracted?.totalPrice || "",
           };
-          console.log(`   [${idx}] ${med.ocrExtracted?.name}`);
         });
       }
-      console.log("✅ Form data built successfully");
       setExtractedFormData(initialExtractedData);
       setBillSupplier(extractedSupplier);
       setBillNumber(extractedBillNumber);
@@ -910,34 +879,25 @@ const OCRBillImport = () => {
       setBillFinalAmount(extractedFinalAmount);
       setBillTotal(totalBillAmount);
 
-      console.log("✅ All state set. Ready to fetch matching medicines...");
-
       // Fetch matching medicines for each extracted medicine
       const matchingMap = {};
       const totalMeds = (result.extractedMedicines || []).length;
-      console.log("\n🔍 FETCHING MATCHING MEDICINES:");
-      console.log(`  Total medicines to fetch: ${totalMeds}`);
 
       if (totalMeds === 0) {
-        console.warn("⚠️ No medicines to fetch matches for");
       }
 
       for (let idx = 0; idx < totalMeds; idx++) {
         const extractedData = initialExtractedData[idx];
-        console.log(`\n  [${idx}] Fetching matches for: "${extractedData.medicineName}" ${extractedData.strength || ""}`);
         try {
           const matches = await fetchMatchingMedicines(
             extractedData.medicineName,
             extractedData.strength
           );
-          console.log(`    [${idx}] Found ${matches?.length || 0} matches`);
           matchingMap[idx] = matches || [];
         } catch (err) {
-          console.error(`  [${idx}] API Error:`, err);
           matchingMap[idx] = [];
         }
       }
-      console.log("\n  ✅ All medicines processed. Final matchingMap:", matchingMap);
 
       // Filter out medicines with no matches and move them to errors
       const medicinesWithMatches = [];
@@ -962,10 +922,6 @@ const OCRBillImport = () => {
           });
         }
       });
-
-      console.log(`\n📊 MEDICINE FILTERING RESULTS:`);
-      console.log(`  - Medicines with matches: ${medicinesWithMatches.length}`);
-      console.log(`  - Medicines without matches: ${medicinesWithoutMatches.length}`);
 
       // Update extracted medicines to only include those with matches
       setExtractedMedicines(medicinesWithMatches);
@@ -1025,9 +981,6 @@ const OCRBillImport = () => {
 
       setStep("extract");
     } catch (err) {
-      console.error("❌ Upload error details:", err);
-      console.error("   Error message:", err.message);
-      console.error("   Error stack:", err.stack);
       setError(err.response?.data?.message || err.message || "Failed to process bill");
     } finally {
       setLoading(false);
@@ -1101,7 +1054,6 @@ const OCRBillImport = () => {
           const strength = field === "strength" ? value : updated[idx]?.strength;
 
           if (medicineName && medicineName.trim() !== "") {
-            console.log(`Refetching matches for idx ${idx}: "${medicineName}" ${strength}`);
             const matches = await fetchMatchingMedicines(medicineName, strength);
 
             if (matches.length === 0) {
@@ -1165,7 +1117,6 @@ const OCRBillImport = () => {
           const strength = field === "extractedStrength" ? value : updated[idx]?.extractedStrength;
 
           if (medicineName && medicineName.trim() !== "") {
-            console.log(`Refetching matches for error idx ${idx}: "${medicineName}" ${strength}`);
             const matches = await fetchMatchingMedicines(medicineName, strength, { strict: false });
             setErrorMatchingMedicinesMap((prevMap) => ({
               ...prevMap,
@@ -1196,14 +1147,11 @@ const OCRBillImport = () => {
               updateBillErrors({
                 billImportId,
                 errors: [row],
-              }).catch((err) =>
-                console.warn("Auto-save of edited error failed:", err?.message || err)
-              );
+              }).catch(() => {});
             }
             return current;
           });
         } catch (err) {
-          console.warn("Auto-save of edited error failed:", err?.message || err);
         }
       }, 800);
     }
@@ -1239,7 +1187,6 @@ const OCRBillImport = () => {
         toast.success(`Found ${matches.length} match(es). Pick one and click "Move to Extracted".`);
       }
     } catch (err) {
-      console.error("Error medicine search failed:", err);
       toast.error("Search failed");
     } finally {
       setErrorSearchLoading((prev) => ({ ...prev, [idx]: false }));
@@ -1277,7 +1224,6 @@ const OCRBillImport = () => {
     }
 
     if (!movedTempId) {
-      console.warn("[Move to Extracted] error row has no _tempId — downstream tracking may fall back to name/strength matching");
     }
 
     // Add to extracted medicines, preserving the _tempId for tracking
@@ -1368,40 +1314,7 @@ const OCRBillImport = () => {
   };
 
   // Handle editing missing medicines in success view
-  const handleEditMissingMedicine = (medicine, idx) => {
-    setEditingMissingMedicineIdx(idx);
-    setEditingMissingMedicineData({
-      _tempId: medicine._tempId, // Preserve ID so retry flow can track this medicine
-      extractedName: medicine.extractedName,
-      extractedStrength: medicine.extractedStrength,
-    });
-    setEditingMissingMatches([]);
-  };
 
-  const handleSearchMissingMedicine = async () => {
-    if (!editingMissingMedicineData.extractedName?.trim()) {
-      toast.warning("Please enter medicine name");
-      return;
-    }
-
-    setEditingMissingLoading(true);
-    try {
-      const matches = await fetchMatchingMedicines(
-        editingMissingMedicineData.extractedName,
-        editingMissingMedicineData.extractedStrength,
-        { strict: false }
-      );
-      setEditingMissingMatches(matches || []);
-      if (!matches || matches.length === 0) {
-        toast.info("No matches found. Try different name or strength");
-      }
-    } catch (err) {
-      console.error("Error searching medicines:", err);
-      toast.error("Failed to search medicines");
-    } finally {
-      setEditingMissingLoading(false);
-    }
-  };
 
   const handleProceedFromExtraction = async () => {
     // Process ALL medicines (checked & unchecked)
@@ -1448,7 +1361,6 @@ const OCRBillImport = () => {
       // Step 2: Process all medicines (selected ones proceed, unselected go to errors)
       await handleProceedToPharmacyCheckAuto(indicesToProcess, matchingMap);
     } catch (err) {
-      console.error("Error in extraction flow:", err);
       const errorMsg = err.response?.data?.message || err.message || "Failed to process medicines";
       setError(errorMsg);
       toast.error(errorMsg);
@@ -1575,7 +1487,6 @@ const OCRBillImport = () => {
               pharmacyStatus: { exists: checkResult.exists, data: checkResult.data },
             };
           } catch (err) {
-            console.error(`Error checking medicine at index ${idx_num}:`, err);
             // Still add medicine to results even if check fails, just mark as error
             results[idx_num] = {
               medicineId: medicineId,
@@ -1591,10 +1502,6 @@ const OCRBillImport = () => {
       // Add unselected medicines to error list
       if (unselectedMedicines.length > 0) {
         const newErrorList = [...errorMedicines, ...unselectedMedicines];
-        console.log(`📊 ERROR MEDICINES UPDATE:`);
-        console.log(`   Before: ${errorMedicines.length} medicines`);
-        console.log(`   Adding: ${unselectedMedicines.length} unselected medicines`);
-        console.log(`   After: ${newErrorList.length} medicines`, newErrorList);
         setErrorMedicines(newErrorList);
 
         toast.info(`${unselectedMedicines.length} medicine(s) not selected — moved to "Missing" list. You can retry them later.`);
@@ -1613,7 +1520,6 @@ const OCRBillImport = () => {
       setEditedSinceReview(false);
       setStep("confirm");
     } catch (err) {
-      console.error("Error in pharmacy check:", err);
       setError(err.message || "Failed to process medicines");
       throw err;
     }
@@ -1697,7 +1603,6 @@ const OCRBillImport = () => {
             },
           };
         } catch (err) {
-          console.error(`Error checking medicine ${idx}:`, err);
           results[idx_num] = {
             medicineId,
             _tempId: extractedMedicines[idx_num]?._tempId,
@@ -1713,7 +1618,6 @@ const OCRBillImport = () => {
       setEditedSinceReview(false);
       setStep("confirm");
     } catch (err) {
-      console.error("Error in pharmacy check:", err);
       setError(err.response?.data?.message || "Failed to check pharmacy status");
     } finally {
       setLoading(false);
@@ -1838,7 +1742,6 @@ const OCRBillImport = () => {
       });
       setStep("success");
     } catch (err) {
-      console.error("Submit for requisition error:", err);
       const errorMsg = err.response?.data?.message || err.message || "Failed to submit for requisition";
       setError(errorMsg);
       toast.error(errorMsg);
@@ -1852,14 +1755,6 @@ const OCRBillImport = () => {
   // ============================================
 
   const handleFinalSubmission = async () => {
-    console.log(`\n🔍 FINAL SUBMISSION DEBUG:`);
-    console.log(`   Error Medicines Count: ${errorMedicines.length}`);
-    console.log(`   Error Medicines Details:`, errorMedicines.map(m => ({
-      name: m.extractedName,
-      strength: m.extractedStrength,
-      reason: m.reason
-    })));
-    console.log(`   Confirmed Medicines: ${Object.keys(pharmacyCheckResults).length}`);
 
     setLoading(true);
     setError(null);
@@ -1872,8 +1767,6 @@ const OCRBillImport = () => {
 
       Object.entries(pharmacyCheckResults).forEach(([idx, result]) => {
         const formData = medicineFormData[idx];
-        const medicineName = formData.medicineName || extractedFormData[idx]?.medicineName;
-        const strength = formData.strength || extractedFormData[idx]?.strength;
 
         // Track successfully processed medicines by ID for API and by temp ID for filtering errors
         processedMedicineIds.push(result.medicineId);
@@ -1926,11 +1819,6 @@ const OCRBillImport = () => {
       }, []);
       const errorsToSend = [...errorMedicines, ...leftoverExtracted];
 
-      console.log(`\n📤 SENDING TO API:`);
-      console.log(`   medicineConfirmations count: ${medicineConfirmations.length}`);
-      console.log(`   errorMedicines count: ${errorsToSend.length}`);
-      console.log(`   errorMedicines being passed:`, errorsToSend);
-
       const response = await confirmOCRMedicines({
         billImportId,
         billMetadata: {
@@ -1946,38 +1834,22 @@ const OCRBillImport = () => {
         errorMedicines: errorsToSend, // Include all error medicines (unchecked + not found + never selected)
       });
 
-      console.log("✅ Confirm response:", response);
-
       const result = response.data || response;
 
       if (!result || !result.billImportId) {
-        console.error("Invalid confirm response:", result);
         throw new Error("Invalid response: missing billImportId");
       }
 
       // Remove successfully processed medicines from error list using temp IDs
-      console.log("🔍 FILTERING LOGIC DEBUG (ID-BASED):");
-      console.log(`   Processed temp IDs:`, processedTempIds);
-      console.log(`   Error medicines before filtering:`, errorsToSend);
 
       const updatedErrorMedicines = errorsToSend.filter(error => {
         const wasProcessed = processedTempIds.includes(error._tempId);
 
         if (error._tempId) {
-          console.log(`   Checking error: "${error.extractedName}" (${error.extractedStrength}) - ID: ${error._tempId}`);
-          console.log(`   Result: ${wasProcessed ? "REMOVE" : "KEEP"}`);
         }
 
         return !wasProcessed;
       });
-
-      if (updatedErrorMedicines.length < errorsToSend.length) {
-        const removed = errorsToSend.filter(e => !updatedErrorMedicines.includes(e));
-        console.log(`🗑️ Removed ${removed.length} processed medicines from error list`);
-        console.log(`   Removed: ${removed.map(e => `${e.extractedName} (${e.extractedStrength})`).join(", ")}`);
-      } else {
-        console.log(`ℹ️ No medicines removed from error list`);
-      }
 
       // Update state with filtered medicines and add to success result
       setErrorMedicines(updatedErrorMedicines);
@@ -1987,7 +1859,6 @@ const OCRBillImport = () => {
       });
       setStep("success");
     } catch (err) {
-      console.error("Submission error:", err);
       setError(err.response?.data?.message || err.message || "Failed to submit medicines");
     } finally {
       setLoading(false);
@@ -1999,13 +1870,10 @@ const OCRBillImport = () => {
   // ============================================
 
   const handleResumeBill = async (billImportIdParam) => {
-    console.log("\n📂 RESUMING BILL:", billImportIdParam);
     setLoading(true);
     try {
       const bill = await getOCRBillDetails(billImportIdParam);
       const billData = bill?.data || bill;
-
-      console.log("  Bill loaded:", billData);
 
       // Restore bill state
       setBillImportId(billImportIdParam);
@@ -2064,7 +1932,6 @@ const OCRBillImport = () => {
         try {
           matchesByTempId[med._tempId] = (await fetchMatchingMedicines(med.name, med.strength)) || [];
         } catch (err) {
-          console.error(`  Error fetching matches for "${med.name}":`, err);
           matchesByTempId[med._tempId] = [];
         }
       }
@@ -2143,9 +2010,7 @@ const OCRBillImport = () => {
       }
 
       setStep("extract");
-      console.log("✅ Bill resumed successfully");
     } catch (err) {
-      console.error("❌ Failed to resume bill:", err);
       setError("Failed to resume bill");
       setIsResuming(false);
     } finally {
@@ -2229,7 +2094,6 @@ const OCRBillImport = () => {
       errorsToRetry = errorsToRetry.filter(e => !isProcessed(e));
 
       if (alreadyProcessed.length > 0) {
-        console.log(`⏭️ Skipping ${alreadyProcessed.length} medicines already added to inventory:`, alreadyProcessed.map(m => m.extractedName));
         toast.info(`${alreadyProcessed.length} medicine(s) already added to inventory - skipping retry`);
       }
 
@@ -2247,7 +2111,6 @@ const OCRBillImport = () => {
       const newMatchingMap = { ...matchingMedicinesMap };
 
       // Re-search for each missing medicine
-      console.log(`🔄 Retrying ${errorsToRetry.length} missing medicines...`);
       for (const error of errorsToRetry) {
         try {
           // Move a line into the review table only when a master medicine matches its
@@ -2266,7 +2129,6 @@ const OCRBillImport = () => {
             });
           }
         } catch (err) {
-          console.error(`Failed to retry "${error.extractedName}":`, err);
         }
       }
 
@@ -2343,7 +2205,7 @@ const OCRBillImport = () => {
               const dateStr = formattedExpiryDate.trim();
 
               // Try MM/YY or MM-YY format (pharmacy expiry, e.g., "07/27" = July 2027)
-              const mmyyMatch = dateStr.match(/^(\d{1,2})[-\/](\d{2})$/);
+              const mmyyMatch = dateStr.match(/^(\d{1,2})[-/](\d{2})$/);
               if (mmyyMatch) {
                 const month = parseInt(mmyyMatch[1]);
                 let year = parseInt(mmyyMatch[2]);
@@ -2361,7 +2223,7 @@ const OCRBillImport = () => {
 
               // Try DD-MM-YYYY or DD/MM/YYYY format (common in India)
               if (!parsed || isNaN(parsed.getTime())) {
-                const ddmmMatch = dateStr.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+                const ddmmMatch = dateStr.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
                 if (ddmmMatch) {
                   const day = parseInt(ddmmMatch[1]);
                   const month = parseInt(ddmmMatch[2]);
@@ -2451,7 +2313,6 @@ const OCRBillImport = () => {
           replace: true,
         });
       } catch (updateErr) {
-        console.error("Failed to update bill errors in database:", updateErr);
       }
 
       setError(null);
@@ -2459,7 +2320,6 @@ const OCRBillImport = () => {
       toast.success(`Found ${newMatches.length} new matches! Select them to continue.`);
       setStep("extract");
     } catch (err) {
-      console.error("Failed to retry missing medicines:", err);
       setError("Failed to retry missing medicines");
       setIsResuming(false);
     } finally {
@@ -4151,7 +4011,6 @@ const OCRBillImport = () => {
                         pharmacyStatus: { exists: checkResult.exists, data: checkResult.data },
                       };
                     } catch (err) {
-                      console.error(`Error rechecking medicine at index ${idx_num}:`, err);
                     }
                   }
 
@@ -4159,7 +4018,6 @@ const OCRBillImport = () => {
                   setEditedSinceReview(false);
                   toast.success("Pharmacy check completed. Review the results above.");
                 } catch (err) {
-                  console.error("Recheck error:", err);
                   setError("Failed to recheck pharmacy status");
                   toast.error("Failed to recheck pharmacy status");
                 } finally {

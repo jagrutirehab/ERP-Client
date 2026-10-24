@@ -126,16 +126,12 @@ const EmergencyAdmissionForm = ({
               ? `${patient.gender}`
               : "";
 
-      console.log({ genderAge });
-
       setValue("Emergency_Admission_ageGender", genderAge);
       if (emergencyRestraint) {
         setValue("Emergency_Admission_restraint", emergencyRestraint);
       }
     }
   }, [setValue, emergencyType, emergencyRestraint, age, patient]);
-
-  console.log({ age, gender: patient.gender });
 
   return (
     <div style={pageContainer}>

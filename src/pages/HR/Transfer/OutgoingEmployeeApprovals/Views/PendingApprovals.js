@@ -2,7 +2,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
-import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchEmployeeTransfers } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
@@ -22,7 +21,7 @@ const PendingApprovals = ({ activeTab }) => {
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
     const [selectedCenter, setSelectedCenter] = useState(queryCenter);
@@ -42,7 +41,6 @@ const PendingApprovals = ({ activeTab }) => {
     const { hasPermission, roles } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL", "READ");
 
-    const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const centerOptions = useCenterOptions();
 
@@ -76,6 +74,7 @@ const PendingApprovals = ({ activeTab }) => {
         setDebouncedSearch(q);
         setSelectedCenter(c);
         setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
     const fetchPendingEmployeeTransferApprovals = async () => {
@@ -103,6 +102,7 @@ const PendingApprovals = ({ activeTab }) => {
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingEmployeeTransferApprovals();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab]);
 
     const handleAction = async () => {

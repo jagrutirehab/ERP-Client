@@ -13,9 +13,8 @@ const AdmissionSummary = ({ patient, patientProfile, addmission }) => {
   const [generating, setGenerating] = useState(false);
 
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const user = JSON.parse(localStorage.getItem("micrologin"))?.user?._id;
 
-  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
   const hasRead = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "READ");
   const hasWrite = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "WRITE");
   const hasDelete = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "DELETE");
@@ -24,7 +23,6 @@ const AdmissionSummary = ({ patient, patientProfile, addmission }) => {
   const load = async () => {
     setLoading(true);
     try {
-      console.log("patient", patientProfile);
 
       const response = await getAddmissionSummary(
         patientProfile?.addmission?._id,
@@ -33,7 +31,6 @@ const AdmissionSummary = ({ patient, patientProfile, addmission }) => {
       const normalized = normalizeSummary(raw);
       setSummary(normalized);
     } catch (err) {
-      console.log("Error", err);
     } finally {
       setLoading(false);
     }
@@ -45,7 +42,6 @@ const AdmissionSummary = ({ patient, patientProfile, addmission }) => {
       await generateAddmissionSummary({ addmission, patient });
       await load();
     } catch (err) {
-      console.log("Generate error", err);
     } finally {
       setGenerating(false);
     }
@@ -54,6 +50,7 @@ const AdmissionSummary = ({ patient, patientProfile, addmission }) => {
   useEffect(() => {
     setSummary(null);
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addmission]);
 
   const getInterpretation = (test) => {

@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
-import separateCamelCase from "../../../../utils/separateCamelCase";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -56,7 +55,6 @@ const formatDiagnosisValue = (value) => {
 };
 
 const Diagnosis = ({ data, styles }) => {
-  console.log("data", data);
 
   return (
     <React.Fragment>

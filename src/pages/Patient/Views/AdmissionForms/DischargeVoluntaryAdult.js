@@ -65,8 +65,6 @@ const DischargeVoluntaryAdult = ({
     setToday(localISODate);
   }, []);
 
-  console.log("patient", patient);
-
   return (
     <div style={pageContainer}>
       <style>{`

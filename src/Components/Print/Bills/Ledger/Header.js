@@ -3,8 +3,7 @@ import { StyleSheet, View, Image, Text, Font } from "@react-pdf/renderer";
 import { format } from "date-fns";
 
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
-import Logo from "../../../../assets/images/jagruti-logo.png";
-import { JAGRUTI_LOGO_BASE64, getValidLogoSrc } from "../../constants/jagrutiLogo";
+import { getValidLogoSrc } from "../../constants/jagrutiLogo";
 
 Font.register({
   family: "Roboto",

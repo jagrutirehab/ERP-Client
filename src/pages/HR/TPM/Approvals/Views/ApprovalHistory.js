@@ -39,7 +39,7 @@ const ApprovalHistory = ({ activeTab }) => {
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
-    const { hasPermission, roles } = usePermissions(token);
+    const { hasPermission } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "THIRD_PARTY_MANPOWER_APPROVAL", "READ");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -82,6 +82,7 @@ const ApprovalHistory = ({ activeTab }) => {
         }, 500);
 
         return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     useEffect(() => {
@@ -91,6 +92,7 @@ const ApprovalHistory = ({ activeTab }) => {
         setDebouncedSearch(q);
         setFilters(prev => ({ ...prev, center: c }));
         setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
     useEffect(() => {
@@ -107,6 +109,7 @@ const ApprovalHistory = ({ activeTab }) => {
         };
 
         loadDesignations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchTPMHistory = async () => {
@@ -135,6 +138,7 @@ const ApprovalHistory = ({ activeTab }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchTPMHistory();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, filters, user?.centerAccess, activeTab, debouncedSearch]);
 
     const columns = [

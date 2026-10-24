@@ -165,9 +165,8 @@ const Employee = () => {
     };
 
     fetchDropdowns();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
-
-  console.log("positionOptions", positionOptions);
 
   const fetchMasterEmployeeList = async () => {
     try {
@@ -221,6 +220,7 @@ const Employee = () => {
     if (hasUserPermission) {
       fetchMasterEmployeeList();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

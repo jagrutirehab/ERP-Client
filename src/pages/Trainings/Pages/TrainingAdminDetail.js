@@ -107,6 +107,7 @@ const TrainingAdminDetail = () => {
       }
     };
     loadSummary();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, cycle, cntrs]);
 
   const changeTab = (key) =>

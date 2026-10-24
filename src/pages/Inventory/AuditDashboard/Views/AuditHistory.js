@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Button, Input, Spinner } from "reactstrap";
 import DataTable from "react-data-table-component";
 import Header from "../../../Report/Components/Header";
@@ -128,6 +128,7 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             loadAudits(1);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, hasUserPermission, selectedCenter, reportDate, limit, user?.centerAccess, dispatch]);
 
     const handlePageChange = async (newPage) => {
@@ -166,6 +167,7 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         }, 500);
 
         return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm]);
 
     const onAuditClick = (audit) => {

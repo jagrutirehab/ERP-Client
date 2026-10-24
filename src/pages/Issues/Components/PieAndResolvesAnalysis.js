@@ -3,8 +3,6 @@
 
 // const PieAndResolvesAnalysis = ({ data = [] }) => {
 
-//     console.log("data", data);
-
 //     // STATUS COUNTS
 //     const statusCounts = {
 //         new: data.filter(d => d.status === "new").length,
@@ -161,8 +159,6 @@ import { normalizeDates } from "../Helpers/normalizeDates";
 
 const PieAndResolvesAnalysis = ({ data = [] }) => {
 
-    console.log("data", data);
-
     // STATUS COUNTS
     const statusCounts = {
         new: data.filter(d => d.status === "new").length,
@@ -253,7 +249,6 @@ const PieAndResolvesAnalysis = ({ data = [] }) => {
                 <h6 style={{ fontWeight: 600 }}>Latest 10 Insights</h6>
 
                 {insights?.slice(0, 10).map((ticket, i) => {
-                    console.log("ticket - ", i, ticket);
 
                     const name = ticket?.assignedTo?.name || "Unknown";
                     const resolvedNote = ticket?.notes?.find(n => n?.status === "resolved");

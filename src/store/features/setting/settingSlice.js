@@ -23,8 +23,6 @@ import {
   postBillItem,
   postCalenderDuration,
   postCondition,
-  postDoctorSchedule,
-  postDoctorScheduleNew,
   postPaymentAccount,
   postSymptom,
   postTherapy,

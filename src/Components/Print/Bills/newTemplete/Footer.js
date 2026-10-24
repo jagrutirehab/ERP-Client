@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, StyleSheet, Font } from "@react-pdf/renderer";
-import { format } from "date-fns";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import toWords from "../../../../utils/toWords";
 
@@ -81,7 +80,6 @@ const styles = StyleSheet.create({
 
 const PrintFooter = ({ bill, amountInWords, generatedByName, generatedAt }) => {
   let invoice = bill?.invoice;
-  console.log("invoice from charty", invoice);
   let amountChargable = invoice?.calculatedPayable ?? 0.0;
 
   // if (invoice?.refund > 0) amountChargable = invoice.refund;

@@ -30,8 +30,6 @@ const BioData = ({ patient, addmission }) => {
 
   if (!patient) return null;
 
-  console.log("addmission", addmission);
-
   const handleEdit = () => {
     dispatch(
       togglePatientForm({
@@ -48,16 +46,6 @@ const BioData = ({ patient, addmission }) => {
 
   const togglePdfModal = () => setIsPdfOpen((prev) => !prev);
 
-  const fullAddress = [
-    patient.houseNo,
-    patient.streetName,
-    patient.city,
-    patient.state,
-    patient.country,
-    patient.pinCode,
-  ]
-    .filter(Boolean)
-    .join(", ");
 
   const dob = patient.dateOfBirth
     ? new Date(patient.dateOfBirth).toLocaleDateString()

@@ -3,7 +3,6 @@ import { toast } from "react-toastify";
 
 class PDFErrorBoundary extends React.Component {
   componentDidCatch(error, info) {
-    console.error("PDF render error:", error, info);
     toast.error(`PDF failed: ${error.message}`);
   }
 

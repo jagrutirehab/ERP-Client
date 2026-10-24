@@ -76,6 +76,7 @@ const ContractList = ({ onAdd, onEdit,onView}) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, refreshFlag]);
 
   const confirmDelete = async () => {
