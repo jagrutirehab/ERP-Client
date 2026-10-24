@@ -33,6 +33,7 @@ import CheckPermission from "../../../Components/HOC/CheckPermission";
 import DraftInvoice from "./Components/DraftInvoice";
 import { getWriteOff } from "../../../helpers/backend_helper";
 import InvoiceLedgerModal from "./Components/InvoiceLedgerModal";
+import InvoiceSummaryModal from "./Components/InvoiceSummaryModal";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Billing = ({
@@ -56,11 +57,21 @@ const Billing = ({
   const [writeOffMap, setWriteOffMap] = useState({});
   const [ledgerModal, setLedgerModal] = useState(false);
   const [ledgerAdmission, setLedgerAdmission] = useState(null);
+  const [summaryModal, setSummaryModal] = useState(false);
+  const [summaryAdmission, setSummaryAdmission] = useState(null);
   const toggleModal = () => setDateModal(!dateModal);
   const toggleLedgerModal = () => {
     setLedgerModal((prev) => {
       if (prev) {
         setLedgerAdmission(null);
+      }
+      return !prev;
+    });
+  };
+  const toggleSummaryModal = () => {
+    setSummaryModal((prev) => {
+      if (prev) {
+        setSummaryAdmission(null);
       }
       return !prev;
     });
@@ -115,10 +126,10 @@ const Billing = ({
 
   const latestAdmission = addmissionsBills?.length
     ? addmissionsBills?.reduce((latest, current) =>
-        new Date(current.addmissionDate) > new Date(latest.addmissionDate)
-          ? current
-          : latest,
-      )
+      new Date(current.addmissionDate) > new Date(latest.addmissionDate)
+        ? current
+        : latest,
+    )
     : null;
   //
 
@@ -324,6 +335,52 @@ const Billing = ({
         })()}
       />
 
+      <InvoiceSummaryModal
+        isOpen={summaryModal}
+        toggle={toggleSummaryModal}
+        patient={patient}
+        admission={summaryAdmission}
+        center={(() => {
+          if (
+            summaryAdmission?.center &&
+            typeof summaryAdmission.center === "object" &&
+            summaryAdmission.center.name
+          ) {
+            return summaryAdmission.center;
+          }
+          const admCenterId =
+            summaryAdmission?.center?._id ||
+            (typeof summaryAdmission?.center === "string"
+              ? summaryAdmission.center
+              : null);
+          if (admCenterId && Array.isArray(centers)) {
+            const found = centers.find(
+              (c) => String(c?._id) === String(admCenterId),
+            );
+            if (found && found.name) return found;
+          }
+          if (
+            patient?.center &&
+            typeof patient.center === "object" &&
+            patient.center.name
+          ) {
+            return patient.center;
+          }
+          const ptCenterId =
+            patient?.center?._id ||
+            (typeof patient?.center === "string" ? patient.center : null);
+          if (ptCenterId && Array.isArray(centers)) {
+            const found = centers.find(
+              (c) => String(c?._id) === String(ptCenterId),
+            );
+            if (found && found.name) return found;
+          }
+          return patient?.center && typeof patient.center === "object"
+            ? patient.center
+            : null;
+        })()}
+      />
+
       <div className="mt-3">
         <Row className="timeline-right row-gap-5">
           {(addmissionsBills || []).map((addmission, idx) => {
@@ -382,7 +439,7 @@ const Billing = ({
                   {/* <CheckPermission permission={"read"} subAccess={"Billing"}> */}
                   {addmission._id === latestAdmission?._id &&
                     hasUserPermission && (
-                      <div className="mt-2">
+                      <div className="mt-2 d-flex gap-2">
                         <Button
                           className="text-nowrap"
                           color="secondary"
@@ -393,7 +450,19 @@ const Billing = ({
                           }}
                           size="sm"
                         >
-                          Invoice History
+                          Billing Summary
+                        </Button>
+                        <Button
+                          className="text-nowrap"
+                          color="secondary"
+                          outline
+                          onClick={() => {
+                            setSummaryAdmission(addmission);
+                            setSummaryModal(true);
+                          }}
+                          size="sm"
+                        >
+                          Invoice Summary
                         </Button>
                       </div>
                     )}
@@ -445,30 +514,30 @@ const Billing = ({
                     user?.email === "owais@gmail.com" ||
                     user?.email === "bishal@gmail.com" ||
                     user?.email === "hemanthshinde@gmail.com") && (
-                    <div className="d-flex align-items-center">
-                      <UncontrolledTooltip
-                        placement="bottom"
-                        target="edit-admission"
-                      >
-                        Edit Admission
-                      </UncontrolledTooltip>
-                      <Button
-                        onClick={() => {
-                          dispatch(
-                            admitDischargePatient({
-                              data: addmission,
-                              isOpen: EDIT_ADMISSION,
-                            }),
-                          );
-                        }}
-                        id="edit-admission"
-                        size="sm"
-                        outline
-                      >
-                        <i className="ri-quill-pen-line text-muted fs-6"></i>
-                      </Button>
-                    </div>
-                  )}
+                      <div className="d-flex align-items-center">
+                        <UncontrolledTooltip
+                          placement="bottom"
+                          target="edit-admission"
+                        >
+                          Edit Admission
+                        </UncontrolledTooltip>
+                        <Button
+                          onClick={() => {
+                            dispatch(
+                              admitDischargePatient({
+                                data: addmission,
+                                isOpen: EDIT_ADMISSION,
+                              }),
+                            );
+                          }}
+                          id="edit-admission"
+                          size="sm"
+                          outline
+                        >
+                          <i className="ri-quill-pen-line text-muted fs-6"></i>
+                        </Button>
+                      </div>
+                    )}
 
                   <div className="d-flex align-items-center">
                     <UncontrolledTooltip
@@ -487,11 +556,10 @@ const Billing = ({
                       outline
                     >
                       <i
-                        className={`${
-                          open === idx.toString()
-                            ? " ri-arrow-up-s-line"
-                            : "ri-arrow-down-s-line"
-                        } fs-6`}
+                        className={`${open === idx.toString()
+                          ? " ri-arrow-up-s-line"
+                          : "ri-arrow-down-s-line"
+                          } fs-6`}
                       ></i>
                     </Button>
                   </div>
