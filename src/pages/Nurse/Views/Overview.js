@@ -110,6 +110,11 @@ const Overview = ({
               </div>
               <div className="col-md-9">
                 <div style={{ marginTop: "1rem", marginLeft: "1rem" }}>
+                  {profile?.finalDiagnosis && (
+                    <p className="text-muted mb-3">
+                      <strong>Final Diagnosis:</strong> {profile.finalDiagnosis}
+                    </p>
+                  )}
                   <h5 className="mb-2">Vital Signs</h5>
                   {loading ? (
                     <Placeholder />
