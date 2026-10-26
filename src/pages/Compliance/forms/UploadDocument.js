@@ -181,8 +181,10 @@ const UploadDocument = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchComplianceTypes({}));
-  }, [dispatch]);
+    const centerParam = (user?.centerAccess || []).map((c) => c?._id || c).join(",");
+    dispatch(fetchComplianceTypes({ center: centerParam }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, user?.centerAccess]);
 
 
   useEffect(() => {
