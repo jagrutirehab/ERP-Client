@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card, CardBody, Row, Col, Button, Input } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,6 +12,7 @@ import CheckPermission from "../../../Components/HOC/CheckPermission";
 import ComplianceTypeViewModal from "../components/ComplianceTypeViewModal";
 import { getComplianceTypeColumns } from "../Columns/ComplianceTypeColumns";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import {
   fetchComplianceTypes,
   setComplianceTypeStatus,
@@ -25,8 +26,7 @@ const ComplianceTypes = () => {
   const { roles } = usePermissions(token);
 
   const user = useSelector((state) => state.User);
-  const centerList = useSelector((state) => state.Center.data);
-  const { types, typesLoading, typesPagination } = useSelector((state) => state.Compliance);
+  const { types, typesLoading, typesTotal } = useSelector((state) => state.Compliance);
 
   const [viewingType, setViewingType] = useState(null);
   const [deactivating, setDeactivating] = useState(null);
@@ -36,22 +36,18 @@ const ComplianceTypes = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  const centerOptions = useMemo(
-    () => [
-      ...(user?.centerAccess?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
-      ...(centerList
-        ?.filter((c) => user?.centerAccess?.includes(c._id))
-        ?.map((c) => ({ value: c._id, label: c.title })) || []),
-    ],
-    [centerList, user?.centerAccess],
-  );
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) || centerOptions[0];
 
+  // If the centre access list changes (e.g. access revoked for the one
+  // currently selected), fall back to "ALL" instead of filtering on a centre
+  // the user can no longer see.
   useEffect(() => {
     if (selectedCenter !== "ALL" && !user?.centerAccess?.includes(selectedCenter)) {
       setSelectedCenter("ALL");
+      setPage(1);
     }
   }, [user?.centerAccess, selectedCenter]);
 
@@ -60,10 +56,14 @@ const ComplianceTypes = () => {
   const loadTypes = (search = searchQuery, pageArg = page) => {
     searchPromiseRef.current?.abort();
     const trimmed = search.trim();
+    const centerParam =
+      selectedCenter === "ALL"
+        ? (user?.centerAccess || []).map((c) => c?._id || c).join(",")
+        : selectedCenter;
     const promise = dispatch(
       fetchComplianceTypes({
         search: trimmed || undefined,
-        center: selectedCenter === "ALL" ? undefined : selectedCenter,
+        center: centerParam,
         page: pageArg,
         limit,
       }),
@@ -77,11 +77,11 @@ const ComplianceTypes = () => {
       });
   };
 
-  // centre, page or limit: reload from the server
+  // centre, page, limit, or the user's centre access: reload from the server
   useEffect(() => {
     loadTypes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCenter, page, limit]);
+  }, [selectedCenter, page, limit, user?.centerAccess]);
 
   const isFirstSearchRun = useRef(true);
   useEffect(() => {
@@ -193,7 +193,7 @@ const ComplianceTypes = () => {
                   setPage={setPage}
                   limit={limit}
                   setLimit={setLimit}
-                  pagination={{ totalDocs: typesPagination.total }}
+                  pagination={{ totalDocs: typesTotal }}
                   noDataComponent="No compliance types match your search."
                 />
               </div>

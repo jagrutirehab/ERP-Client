@@ -17,10 +17,7 @@ import { UploadCloud, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
 import Select from "react-select";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import {
-  getAllCenters,
-  getComplianceSubmissionById,
-} from "../../../helpers/backend_helper";
+import { getComplianceSubmissionById } from "../../../helpers/backend_helper";
 import {
   fetchComplianceTypes,
   addComplianceSubmission,
@@ -47,19 +44,12 @@ const formatSize = (bytes) =>
     ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
     : `${Math.round((bytes || 0) / 1024)} KB`;
 
+// Saved documents no longer carry a stored mime type — go by the file's
+// extension (preserved in its S3 URL) instead.
+const isPdfDoc = (doc) => /\.pdf($|\?)/i.test(doc?.url || doc?.originalName || doc?.name || "");
+
 // "2026-10-01T00:00:00.000Z" -> "2026-10-01" for <input type="date">
 const toDateInput = (v) => (v ? String(v).slice(0, 10) : "");
-
-const toList = (res) =>
-  Array.isArray(res)
-    ? res
-    : Array.isArray(res?.data)
-      ? res.data
-      : Array.isArray(res?.payload)
-        ? res.payload
-        : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : [];
 
 const StepTitle = ({ n, children }) => (
   <h6 className="mb-3 d-flex align-items-center gap-2">
@@ -109,7 +99,7 @@ const FileRow = ({ badge, name, size, href, onPreview, role, onRole, onRemove, t
         </span>
       )}
       <span className="text-muted" style={{ fontSize: 12 }}>
-        {formatSize(size)} · {tag}
+        {size ? `${formatSize(size)} · ` : ""}{tag}
       </span>
     </div>
     <Input
@@ -154,9 +144,8 @@ const UploadDocument = () => {
   );
   const saving = submissionSaving || draftSaving;
   const user = useSelector((state) => state.User);
+  const centerList = useSelector((state) => state.Center.data);
 
-  const [centres, setCentres] = useState([]);
-  const [centresLoading, setCentresLoading] = useState(false);
   const [draftLoading, setDraftLoading] = useState(false);
 
   // ---- form state ----
@@ -191,25 +180,8 @@ const UploadDocument = () => {
     setPreviewOpen(true);
   };
 
-  // ---- load centres + types ----
   useEffect(() => {
     dispatch(fetchComplianceTypes({}));
-
-    const loadCentres = async () => {
-      setCentresLoading(true);
-      try {
-        const res = await getAllCenters();
-        setCentres(toList(res));
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Failed to load centres");
-        }
-      } finally {
-        setCentresLoading(false);
-      }
-    };
-    loadCentres();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
 
@@ -267,11 +239,11 @@ const UploadDocument = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftId, navigate]);
 
-  const centre = centres.find((c) => c._id === centreId);
+  const centre = centerList?.find((c) => c._id === centreId);
   const type = types.find((t) => t._id === typeId);
   const centreName = (c) => c?.displayName || c?.title || c?.name || "";
 
-  const centreOptions = centres
+  const centreOptions = (centerList || [])
     .filter((c) => user?.centerAccess?.includes(c._id))
     .map((c) => ({
       value: c._id,
@@ -536,7 +508,6 @@ const UploadDocument = () => {
                       <Select
                         classNamePrefix="react-select"
                         options={centreOptions}
-                        isLoading={centresLoading}
                         isDisabled={isDraftMode}
                         placeholder="Select centre"
                         value={
@@ -717,7 +688,7 @@ const UploadDocument = () => {
                   {existingDocs.map((d) => (
                     <FileRow
                       key={d._id}
-                      badge={d.type === "application/pdf" ? "PDF" : "IMG"}
+                      badge={isPdfDoc(d) ? "PDF" : "IMG"}
                       name={d.originalName || d.name}
                       size={d.size}
                       href={d.url}

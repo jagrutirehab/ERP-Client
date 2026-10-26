@@ -16,6 +16,7 @@ import {
 import { STATUS_KEY } from "./Register";
 import { CENTRES, ITEMS, STATUS, formatDate } from "../data";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -23,7 +24,6 @@ import CheckPermission from "../../../Components/HOC/CheckPermission";
 const ACTION_ORDER = { expired: 0, missing: 1, renewal: 2 };
 const MATRIX_PAGE_SIZE = 100;
 const MATRIX_TYPE_PAGE_SIZE = 10;
-const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
 
 const Overview = () => {
   const navigate = useNavigate();
@@ -31,20 +31,11 @@ const Overview = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { roles } = usePermissions(token);
-
-  const centerList = useSelector((state) => state.Center.data);
   const user = useSelector((state) => state.User);
 
-  const centreOptions = useMemo(() => {
-    const accessible =
-      centerList?.filter((c) => user?.centerAccess?.includes(c._id)) || [];
-    return [
-      { value: "all", label: "All centres" },
-      ...accessible.map((c) => ({ value: c._id, label: centreLabel(c) })),
-    ];
-  }, [centerList, user?.centerAccess]);
+  const centreOptions = useCenterOptions();
 
-  const [centreFilter, setCentreFilter] = useState("all");
+  const [centreFilter, setCentreFilter] = useState("ALL");
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [matrix, setMatrix] = useState(null);
@@ -52,10 +43,16 @@ const Overview = () => {
   const [matrixMoreLoading, setMatrixMoreLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+
+  const centerParam =
+    centreFilter === "ALL"
+      ? (user?.centerAccess || []).map((c) => c?._id || c).join(",")
+      : centreFilter;
+
   const loadSummary = async () => {
     setSummaryLoading(true);
     try {
-      const res = await getComplianceSummary({ center: centreFilter === "all" ? undefined : centreFilter });
+      const res = await getComplianceSummary({ center: centerParam });
       setSummary(res?.data || null);
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -66,12 +63,11 @@ const Overview = () => {
     }
   };
 
-
   const loadMatrix = async () => {
     setMatrixLoading(true);
     try {
       const res = await getComplianceMatrix({
-        center: centreFilter === "all" ? undefined : centreFilter,
+        center: centerParam,
         page: 1,
         limit: MATRIX_PAGE_SIZE,
         typePage: 1,
@@ -87,16 +83,16 @@ const Overview = () => {
     }
   };
 
-  // Refresh without losing how much the user already drilled into: same row
-  // page, same centre filter, and the same number of type columns already
-  // loaded (even if that spans several "Load more" clicks) — a plain
-  // loadMatrix() would silently collapse back to the first 10 columns.
+  // Refresh without losing how much the user already drilled into: same
+  // centre filter, and the same number of type columns already loaded (even
+  // if that spans several "Load more" clicks) — a plain loadMatrix() would
+  // silently collapse back to the first 10 columns.
   const refreshMatrix = async () => {
     const loadedTypeCount = matrix?.types?.length || MATRIX_TYPE_PAGE_SIZE;
     setMatrixLoading(true);
     try {
       const res = await getComplianceMatrix({
-        center: centreFilter === "all" ? undefined : centreFilter,
+        center: centerParam,
         page: 1,
         limit: MATRIX_PAGE_SIZE,
         typePage: 1,
@@ -120,9 +116,7 @@ const Overview = () => {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await exportComplianceOverview({
-        center: centreFilter === "all" ? undefined : centreFilter,
-      });
+      const res = await exportComplianceOverview({ center: centerParam });
       const blob = new Blob([res.data], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
@@ -143,21 +137,13 @@ const Overview = () => {
     }
   };
 
-  // "Load more compliance types": fetches the next 10 type columns and
-  // appends them (plus their cells) to what's already shown, instead of
-  // replacing the page — row scores don't change, they already reflect every
-  // applicable type regardless of how many columns are currently loaded.
-  // The next page is derived from how many columns are actually loaded, not
-  // from the last response's own typePagination.page — refreshMatrix() may
-  // have fetched a bigger single "page" to preserve a wider column set, and
-  // this keeps the two from drifting out of sync.
   const loadMoreTypes = async () => {
     const loadedTypeCount = matrix?.types?.length || 0;
     const nextTypePage = Math.floor(loadedTypeCount / MATRIX_TYPE_PAGE_SIZE) + 1;
     setMatrixMoreLoading(true);
     try {
       const res = await getComplianceMatrix({
-        center: centreFilter === "all" ? undefined : centreFilter,
+        center: centerParam,
         page: 1,
         limit: MATRIX_PAGE_SIZE,
         typePage: nextTypePage,
@@ -184,16 +170,27 @@ const Overview = () => {
     }
   };
 
-  // the filter drives both the summary cards and the matrix together
+  // If the centre access list changes (e.g. access revoked for the one
+  // currently selected), fall back to "ALL" instead of filtering on a centre
+  // the user can no longer see.
+  useEffect(() => {
+    if (centreFilter !== "ALL" && !user?.centerAccess?.includes(centreFilter)) {
+      setCentreFilter("ALL");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.centerAccess]);
+
+  // the filter (and the user's centre access) drives both the summary cards
+  // and the matrix together
   useEffect(() => {
     loadSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [centreFilter]);
+  }, [centreFilter, user?.centerAccess]);
 
   useEffect(() => {
     loadMatrix();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [centreFilter]);
+  }, [centreFilter, user?.centerAccess]);
 
   const upcoming = useMemo(
     () =>
@@ -238,7 +235,7 @@ const Overview = () => {
                 classNamePrefix="react-select"
                 options={centreOptions}
                 value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
-                onChange={(option) => setCentreFilter(option?.value || "all")}
+                onChange={(option) => setCentreFilter(option?.value || "ALL")}
               />
             </div>
             <Button
@@ -285,7 +282,9 @@ const Overview = () => {
               </div>
             )}
             {matrixLoading && !matrix ? (
-              <div className="text-center text-muted py-5">Loading matrix…</div>
+              <div className="text-center text-muted py-5">
+                <Spinner size="sm" color="primary" />
+              </div>
             ) : !matrix?.centres?.length ? (
               <div className="text-center text-muted py-5" style={{ fontSize: 13 }}>
                 No centres in scope yet.
@@ -488,9 +487,11 @@ const Overview = () => {
                         disabled={matrixMoreLoading}
                         onClick={loadMoreTypes}
                       >
-                        {matrixMoreLoading
-                          ? "Loading..."
-                          : `Load more compliance types (${matrix.types.length} of ${matrix.typePagination.total})`}
+                        {matrixMoreLoading ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          `Load more compliance types (${matrix.types.length} of ${matrix.typePagination.total})`
+                        )}
                       </Button>
                     </div>
                   )}
