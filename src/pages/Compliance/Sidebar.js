@@ -74,6 +74,7 @@ const Sidebar = () => {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storePending]);
 
   const toggleSection = (id) => {
