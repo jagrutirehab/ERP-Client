@@ -34,7 +34,7 @@ export const getCategoryColumns = ({
   },
   {
     name: <div>Author</div>,
-    selector: (row) => row.createdBy?.name || "—",
+    selector: (row) => (row.createdBy?.name ? capitalizeWords(row.createdBy.name) : "—"),
     wrap: true,
     minWidth: "150px",
   },
@@ -43,6 +43,12 @@ export const getCategoryColumns = ({
     selector: (row) => formatDateTime(row.createdAt),
     wrap: true,
     minWidth: "180px",
+  },
+  {
+    name: <div>Last updated by</div>,
+    selector: (row) => (row.updatedBy?.name ? capitalizeWords(row.updatedBy.name) : "—"),
+    wrap: true,
+    minWidth: "150px",
   },
   {
     name: <div>Actions</div>,

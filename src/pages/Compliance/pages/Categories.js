@@ -94,8 +94,8 @@ const Categories = () => {
       } else {
         await dispatch(addComplianceCategory(values)).unwrap();
         toast.success("Category created.");
-        loadCategories();
       }
+      loadCategories();
       setModalOpen(false);
     } catch (error) {
       toast.error(error?.message || "Failed to save category");

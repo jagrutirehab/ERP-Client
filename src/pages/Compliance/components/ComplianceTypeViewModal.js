@@ -49,7 +49,11 @@ const ComplianceTypeViewModal = ({ isOpen, toggle, type }) => {
         <Field label="Has expiry">{type.hasExpiry ? "Yes" : "No"}</Field>
         {type.hasExpiry && <Field label="Default renewal lead time">{type.defaultLeadDays} days</Field>}
         <Field label="Applicable centres">{centreLabel}</Field>
+        <Field label="Author">{type.createdBy?.name ? capitalizeWords(type.createdBy.name) : "—"}</Field>
         <Field label="Created on">{formatDateTime(type.createdAt)}</Field>
+        <Field label="Last updated by">
+          {type.updatedBy?.name ? capitalizeWords(type.updatedBy.name) : "—"}
+        </Field>
         <Field label="Last updated">{formatDateTime(type.updatedAt)}</Field>
 
         {!!type.checklistSteps?.length && (
