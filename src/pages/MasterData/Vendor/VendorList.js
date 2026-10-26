@@ -233,7 +233,7 @@ const VendorList = ({ onAdd, onEdit }) => {
         ) : (
           <div>
             <span className="vendor-category-badge is-po">
-              <i className="bx bx-cart"></i> PO Required
+             PO Required
             </span>
             {row.vendorType && (
               <div className="vendor-cell-muted small text-capitalize mt-1">

@@ -13,6 +13,7 @@ import {
 import {
   ADDMISSION_DATE,
   ADVANCE_PAYMENT,
+  DEPOSIT,
   ALL_TRANSACTIONS,
   DISCHARGE_DATE,
   DISCHARGE_PATIENT,
@@ -20,8 +21,11 @@ import {
   INVOICE,
   OPD_BILL,
   INTERN,
+  paymentModeLabel,
   advancePaymentHeaders,
   advancePaymentHeadersAddmissionDischargeDate,
+  depositHeaders,
+  depositHeadersAddmissionDischargeDate,
   allTransactionHeaders,
   allTransactionHeadersAddmissionDischargeDate,
   dueAmountHeaders,
@@ -94,35 +98,35 @@ const Menu = ({
               row.receiptInvoice?.payable ||
               0,
       },
+      // Deposits included too — they were missing here, so a deposit row's
+      // payment modes exported blank. Pine Labs payments export as "Pinelabs"
+      // (paymentModeLabel), the same as the table.
       paymentModes: (row.intern
         ? row.receipt?.paymentModes
-        : row.advancePayment?.paymentModes || row.receiptInvoice?.paymentModes
+        : row.advancePayment?.paymentModes ||
+          row.receiptInvoice?.paymentModes ||
+          row.deposit?.paymentModes
       )
         ?.map((item, idx, arr) => {
           const prevItem = arr[idx - 1];
           const prefix = prevItem ? "\n" : "";
+          const label = paymentModeLabel(item);
           if (item.paymentMode === CASH || item.type === CASH) {
-            return `${prefix}${item.paymentMode || item.type} ₹${item.amount}`;
+            return `${prefix}${label} ₹${item.amount}`;
           }
           if (item.paymentMode === CARD || item.type === CARD) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.cardNumber || ""
-            } ₹${item.amount}`;
+            return `${prefix}${label} ${item.cardNumber || ""} ₹${item.amount}`;
           }
           if (item.paymentMode === UPI || item.type === UPI) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.transactionId || ""
-            }`;
+            return `${prefix}${label} ${item.transactionId || ""}`;
           }
           if (item.paymentMode === CHEQUE || item.type === CHEQUE) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.bankName || ""
-            } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
+            return `${prefix}${label} ${item.bankName || ""} ${
+              item.chequeNo || item.chequeNumber || ""
+            } ₹${item.amount}`;
           }
           if (item.paymentMode === BANK || item.type === BANK) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.bankName || ""
-            } ₹${item.amount}`;
+            return `${prefix}${label} ${item.bankName || ""} ₹${item.amount}`;
           }
           return "";
         })
@@ -137,9 +141,11 @@ const Menu = ({
       (sortByDate === ADDMISSION_DATE || sortByDate === DISCHARGE_DATE) &&
       diagnosisCol
     ) {
-      if (billType === ADVANCE_PAYMENT)
+      if (billType === ADVANCE_PAYMENT || billType === DEPOSIT)
         resultantHeaders = [
-          ...advancePaymentHeadersAddmissionDischargeDate,
+          ...(billType === DEPOSIT
+            ? depositHeadersAddmissionDischargeDate
+            : advancePaymentHeadersAddmissionDischargeDate),
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -210,9 +216,11 @@ const Menu = ({
       sortByDate === ADDMISSION_DATE ||
       sortByDate === DISCHARGE_DATE
     ) {
-      if (billType === ADVANCE_PAYMENT)
+      if (billType === ADVANCE_PAYMENT || billType === DEPOSIT)
         resultantHeaders = [
-          ...advancePaymentHeadersAddmissionDischargeDate,
+          ...(billType === DEPOSIT
+            ? depositHeadersAddmissionDischargeDate
+            : advancePaymentHeadersAddmissionDischargeDate),
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -285,9 +293,9 @@ const Menu = ({
             key: "dischargeSummary.diagnosis",
           },
         ];
-      } else if (billType === ADVANCE_PAYMENT)
+      } else if (billType === ADVANCE_PAYMENT || billType === DEPOSIT)
         resultantHeaders = [
-          ...advancePaymentHeaders,
+          ...(billType === DEPOSIT ? depositHeaders : advancePaymentHeaders),
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -347,9 +355,9 @@ const Menu = ({
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
       ];
-    else if (billType === ADVANCE_PAYMENT)
+    else if (billType === ADVANCE_PAYMENT || billType === DEPOSIT)
       resultantHeaders = [
-        ...advancePaymentHeaders,
+        ...(billType === DEPOSIT ? depositHeaders : advancePaymentHeaders),
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,

@@ -75,7 +75,7 @@ const Sidebar = () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, storePending]);
+  }, [storePending]);
 
   const toggleSection = (id) => {
     setOpenSection((prev) => (prev === id ? "" : id));

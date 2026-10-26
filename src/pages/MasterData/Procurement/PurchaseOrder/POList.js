@@ -185,6 +185,7 @@ const POList = ({ onAdd, onOpen }) => {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFlag]);
 
   const handleApprove = async (id) => {

@@ -12,11 +12,11 @@ import StatusBadge from "../components/StatusBadge";
 import RenewalBadge from "../components/RenewalBadge";
 import ItemDetailModal from "../components/ItemDetailModal";
 import {
-  getAllCenters,
   getComplianceRecordById,
   markComplianceInRenewal,
 } from "../../../helpers/backend_helper";
 import { fetchComplianceRecords } from "../../../store/features/compliance/complianceSlice";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -49,17 +49,6 @@ const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 const daysLabel = (n) => (n == null ? "—" : n < 0 ? `${Math.abs(n)}d overdue` : `${n}d`);
 
-const toList = (res) =>
-  Array.isArray(res)
-    ? res
-    : Array.isArray(res?.data)
-    ? res.data
-    : Array.isArray(res?.payload)
-    ? res.payload
-    : Array.isArray(res?.data?.data)
-    ? res.data.data
-    : [];
-
 const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -70,9 +59,10 @@ const Register = () => {
   const { records, recordsLoading, recordsTotal, recordsOverallTotal } = useSelector(
     (state) => state.Compliance,
   );
+  const user = useSelector((state) => state.User);
+  const centreOptions = useCenterOptions();
 
-  const [centres, setCentres] = useState([]);
-  const [centreFilter, setCentreFilter] = useState("all");
+  const [centreFilter, setCentreFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("NEEDS_ATTENTION");
   const [query, setQuery] = useState("");
   const [detailId, setDetailId] = useState(null);
@@ -85,26 +75,15 @@ const Register = () => {
 
   const requestRef = useRef(null);
 
-  useEffect(() => {
-    const loadCentres = async () => {
-      try {
-        const res = await getAllCenters();
-        setCentres(toList(res));
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Failed to load centres");
-        }
-      }
-    };
-    loadCentres();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const loadRecords = async () => {
-    requestRef.current?.abort(); // drop an older, slower request
+    requestRef.current?.abort();
+    const centerParam =
+      centreFilter === "ALL"
+        ? (user?.centerAccess || []).map((c) => c?._id || c).join(",")
+        : centreFilter;
     const promise = dispatch(
       fetchComplianceRecords({
-        center: centreFilter === "all" ? undefined : centreFilter,
+        center: centerParam,
         status: statusFilter,
         search: debouncedQuery.trim() || undefined,
         page,
@@ -122,11 +101,19 @@ const Register = () => {
     }
   };
 
-  // page, limit or any filter: reload from the server
+  useEffect(() => {
+    if (centreFilter !== "ALL" && !user?.centerAccess?.includes(centreFilter)) {
+      setCentreFilter("ALL");
+      setPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.centerAccess]);
+
+  // page, limit, any filter, or the user's centre access: reload from the server
   useEffect(() => {
     loadRecords();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [centreFilter, statusFilter, page, limit, debouncedQuery]);
+  }, [centreFilter, statusFilter, page, limit, debouncedQuery, user?.centerAccess]);
 
   // search: wait until typing stops, then go back to page 1
   const firstSearch = useRef(true);
@@ -144,11 +131,9 @@ const Register = () => {
   }, [query]);
 
   const actionCta = (row) =>
-    row.status === "DOC_MISSING" ? "Upload document" : row.status === "IN_RENEWAL" ? "Update status" : "Start renewal";
+    row.status === "DOC_MISSING" ? "Upload document" : row.status === "IN_RENEWAL" ? "Update status" : "Upload renewed document";
 
-  // The list row is minimal (no owner/escalateTo/issuingAuthority — see
-  // LIST_FIELDS server-side), so fetch the full record on click and prefill
-  // from that instead of whatever happens to already be on the row.
+
   const goToUpload = async (row) => {
     setStartingRenewalId(row._id);
     try {
@@ -190,11 +175,6 @@ const Register = () => {
       setMarkingId(null);
     }
   };
-
-  const centreOptions = [
-    { value: "all", label: "All centres" },
-    ...centres.map((c) => ({ value: c._id, label: centreLabel(c) })),
-  ];
 
   const columns = [
     {
@@ -278,7 +258,7 @@ const Register = () => {
                 disabled={markingId === row._id}
                 onClick={() => setConfirmingRow(row)}
               >
-                {markingId === row._id ? "Marking..." : "Apply for renewal"}
+                {markingId === row._id ? "Marking..." : "Mark as applied for renewal"}
               </Button>
             )}
           </CheckPermission>
@@ -313,7 +293,7 @@ const Register = () => {
                 options={centreOptions}
                 value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
                 onChange={(option) => {
-                  setCentreFilter(option?.value || "all");
+                  setCentreFilter(option?.value || "ALL");
                   setPage(1);
                 }}
               />
@@ -332,7 +312,6 @@ const Register = () => {
             <Col md={4} lg={6}>
               <Input
                 type="search"
-                bsSize="sm"
                 placeholder="Search item or licence no."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}

@@ -69,6 +69,18 @@ export const getComplianceTypeColumns = ({
     minWidth: "180px",
   },
   {
+    name: <div>Author</div>,
+    selector: (row) => (row.createdBy?.name ? capitalizeWords(row.createdBy.name) : "—"),
+    wrap: true,
+    minWidth: "150px",
+  },
+  {
+    name: <div>Last updated by</div>,
+    selector: (row) => (row.updatedBy?.name ? capitalizeWords(row.updatedBy.name) : "—"),
+    wrap: true,
+    minWidth: "150px",
+  },
+  {
     name: <div>Actions</div>,
     cell: (row) => (
       <div className="d-flex align-items-center gap-2">
