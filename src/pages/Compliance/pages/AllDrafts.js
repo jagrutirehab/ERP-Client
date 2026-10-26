@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardBody, Button } from "reactstrap";
+import { Card, CardBody } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
-import { Eye, Pencil } from "lucide-react";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import ReviewModal from "../components/ReviewModal";
-import { formatDateTime } from "../../../utils/time";
-import { getAllCenters } from "../../../helpers/backend_helper";
+import { getAllDraftsColumns } from "../Columns/AllDraftsColumns";
+import { getComplianceDraftById } from "../../../helpers/backend_helper";
 import { fetchAllDrafts } from "../../../store/features/compliance/complianceSlice";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
 
@@ -47,43 +46,25 @@ const AllDrafts = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { roles } = usePermissions(token);
   const currentUser = useSelector((state) => state.User.user);
+  const user = useSelector((state) => state.User);
   const { allDrafts, allDraftsTotal, draftsLoading } = useSelector((state) => state.Compliance);
+  const centreOptions = useCenterOptions();
 
-  const [centres, setCentres] = useState([]);
-  const [centreFilter, setCentreFilter] = useState("all");
+  const [centreFilter, setCentreFilter] = useState("ALL");
   const [viewing, setViewing] = useState(null);
+  const [loadingRowId, setLoadingRowId] = useState(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  useEffect(() => {
-    const loadCentres = async () => {
-      try {
-        const res = await getAllCenters();
-        const list = Array.isArray(res)
-          ? res
-          : Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.payload)
-          ? res.payload
-          : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : [];
-        setCentres(list);
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Failed to load centres");
-        }
-      }
-    };
-    loadCentres();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const loadDrafts = async () => {
+    const centerParam =
+      centreFilter === "ALL"
+        ? (user?.centerAccess || []).map((c) => c?._id || c).join(",")
+        : centreFilter;
     try {
       await dispatch(
         fetchAllDrafts({
-          center: centreFilter === "all" ? undefined : centreFilter,
+          center: centerParam,
           page,
           limit,
         }),
@@ -97,78 +78,39 @@ const AllDrafts = () => {
   };
 
   useEffect(() => {
+    if (centreFilter !== "ALL" && !user?.centerAccess?.includes(centreFilter)) {
+      setCentreFilter("ALL");
+      setPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.centerAccess]);
+
+  useEffect(() => {
     loadDrafts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [centreFilter, page, limit]);
+  }, [centreFilter, page, limit, user?.centerAccess]);
 
-  const centreOptions = [
-    { value: "all", label: "All centres" },
-    ...centres.map((c) => ({ value: c._id, label: centreLabel(c) })),
-  ];
+  const openView = async (row) => {
+    setLoadingRowId(row._id);
+    try {
+      const res = await getComplianceDraftById(row._id);
+      setViewing(toModalShape(res?.data));
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to load draft");
+      }
+    } finally {
+      setLoadingRowId(null);
+    }
+  };
 
-  const columns = [
-    {
-      name: <div>Last saved</div>,
-      selector: (row) => formatDateTime(row.updatedAt),
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: <div>Centre</div>,
-      selector: (row) => centreLabel(row.center),
-      wrap: true,
-      minWidth: "110px",
-    },
-    {
-      name: <div>Compliance type</div>,
-      selector: (row) => row.complianceType?.name || "—",
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: <div>Started by</div>,
-      selector: (row) => row.submittedBy?.name || row.submittedBy?.email || "—",
-      wrap: true,
-      minWidth: "120px",
-    },
-    {
-      name: <div>Files</div>,
-      selector: (row) => (row.documents?.length ? `${row.documents.length} file(s)` : "None yet"),
-      wrap: true,
-      minWidth: "90px",
-    },
-    {
-      name: <div>Actions</div>,
-      cell: (row) => (
-        <div className="d-flex align-items-center gap-2">
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-primary"
-            onClick={() => setViewing(toModalShape(row))}
-            title="View"
-          >
-            <Eye size={14} />
-          </button>
-          {row.submittedBy?._id === currentUser?._id && (
-            <CheckPermission accessRolePermission={roles?.permissions} subAccess="ALL_DRAFTS" permission="edit">
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-secondary"
-                onClick={() => navigate(`/compliance/upload?draft=${row._id}`)}
-                title="Edit"
-              >
-                <Pencil size={14} />
-              </button>
-            </CheckPermission>
-          )}
-        </div>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-      minWidth: "110px",
-    },
-  ];
+  const columns = getAllDraftsColumns({
+    roles,
+    currentUser,
+    onView: openView,
+    onEdit: (row) => navigate(`/compliance/upload?draft=${row._id}`),
+    loadingRowId,
+  });
 
   return (
     <div className="p-3 p-lg-4">
@@ -191,7 +133,7 @@ const AllDrafts = () => {
               options={centreOptions}
               value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
               onChange={(option) => {
-                setCentreFilter(option?.value || "all");
+                setCentreFilter(option?.value || "ALL");
                 setPage(1);
               }}
             />

@@ -30,7 +30,7 @@ const initialState = {
   categoriesPagination: { ...EMPTY_PAGINATION },
   types: [],
   typesLoading: false,
-  typesPagination: { ...EMPTY_PAGINATION },
+  typesTotal: 0,
   currentType: null,
   currentTypeLoading: false,
   saving: false,
@@ -366,7 +366,7 @@ const complianceSlice = createSlice({
       .addCase(fetchComplianceTypes.fulfilled, (state, { payload }) => {
         state.typesLoading = false;
         state.types = payload?.data || [];
-        state.typesPagination = payload?.pagination || { ...EMPTY_PAGINATION };
+        state.typesTotal = payload?.pagination?.total || 0;
       })
       .addCase(fetchComplianceTypes.rejected, (state, { payload }) => {
         if (payload?.aborted) return;

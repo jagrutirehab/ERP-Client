@@ -18,9 +18,9 @@ const LISTS = {
   departments: { load: () => getPRDepartments({}) },
   uoms: { load: () => getUoms({ status: "active", limit: 1000 }) },
   paymentTerms: { load: () => getPaymentTerms({ status: "active" }) },
-  vendors: { load: () => getVendors({ status: "active", limit: 1000 }) },
+  vendors: { load: () => getVendors({ status: "active", vendorCategory: "po_required", limit: 1000 }) },
   uomsAll: { load: () => getUoms({ limit: 1000 }) },
-  vendorsAll: { load: () => getVendors({ limit: 1000 }) },
+  vendorsAll: { load: () => getVendors({ vendorCategory: "po_required", limit: 1000 }) },
 };
 // Two lists that come from the same master. When one becomes old, so does the other.
 const SAME_MASTER = {
