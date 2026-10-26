@@ -198,7 +198,7 @@ const SuspendedAssigned = () => {
                                                 {filteredData.length === 0 ? (
                                                     <tr>
                                                         <td colSpan={labels.length} className="text-center py-4 text-muted">
-                                                            No data found
+                                                            No Patient assigned to suspended/inactive user.
                                                         </td>
                                                     </tr>
                                                 ) : (
