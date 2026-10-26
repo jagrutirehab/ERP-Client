@@ -1,6 +1,6 @@
 import React from "react";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
-import { ADVANCE_PAYMENT, ALL_TRANSACTIONS, DUE_AMOUNT, INVOICE, OPD_BILL } from "./data";
+import { ADVANCE_PAYMENT, ALL_TRANSACTIONS, DEPOSIT, DUE_AMOUNT, INVOICE, OPD_BILL } from "./data";
 
 const Banner = ({ data, billType }) => {
   const totalAdvancePayment = (dt) => {
@@ -15,6 +15,8 @@ const Banner = ({ data, billType }) => {
 
       } else if (billType === OPD_BILL) {
         baseAmount += item?.receiptInvoice?.payable ?? 0;
+      } else if (billType === DEPOSIT) {
+        baseAmount += item?.deposit?.totalAmount ?? 0;
       } else {
         baseAmount +=
           item?.advancePayment?.totalAmount ??
@@ -76,7 +78,7 @@ const Banner = ({ data, billType }) => {
     <React.Fragment>
       <div className="p-4 mt-3 shadow bg-body rounded">
         <div className="d-flex flex-wrap justify-content-between justify-content-md-around">
-          <RenderWhen isTrue={billType !== ADVANCE_PAYMENT}>
+          <RenderWhen isTrue={billType !== ADVANCE_PAYMENT && billType !== DEPOSIT}>
             <div className="d-flex align-items-center">
               <h6 className="display-6 fs-6">TOTAL INVOICED AMOUNT (₹): </h6>
               <h5 className="display-5 ms-2 fs-17 font-semi-bold">
