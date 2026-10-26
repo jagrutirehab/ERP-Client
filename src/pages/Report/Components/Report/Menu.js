@@ -13,6 +13,7 @@ import {
 import {
   ADDMISSION_DATE,
   ADVANCE_PAYMENT,
+  DEPOSIT,
   ALL_TRANSACTIONS,
   DISCHARGE_DATE,
   DISCHARGE_PATIENT,
@@ -23,6 +24,8 @@ import {
   paymentModeLabel,
   advancePaymentHeaders,
   advancePaymentHeadersAddmissionDischargeDate,
+  depositHeaders,
+  depositHeadersAddmissionDischargeDate,
   allTransactionHeaders,
   allTransactionHeadersAddmissionDischargeDate,
   dueAmountHeaders,
@@ -138,9 +141,11 @@ const Menu = ({
       (sortByDate === ADDMISSION_DATE || sortByDate === DISCHARGE_DATE) &&
       diagnosisCol
     ) {
-      if (billType === ADVANCE_PAYMENT)
+      if (billType === ADVANCE_PAYMENT || billType === DEPOSIT)
         resultantHeaders = [
-          ...advancePaymentHeadersAddmissionDischargeDate,
+          ...(billType === DEPOSIT
+            ? depositHeadersAddmissionDischargeDate
+            : advancePaymentHeadersAddmissionDischargeDate),
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -211,9 +216,11 @@ const Menu = ({
       sortByDate === ADDMISSION_DATE ||
       sortByDate === DISCHARGE_DATE
     ) {
-      if (billType === ADVANCE_PAYMENT)
+      if (billType === ADVANCE_PAYMENT || billType === DEPOSIT)
         resultantHeaders = [
-          ...advancePaymentHeadersAddmissionDischargeDate,
+          ...(billType === DEPOSIT
+            ? depositHeadersAddmissionDischargeDate
+            : advancePaymentHeadersAddmissionDischargeDate),
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -286,9 +293,9 @@ const Menu = ({
             key: "dischargeSummary.diagnosis",
           },
         ];
-      } else if (billType === ADVANCE_PAYMENT)
+      } else if (billType === ADVANCE_PAYMENT || billType === DEPOSIT)
         resultantHeaders = [
-          ...advancePaymentHeaders,
+          ...(billType === DEPOSIT ? depositHeaders : advancePaymentHeaders),
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -348,9 +355,9 @@ const Menu = ({
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
       ];
-    else if (billType === ADVANCE_PAYMENT)
+    else if (billType === ADVANCE_PAYMENT || billType === DEPOSIT)
       resultantHeaders = [
-        ...advancePaymentHeaders,
+        ...(billType === DEPOSIT ? depositHeaders : advancePaymentHeaders),
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,

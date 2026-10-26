@@ -4,7 +4,9 @@ import AsyncSelect from "react-select/async";
 import Select from "react-select";
 import "flatpickr/dist/themes/material_blue.css";
 import { Button, ButtonGroup, Row, Col } from "reactstrap";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { fetchAllCenters } from "../../../store/features/center/centerSlice";
 import { SEVERITIES, SEVERITY_COLOR } from "./alertConstants";
 import { endOfDay, startOfDay } from "date-fns";
 import {
@@ -57,15 +59,35 @@ const AlertsFilters = ({
   onToggleSeverity,
   onClearSeverity,
 }) => {
+  const dispatch = useDispatch();
   const centerAccess = useSelector((s) => s.User?.centerAccess);
   const allCenters = useSelector((s) => s.Center?.data);
+  const everyCenter = useSelector((s) => s.Center?.allCenters);
+
+  // ALERT → ALL_CENTRES: the server returns alerts from every center, so the
+  // Center filter (pre-selected below) must offer every center too — otherwise
+  // it would narrow the inbox back to the user's own centers.
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { loading: permissionLoading, hasPermission } = usePermissions(token);
+  const allCentresScope = hasPermission("ALERT", "ALL_CENTRES", "READ");
+
+  useEffect(() => {
+    if (allCentresScope && !everyCenter?.length) dispatch(fetchAllCenters());
+  }, [allCentresScope, everyCenter?.length, dispatch]);
 
   // Center options scoped to the user's center access — same source the
   // Finance report uses. centerAccess may be a list of ids or of objects.
+  // Empty until the role has loaded, so the pre-selection below runs once,
+  // with the right set.
   const accessIds = (centerAccess || []).map((c) => c?._id || c);
-  const centerOptions = (allCenters || [])
-    .filter((c) => accessIds.includes(c._id))
-    .map((c) => ({ _id: c._id, title: c.title }));
+  const centerOptions = (
+    permissionLoading
+      ? []
+      : allCentresScope
+        ? everyCenter || []
+        : (allCenters || []).filter((c) => accessIds.includes(c._id))
+  ).map((c) => ({ _id: c._id, title: c.title }));
 
   // Pre-select all centers on initial load so alerts aren't filtered to none.
   useEffect(() => {
@@ -105,7 +127,9 @@ const AlertsFilters = ({
     try {
       const res = await getSearchPatients({
         name: input,
-        centerAccess: centerAccess?.map?.((c) => c._id) || centerAccess,
+        centerAccess: allCentresScope
+          ? centerOptions.map((c) => c._id)
+          : centerAccess?.map?.((c) => c._id) || centerAccess,
       });
       const list = res?.data || res?.payload || res || [];
       return list.map((p) => ({

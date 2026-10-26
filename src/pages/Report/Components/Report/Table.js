@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import {
   ADDMISSION_DATE,
   ADVANCE_PAYMENT,
+  DEPOSIT,
   DISCHARGE_DATE,
   DUE_AMOUNT,
   INVOICE,
@@ -147,7 +148,7 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
             : "",
       }
       : null,
-    billType !== DUE_AMOUNT && billType !== ADVANCE_PAYMENT
+    billType !== DUE_AMOUNT && billType !== ADVANCE_PAYMENT && billType !== DEPOSIT
       ? {
         name: "Invoiced Amount",
         selector: (row) => {
