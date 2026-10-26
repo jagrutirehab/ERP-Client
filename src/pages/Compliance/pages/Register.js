@@ -312,7 +312,6 @@ const Register = () => {
             <Col md={4} lg={6}>
               <Input
                 type="search"
-                bsSize="sm"
                 placeholder="Search item or licence no."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
