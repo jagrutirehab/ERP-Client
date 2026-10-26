@@ -67,7 +67,11 @@ export const permissionList = [
   {
     key: "ALERT",
     label: "Alert",
-    subModules: [],
+    subModules: [
+      { name: "ALL_CENTRES", label: "All alerts across all centres" },
+      { name: "ASSIGNED_CENTRES", label: "All alerts in assigned centres" },
+      { name: "ROLE_WISE", label: "Role-wise alerts in assigned centres" },
+    ],
   },
   {
     key: "REFERRAL",

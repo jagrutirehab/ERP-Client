@@ -1,5 +1,16 @@
+// The payment mode to SHOW for one payment row in the reports (table and CSV).
+// A Pine Labs terminal payment is saved as mode CARD or UPI with bank account
+// "pinelabs"; the reports label it "Pinelabs" instead of the mode. Everything
+// else shows its mode as stored (receipts/deposits use `paymentMode`, OPD
+// invoice receipts use `type`).
+export const paymentModeLabel = (payment) =>
+  String(payment?.bankAccount || "").trim().toLowerCase() === "pinelabs"
+    ? "Pinelabs"
+    : payment?.paymentMode || payment?.type || "";
+
 export const ALL_TRANSACTIONS = "ALL_TRANSACTIONS";
 export const ADVANCE_PAYMENT = "ADVANCE_PAYMENT";
+export const DEPOSIT = "DEPOSIT";
 export const INVOICE = "INVOICE";
 export const DUE_AMOUNT = "DUE_AMOUNT";
 export const OPD_BILL = "OPD_BILL";
@@ -14,6 +25,7 @@ export const ONLINE_OPD = "ONLINE_OPD";
 export const payments = [
   { label: "All Transactions", value: ALL_TRANSACTIONS },
   { label: "IPD Payment", value: ADVANCE_PAYMENT },
+  { label: "IPD Deposit", value: DEPOSIT },
   { label: "IPD Invoice", value: INVOICE },
   { label: "IPD Due Amount", value: DUE_AMOUNT },
   { label: "OPD Bills", value: OPD_BILL },
@@ -103,6 +115,34 @@ export const advancePaymentHeadersAddmissionDischargeDate = [
   { label: "Invoice Number", key: "invoiceNumber" },
   { label: "Payment Modes", key: "paymentModes" },
   { label: "Paid Amount (₹Cr)", key: "advancePayment.totalAmount" },
+];
+
+// IPD Deposit — the IPD Payment columns, with the deposit's own amount.
+export const depositHeaders = [
+  { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
+  { label: "Patient/Intern", key: "name" },
+  { label: "UID", key: "uid" },
+  { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
+  { label: "Center", key: "center.title" },
+  { label: "Invoice Number", key: "invoiceNumber" },
+  { label: "Payment Modes", key: "paymentModes" },
+  { label: "Paid Amount (₹Cr)", key: "deposit.totalAmount" },
+];
+
+export const depositHeadersAddmissionDischargeDate = [
+  { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
+  { label: "Patient/Intern", key: "name" },
+  { label: "UID", key: "uid" },
+  { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
+  { label: "Center", key: "center.title" },
+  { label: "Date of Addmission", key: "dateOfAddmission" },
+  { label: "Invoice Number", key: "invoiceNumber" },
+  { label: "Payment Modes", key: "paymentModes" },
+  { label: "Paid Amount (₹Cr)", key: "deposit.totalAmount" },
 ];
 
 export const payableAmountHeaders = [
