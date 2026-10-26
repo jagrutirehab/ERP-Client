@@ -9,6 +9,7 @@ import StatusBadge from "../components/StatusBadge";
 import RenewalBadge from "../components/RenewalBadge";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import PreviewFile from "../../../Components/Common/PreviewFile";
+import { downloadFile } from "../../../Components/Common/downloadFile";
 import VersionDetailModal from "../components/VersionDetailModal";
 import ComplianceSummaryCards from "../components/ComplianceSummaryCards";
 import {
@@ -518,7 +519,13 @@ const CenterDetail = () => {
                         >
                           <Eye size={14} />
                         </Button>
-                        <Button tag="a" href={primaryDoc.url} download color="light" className="border p-2" size="sm">
+                        <Button
+                          type="button"
+                          color="light"
+                          className="border p-2"
+                          size="sm"
+                          onClick={() => downloadFile(primaryDoc)}
+                        >
                           <Download size={14} />
                         </Button>
                       </div>

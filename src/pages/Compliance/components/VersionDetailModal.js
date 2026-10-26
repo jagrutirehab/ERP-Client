@@ -3,6 +3,7 @@ import { Modal, ModalHeader, ModalBody, Button, Spinner } from "reactstrap";
 import { Eye, Download, FileText, Check } from "lucide-react";
 import { toast } from "react-toastify";
 import PreviewFile from "../../../Components/Common/PreviewFile";
+import { downloadFile } from "../../../Components/Common/downloadFile";
 import { getComplianceSubmissionById } from "../../../helpers/backend_helper";
 import { formatDateTime } from "../../../utils/time";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
@@ -58,7 +59,14 @@ const DocRow = ({ doc, onPreview }) => (
     <Button type="button" color="light" className="border p-2" size="sm" title="Preview" onClick={() => onPreview(doc)}>
       <Eye size={14} />
     </Button>
-    <Button tag="a" href={doc.url} download color="light" className="border p-2" size="sm" title="Download">
+    <Button
+      type="button"
+      color="light"
+      className="border p-2"
+      size="sm"
+      title="Download"
+      onClick={() => downloadFile(doc)}
+    >
       <Download size={14} />
     </Button>
   </div>

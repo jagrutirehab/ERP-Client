@@ -131,11 +131,9 @@ const Register = () => {
   }, [query]);
 
   const actionCta = (row) =>
-    row.status === "DOC_MISSING" ? "Upload document" : row.status === "IN_RENEWAL" ? "Update status" : "Start renewal";
+    row.status === "DOC_MISSING" ? "Upload document" : row.status === "IN_RENEWAL" ? "Update status" : "Upload renewed document";
 
-  // The list row is minimal (no owner/escalateTo/issuingAuthority — see
-  // LIST_FIELDS server-side), so fetch the full record on click and prefill
-  // from that instead of whatever happens to already be on the row.
+
   const goToUpload = async (row) => {
     setStartingRenewalId(row._id);
     try {
@@ -260,7 +258,7 @@ const Register = () => {
                 disabled={markingId === row._id}
                 onClick={() => setConfirmingRow(row)}
               >
-                {markingId === row._id ? "Marking..." : "Apply for renewal"}
+                {markingId === row._id ? "Marking..." : "Mark as applied for renewal"}
               </Button>
             )}
           </CheckPermission>

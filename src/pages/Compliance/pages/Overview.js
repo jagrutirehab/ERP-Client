@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardBody, Button, Spinner } from "reactstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Select from "react-select";
 import { ChevronsRight } from "lucide-react";
-import StatusBadge from "../components/StatusBadge";
 import ComplianceSummaryCards from "../components/ComplianceSummaryCards";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import {
@@ -14,14 +13,13 @@ import {
   exportComplianceOverview,
 } from "../../../helpers/backend_helper";
 import { STATUS_KEY } from "./Register";
-import { CENTRES, ITEMS, STATUS, formatDate } from "../data";
+import { CENTRES, STATUS, formatDate } from "../data";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 
-const ACTION_ORDER = { expired: 0, missing: 1, renewal: 2 };
 const MATRIX_PAGE_SIZE = 100;
 const MATRIX_TYPE_PAGE_SIZE = 10;
 
@@ -192,32 +190,6 @@ const Overview = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centreFilter, user?.centerAccess]);
 
-  const upcoming = useMemo(
-    () =>
-      ITEMS.filter((i) => i.statusKey === "due30" || i.statusKey === "due90")
-        .sort((a, b) => a.daysLeft - b.daysLeft)
-        .slice(0, 9),
-    [],
-  );
-
-  const actionNeeded = useMemo(
-    () =>
-      ITEMS.filter((i) => i.statusKey in ACTION_ORDER)
-        .sort(
-          (a, b) =>
-            ACTION_ORDER[a.statusKey] - ACTION_ORDER[b.statusKey] ||
-            (a.daysLeft || 0) - (b.daysLeft || 0),
-        )
-        .slice(0, 6),
-    [],
-  );
-
-  const actionCta = (item) =>
-    item.statusKey === "missing" ? "Upload document" : item.statusKey === "renewal" ? "Update status" : "Start renewal";
-
-  const goToUpload = (item) =>
-    navigate(`/compliance/upload?centre=${item.centreId}&category=${item.categoryId}`);
-
   return (
     <div className="p-3 p-lg-4">
         <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-3">
@@ -247,7 +219,7 @@ const Overview = () => {
             >
               {exporting ? "Exporting…" : "Export"}
             </Button>
-            <CheckPermission accessRolePermission={roles?.permissions} subAccess="REGISTER" permission="create">
+            <CheckPermission accessRolePermission={roles?.permissions} subAccess="CENTRES" permission="edit">
               <Button
                 color="success"
                 className="text-white flex-shrink-0"
@@ -291,7 +263,7 @@ const Overview = () => {
               </div>
             ) : (
               <>
-                <div className="table-responsive d-none d-md-block">
+                <div className="table-responsive">
                   <table
                     className="table table-borderless table-sm mb-0"
                     style={{
@@ -452,50 +424,6 @@ const Overview = () => {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Mobile: one card per centre, status chips wrap */}
-                <div className="d-md-none d-flex flex-column gap-2">
-                  {matrix.centres.map((centre) => (
-                    <Link
-                      key={centre.centerId}
-                      to={`/compliance/centres/${centre.centerId}`}
-                      className="text-decoration-none text-dark"
-                    >
-                      <div className="border rounded p-2">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <div className="fw-semibold">{capitalizeWords(centre.name)}</div>
-                          <div className="fw-semibold ps-2">{centre.score}%</div>
-                        </div>
-                        <div className="d-flex flex-wrap gap-1">
-                          {matrix.types.map((t) => {
-                            const cell = centre.cells[t._id];
-                            if (!cell) return null;
-                            return <StatusBadge key={t._id} statusKey={STATUS_KEY[cell.status]} />;
-                          })}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-                {matrix.typePagination &&
-                  matrix.typePagination.page < matrix.typePagination.totalPages && (
-                    <div className="d-md-none d-flex justify-content-center mt-2">
-                      <Button
-                        color="light"
-                        className="border"
-                        size="sm"
-                        disabled={matrixMoreLoading}
-                        onClick={loadMoreTypes}
-                      >
-                        {matrixMoreLoading ? (
-                          <Spinner size="sm" />
-                        ) : (
-                          `Load more compliance types (${matrix.types.length} of ${matrix.typePagination.total})`
-                        )}
-                      </Button>
-                    </div>
-                  )}
-
               </>
             )}
           </CardBody>

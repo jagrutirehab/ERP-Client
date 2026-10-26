@@ -159,8 +159,8 @@ const UploadDocument = () => {
   const [leadDays, setLeadDays] = useState(60);
   const [existingDocs, setExistingDocs] = useState([]); // files already saved on the draft
   const [files, setFiles] = useState([]); // new files picked now
-  const [owner, setOwner] = useState(prefill.owner || "Centre Head");
-  const [escalateTo, setEscalateTo] = useState(prefill.escalateTo || "Centre Head + Admin & Legal");
+  const [owner, setOwner] = useState(prefill.owner || "");
+  const [escalateTo, setEscalateTo] = useState(prefill.escalateTo || "");
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(null); // "DRAFT" | "SEND" | null
   const [previewFile, setPreviewFile] = useState(null);
@@ -506,7 +506,7 @@ const UploadDocument = () => {
                 <Row className="g-3">
                   <Col sm={6}>
                     <FormGroup className="mb-0">
-                      <Label>Centre</Label>
+                      <Label>Centre <span className="text-danger">*</span></Label>
                       <Select
                         classNamePrefix="react-select"
                         options={centreOptions}
@@ -525,7 +525,7 @@ const UploadDocument = () => {
                   </Col>
                   <Col sm={6}>
                     <FormGroup className="mb-0">
-                      <Label>Compliance type</Label>
+                      <Label>Compliance type <span className="text-danger">*</span></Label>
                       <Select
                         classNamePrefix="react-select"
                         options={typeOptions}
@@ -549,7 +549,7 @@ const UploadDocument = () => {
                   )}
                   <Col sm={6}>
                     <FormGroup className="mb-0">
-                      <Label>Issuing authority</Label>
+                      <Label>Issuing authority <span className="text-danger">*</span></Label>
                       <Input
                         value={issuingAuthority}
                         onChange={(e) => setIssuingAuthority(e.target.value)}
@@ -558,7 +558,7 @@ const UploadDocument = () => {
                   </Col>
                   <Col sm={6}>
                     <FormGroup className="mb-0">
-                      <Label>Licence / registration no.</Label>
+                      <Label>Licence / registration no. <span className="text-danger">*</span></Label>
                       <Input
                         value={licenceNo}
                         onChange={(e) => setLicenceNo(e.target.value)}
@@ -588,7 +588,7 @@ const UploadDocument = () => {
                 <Row className="g-3">
                   <Col sm={6}>
                     <FormGroup className="mb-0">
-                      <Label>Issued on</Label>
+                      <Label>Issued on {!noExpiry && <span className="text-danger">*</span>}</Label>
                       <Input
                         type="date"
                         value={issuedOn}
@@ -598,7 +598,7 @@ const UploadDocument = () => {
                   </Col>
                   <Col sm={6}>
                     <FormGroup className="mb-0">
-                      <Label>Valid till</Label>
+                      <Label>Valid till {!noExpiry && <span className="text-danger">*</span>}</Label>
                       <Input
                         type="date"
                         value={validTill}
@@ -752,7 +752,7 @@ const UploadDocument = () => {
                 <Row className="g-3">
                   <Col sm={6}>
                     <FormGroup className="mb-0">
-                      <Label>Responsible owner</Label>
+                      <Label>Responsible owner <span className="text-danger">*</span></Label>
                       <Input
                         value={owner}
                         onChange={(e) => setOwner(e.target.value)}
