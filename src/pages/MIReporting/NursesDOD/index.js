@@ -16,6 +16,8 @@ const NursesDOD = () => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [dataFormat, setDataFormat] = useState("percentage");
     const [countType, setCountType] = useState("completed");
+    const [selectedOutpass, setSelectedOutpass] = useState("ALL");
+    const [selectedZeroPrescription, setSelectedZeroPrescription] = useState("ALL");
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [isSearching, setIsSearching] = useState(false);
@@ -43,6 +45,9 @@ const NursesDOD = () => {
         const term = searchTerm.trim().toLowerCase();
         return data.filter((item) => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (selectedOutpass === "YES" && item?.on_outpass !== true) return false;
+            if (selectedOutpass === "NO" && item?.on_outpass !== false) return false;
+            if (selectedZeroPrescription === "YES" && !((Number(item?.prescription_count) || 0) === 0 && item?.on_outpass !== true)) return false;
             if (term) {
                 const uid = (item?.patient_id || "").toLowerCase();
                 const name = (item?.patient_name || "").toLowerCase();
@@ -50,7 +55,7 @@ const NursesDOD = () => {
             }
             return true;
         });
-    }, [data, selectedCenter, searchTerm]);
+    }, [data, selectedCenter, selectedOutpass, selectedZeroPrescription, searchTerm]);
 
     const labels = [
         "Patient UID",
@@ -276,6 +281,35 @@ const NursesDOD = () => {
                                         { value: "missed", label: "Missed" },
                                     ]}
                                     placeholder="Count Type..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={{
+                                        value: selectedOutpass,
+                                        label: selectedOutpass === "YES" ? "On Outpass" : selectedOutpass === "NO" ? "Not On Outpass" : "All (Outpass)",
+                                    }}
+                                    onChange={(opt) => setSelectedOutpass(opt.value)}
+                                    options={[
+                                        { value: "ALL", label: "All Patients" },
+                                        { value: "YES", label: "On Outpass" },
+                                        { value: "NO", label: "Not On Outpass" },
+                                    ]}
+                                    placeholder="Outpass..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={{
+                                        value: selectedZeroPrescription,
+                                        label: selectedZeroPrescription === "YES" ? "Zero Prescriptions (Not On Outpass)" : "All (Prescriptions)",
+                                    }}
+                                    onChange={(opt) => setSelectedZeroPrescription(opt.value)}
+                                    options={[
+                                        { value: "ALL", label: "All (Prescriptions)" },
+                                        { value: "YES", label: "Zero Prescriptions (Not On Outpass)" },
+                                    ]}
+                                    placeholder="Prescription Count..."
                                 />
                             </Col>
                             <Col md={2}>
