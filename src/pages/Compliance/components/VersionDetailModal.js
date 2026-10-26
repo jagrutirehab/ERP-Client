@@ -11,6 +11,8 @@ const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 const formatSize = (bytes) =>
   !bytes ? "" : bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
+// No stored mime type anymore — go by the uploaded file's extension instead.
+const isPdfDoc = (doc) => /\.pdf($|\?)/i.test(doc?.url || doc?.originalName || "");
 const personLabel = (u) => u?.name || u?.email || "—";
 
 const ROLE_LABEL = {
@@ -48,7 +50,7 @@ const DocRow = ({ doc, onPreview }) => (
         {doc.originalName || doc.name}
       </div>
       <div className="text-muted" style={{ fontSize: 12 }}>
-        {[doc.type === "application/pdf" ? "PDF" : "Image", formatSize(doc.size), ROLE_LABEL[doc.role]]
+        {[isPdfDoc(doc) ? "PDF" : "Image", formatSize(doc.size), ROLE_LABEL[doc.role]]
           .filter(Boolean)
           .join(" · ")}
       </div>

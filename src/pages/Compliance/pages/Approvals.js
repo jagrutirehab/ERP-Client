@@ -1,23 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Card, CardBody, Nav, NavItem, NavLink, Button, Input } from "reactstrap";
+import { Card, CardBody, Nav, NavItem, NavLink, Input } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import Select from "react-select";
-import { ClipboardCheck, Eye } from "lucide-react";
-import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
 import ReviewModal from "../components/ReviewModal";
-import { formatDateTime } from "../../../utils/time";
-import { getAllCenters } from "../../../helpers/backend_helper";
+import { getApprovalsColumns } from "../Columns/ApprovalsColumns";
+import { getComplianceSubmissionById } from "../../../helpers/backend_helper";
 import {
   fetchComplianceSubmissions,
   approveSubmission,
   rejectSubmission,
 } from "../../../store/features/compliance/complianceSlice";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
@@ -59,48 +57,29 @@ const Approvals = () => {
   const { submissions, submissionCounts, submissionsLoading, submissionsTotal, submissionReviewing } = useSelector(
     (state) => state.Compliance,
   );
+  const user = useSelector((state) => state.User);
+  const centreOptions = useCenterOptions();
 
   const [statusFilter, setStatusFilter] = useState("PENDING");
-  const [centreFilter, setCentreFilter] = useState("all");
+  const [centreFilter, setCentreFilter] = useState("ALL");
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [reviewing, setReviewing] = useState(null);
   const [viewingReadOnly, setViewingReadOnly] = useState(false);
-  const [centres, setCentres] = useState([]);
+  const [loadingReviewId, setLoadingReviewId] = useState(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  // centres for the filter dropdown
-  useEffect(() => {
-    const loadCentres = async () => {
-      try {
-        const res = await getAllCenters();
-        const list = Array.isArray(res)
-          ? res
-          : Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.payload)
-          ? res.payload
-          : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : [];
-        setCentres(list);
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Failed to load centres");
-        }
-      }
-    };
-    loadCentres();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const loadSubmissions = async () => {
+    const centerParam =
+      centreFilter === "ALL"
+        ? (user?.centerAccess || []).map((c) => c?._id || c).join(",")
+        : centreFilter;
     try {
       await dispatch(
         fetchComplianceSubmissions({
           status: statusFilter,
-          center: centreFilter === "all" ? undefined : centreFilter,
+          center: centerParam,
           search: debouncedQuery.trim() || undefined,
           page,
           limit,
@@ -114,11 +93,23 @@ const Approvals = () => {
     }
   };
 
-  // reload whenever the tab, centre filter, page or limit changes
+  // If the centre access list changes (e.g. access revoked for the one
+  // currently selected), fall back to "ALL" instead of filtering on a centre
+  // the user can no longer see.
+  useEffect(() => {
+    if (centreFilter !== "ALL" && !user?.centerAccess?.includes(centreFilter)) {
+      setCentreFilter("ALL");
+      setPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.centerAccess]);
+
+  // reload whenever the tab, centre filter, page, limit, or the user's
+  // centre access changes
   useEffect(() => {
     loadSubmissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, centreFilter, page, limit, debouncedQuery]);
+  }, [statusFilter, centreFilter, page, limit, debouncedQuery, user?.centerAccess]);
 
   // search: wait until typing stops, then go back to page 1
   const firstSearch = useRef(true);
@@ -138,98 +129,27 @@ const Approvals = () => {
   const rows = useMemo(() => (submissions || []).map(toRow), [submissions]);
   const pendingCount = submissionCounts?.PENDING || 0;
 
-  const centreOptions = [
-    { value: "all", label: "All centres" },
-    ...centres.map((c) => ({ value: c._id, label: centreLabel(c) })),
-  ];
+  const openReview = async (row, readOnly) => {
+    setLoadingReviewId(row.id);
+    try {
+      const res = await getComplianceSubmissionById(row.id);
+      setViewingReadOnly(readOnly);
+      setReviewing(toRow(res?.data));
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to load submission");
+      }
+    } finally {
+      setLoadingReviewId(null);
+    }
+  };
 
-  const columns = [
-    {
-      name: <div>Submitted</div>,
-      selector: (row) => formatDateTime(row.submittedAt),
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: <div>Centre</div>,
-      selector: (row) => row.centreName,
-      wrap: true,
-      minWidth: "110px",
-    },
-    {
-      name: <div>Compliance type</div>,
-      selector: (row) => row.categoryName,
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: <div>Submitted by</div>,
-      selector: (row) => row.submittedBy,
-      wrap: true,
-      minWidth: "120px",
-    },
-    {
-      name: <div>Files</div>,
-      selector: (row) => (row.fileNames.length ? `${row.fileNames.length} file(s)` : "—"),
-      wrap: true,
-      minWidth: "90px",
-    },
-    {
-      name: <div>Status</div>,
-      selector: (row) => row.status,
-      cell: (row) => renderStatusBadge(row.status.toUpperCase()),
-      wrap: true,
-      minWidth: "100px",
-    },
-    {
-      name: <div>Actions</div>,
-      cell: (row) =>
-        statusFilter === "PENDING" ? (
-          <div className="d-flex align-items-center gap-2">
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-primary"
-              onClick={() => {
-                setViewingReadOnly(true);
-                setReviewing(row);
-              }}
-              title="View"
-            >
-              <Eye size={14} />
-            </button>
-            <CheckPermission accessRolePermission={roles?.permissions} subAccess="APPROVALS" permission="edit">
-              <Button
-                color="success"
-                className="text-white"
-                size="sm"
-                onClick={() => {
-                  setViewingReadOnly(false);
-                  setReviewing(row);
-                }}
-              >
-                <ClipboardCheck size={14} className="me-1" /> Review
-              </Button>
-            </CheckPermission>
-          </div>
-        ) : (
-          <Button
-            color="light"
-            className="border"
-            size="sm"
-            onClick={() => {
-              setViewingReadOnly(true);
-              setReviewing(row);
-            }}
-          >
-            <ClipboardCheck size={14} className="me-1" /> View
-          </Button>
-        ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-      minWidth: "100px",
-    },
-  ];
+  const columns = getApprovalsColumns({
+    roles,
+    statusFilter,
+    loadingReviewId,
+    onOpenReview: openReview,
+  });
 
   // Both return true on success so the modal knows when to close
   const approve = async (id, comment) => {
@@ -320,7 +240,7 @@ const Approvals = () => {
                 options={centreOptions}
                 value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
                 onChange={(option) => {
-                  setCentreFilter(option?.value || "all");
+                  setCentreFilter(option?.value || "ALL");
                   setPage(1);
                 }}
               />

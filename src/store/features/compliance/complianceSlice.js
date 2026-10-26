@@ -28,6 +28,7 @@ const initialState = {
   categoriesLoading: false,
   types: [],
   typesLoading: false,
+  typesTotal: 0,
   currentType: null,
   currentTypeLoading: false,
   saving: false,
@@ -362,6 +363,7 @@ const complianceSlice = createSlice({
       .addCase(fetchComplianceTypes.fulfilled, (state, { payload }) => {
         state.typesLoading = false;
         state.types = payload?.data || [];
+        state.typesTotal = payload?.pagination?.total || 0;
       })
       .addCase(fetchComplianceTypes.rejected, (state, { payload }) => {
         if (payload?.aborted) return;

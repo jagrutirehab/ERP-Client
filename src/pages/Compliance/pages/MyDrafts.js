@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardBody, Button } from "reactstrap";
+import { Card, CardBody } from "reactstrap";
+import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Eye, Pencil, Trash2 } from "lucide-react";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import ConfirmationModal from "../../../Components/Common/ConfirmationModal";
 import ReviewModal from "../components/ReviewModal";
-import { formatDateTime } from "../../../utils/time";
+import { getMyDraftsColumns } from "../Columns/MyDraftsColumns";
+import { getComplianceDraftById } from "../../../helpers/backend_helper";
 import { fetchMyDrafts, removeDraft } from "../../../store/features/compliance/complianceSlice";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-import CheckPermission from "../../../Components/HOC/CheckPermission";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
 const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
 
@@ -45,16 +47,30 @@ const MyDrafts = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { roles } = usePermissions(token);
   const { myDrafts, myDraftsTotal, draftsLoading } = useSelector((state) => state.Compliance);
+  const user = useSelector((state) => state.User);
+  const centreOptions = useCenterOptions();
 
   const [discarding, setDiscarding] = useState(null);
   const [busy, setBusy] = useState(false);
   const [viewing, setViewing] = useState(null);
+  const [loadingRowId, setLoadingRowId] = useState(null);
+  const [centreFilter, setCentreFilter] = useState("ALL");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
   const loadDrafts = async () => {
+    const centerParam =
+      centreFilter === "ALL"
+        ? (user?.centerAccess || []).map((c) => c?._id || c).join(",")
+        : centreFilter;
     try {
-      await dispatch(fetchMyDrafts({ page, limit })).unwrap();
+      await dispatch(
+        fetchMyDrafts({
+          center: centerParam,
+          page,
+          limit,
+        }),
+      ).unwrap();
     } catch (error) {
       if (error?.aborted) return;
       if (!handleAuthError(error)) {
@@ -64,9 +80,17 @@ const MyDrafts = () => {
   };
 
   useEffect(() => {
+    if (centreFilter !== "ALL" && !user?.centerAccess?.includes(centreFilter)) {
+      setCentreFilter("ALL");
+      setPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.centerAccess]);
+
+  useEffect(() => {
     loadDrafts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit]);
+  }, [centreFilter, page, limit, user?.centerAccess]);
 
   const confirmDiscard = async () => {
     if (!discarding) return;
@@ -85,72 +109,28 @@ const MyDrafts = () => {
     }
   };
 
-  const columns = [
-    {
-      name: <div>Last saved</div>,
-      selector: (row) => formatDateTime(row.updatedAt),
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: <div>Centre</div>,
-      selector: (row) => centreLabel(row.center),
-      wrap: true,
-      minWidth: "110px",
-    },
-    {
-      name: <div>Compliance type</div>,
-      selector: (row) => row.complianceType?.name || "—",
-      wrap: true,
-      minWidth: "150px",
-    },
-    {
-      name: <div>Licence / reg. no.</div>,
-      selector: (row) => row.licenceNumber || "—",
-      wrap: true,
-      minWidth: "140px",
-    },
-    {
-      name: <div>Files</div>,
-      selector: (row) => (row.documents?.length ? `${row.documents.length} file(s)` : "None yet"),
-      wrap: true,
-      minWidth: "90px",
-    },
-    {
-      name: <div>Actions</div>,
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-primary"
-            onClick={() => setViewing(toModalShape(row))}
-            title="View"
-          >
-            <Eye size={14} />
-          </button>
-          <CheckPermission accessRolePermission={roles?.permissions} subAccess="MY_DRAFTS" permission="edit">
-            <Button
-              color="success"
-              size="sm"
-              className="text-white text-nowrap"
-              onClick={() => navigate(`/compliance/upload?draft=${row._id}`)}
-            >
-              <Pencil size={14} className="me-1" /> Continue
-            </Button>
-          </CheckPermission>
-          <CheckPermission accessRolePermission={roles?.permissions} subAccess="MY_DRAFTS" permission="delete">
-            <Button color="light" size="sm" className="border text-danger" onClick={() => setDiscarding(row)}>
-              <Trash2 size={14} />
-            </Button>
-          </CheckPermission>
-        </div>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-      minWidth: "170px",
-    },
-  ];
+
+  const openView = async (row) => {
+    setLoadingRowId(row._id);
+    try {
+      const res = await getComplianceDraftById(row._id);
+      setViewing(toModalShape(res?.data));
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to load draft");
+      }
+    } finally {
+      setLoadingRowId(null);
+    }
+  };
+
+  const columns = getMyDraftsColumns({
+    roles,
+    onView: openView,
+    onContinue: (row) => navigate(`/compliance/upload?draft=${row._id}`),
+    onDiscard: setDiscarding,
+    loadingRowId,
+  });
 
   return (
     <div className="p-3 p-lg-4">
@@ -163,6 +143,22 @@ const MyDrafts = () => {
         </div>
         <RefreshButton onRefresh={loadDrafts} loading={draftsLoading} />
       </div>
+
+      <Card className="mb-3 shadow-sm border-0">
+        <CardBody className="py-3">
+          <div style={{ maxWidth: 260 }}>
+            <Select
+              classNamePrefix="react-select"
+              options={centreOptions}
+              value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
+              onChange={(option) => {
+                setCentreFilter(option?.value || "ALL");
+                setPage(1);
+              }}
+            />
+          </div>
+        </CardBody>
+      </Card>
 
       <Card className="shadow-sm border-0">
         <CardBody className="p-0">

@@ -2443,6 +2443,12 @@ export const getAllComplianceDrafts = (params = {}, { signal } = {}) => {
   });
 };
 
+export const getComplianceDraftById = (id) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/drafts/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const updateComplianceDraft = (id, data) => {
   return api.update(`${url.COMPLIANCE_SUBMISSIONS}/drafts/${id}`, data, {
     headers: {

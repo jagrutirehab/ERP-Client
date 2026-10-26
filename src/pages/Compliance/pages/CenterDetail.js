@@ -264,9 +264,9 @@ const CenterDetail = () => {
           />
         </div>
         <div className="d-flex gap-2">
-          <Button color="light" className="border flex-fill flex-sm-grow-0" size="sm">
+          {/* <Button color="light" className="border flex-fill flex-sm-grow-0" size="sm">
             <Download size={14} className="me-1" /> Download all (ZIP)
-          </Button>
+          </Button> */}
           <CheckPermission accessRolePermission={roles?.permissions} subAccess="CENTRES" permission="create">
             <Button
               color="success"
