@@ -11,10 +11,13 @@ import {
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
+import { errText } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
-const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const money = (n) =>
+  `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
 const StatusPill = ({ status }) => {
   const map = {
@@ -49,6 +52,11 @@ const CapitalizationRequest = () => {
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [grns, setGrns] = useState([]);
+  const [loadError, setLoadError] = useState("");
+  const [busyId, setBusyId] = useState("");
+  const [rejecting, setRejecting] = useState(false);
+  const [siteId, setSiteId] = useState("");
+  const { items: centers } = useReferenceList("centers");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [grnId, setGrnId] = useState("");
@@ -72,17 +80,22 @@ const CapitalizationRequest = () => {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setLoadError("");
     getCapitalizationRequests({})
       .then((res) => {
         if (!cancelled) setRequests(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (cancelled) return;
+        if (!handleAuthError(error)) setLoadError(errText(error, "Couldn't load requests."));
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFlag]);
 
   const openModal = () => {
@@ -93,14 +106,21 @@ const CapitalizationRequest = () => {
     setUnitCost("");
     setCategory("");
     setJustification("");
+    setSiteId("");
     setModalOpen(true);
   };
 
   const selectedGrn = grns.find((g) => g._id === grnId);
+  const grnSiteId =
+    selectedGrn?.poId?.deliverySiteId?._id || selectedGrn?.poId?.deliverySiteId || "";
+  const receivedMax = grnItems.find((li) => li.itemName === itemName)?.receivedQty;
 
   const handleGrnChange = (id) => {
     setGrnId(id);
     setItemName("");
+    setQuantity(1);
+    setUnitCost("");
+    setSiteId("");
     const grn = grns.find((g) => g._id === id);
     setGrnItems(grn?.lineItems || []);
   };
@@ -115,6 +135,12 @@ const CapitalizationRequest = () => {
     if (!grnId) return toast.error("Select a GRN");
     if (!itemName.trim()) return toast.error("Select an item");
     if (!category.trim()) return toast.error("Enter a category");
+    const qtyNum = Number(quantity);
+    if (!Number.isInteger(qtyNum) || qtyNum < 1)
+      return toast.error("Quantity must be a whole number, at least 1");
+    if (receivedMax != null && qtyNum > receivedMax)
+      return toast.error(`Quantity cannot be more than the received quantity (${receivedMax})`);
+    if (!grnSiteId && !siteId) return toast.error("Select a site");
     if (!unitCost || Number(unitCost) <= 0)
       return toast.error("Enter a valid unit cost");
     if (!justification.trim() || justification.trim().length < 10) {
@@ -130,9 +156,7 @@ const CapitalizationRequest = () => {
         unitCost: Number(unitCost),
         category,
         justification,
-        centerId:
-          selectedGrn?.poId?.deliverySiteId?._id ||
-          selectedGrn?.poId?.deliverySiteId,
+        centerId: grnSiteId || siteId,
       });
       toast.success("Capitalization request created successfully");
       setModalOpen(false);
@@ -151,6 +175,8 @@ const CapitalizationRequest = () => {
   };
 
   const handleApprove = async (id) => {
+    if (busyId) return;
+    setBusyId(id);
     try {
       await approveCapitalizationRequest(id);
       toast.success("Request approved — ready to move into CWIP");
@@ -163,11 +189,15 @@ const CapitalizationRequest = () => {
             "Couldn't approve.",
         );
       }
+    } finally {
+      setBusyId("");
     }
   };
 
   const confirmReject = async () => {
     if (!rejectReason.trim()) return toast.error("Provide a rejection reason");
+    if (rejecting) return;
+    setRejecting(true);
     try {
       await rejectCapitalizationRequest(rejectTarget._id, {
         rejectionReason: rejectReason,
@@ -184,6 +214,8 @@ const CapitalizationRequest = () => {
             "Couldn't reject.",
         );
       }
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -194,7 +226,7 @@ const CapitalizationRequest = () => {
       sortable: true,
       width: "150px",
     },
-    { name: "Item", selector: (row) => row.itemName },
+    { name: "Item", selector: (row) => row.itemName, wrap: true },
     { name: "Qty", width: "70px", selector: (row) => row.quantity },
     {
       name: "Total Cost",
@@ -211,7 +243,20 @@ const CapitalizationRequest = () => {
     {
       name: "Status",
       width: "120px",
-      cell: (row) => <StatusPill status={row.status} />,
+      cell: (row) => (
+        <div>
+          <StatusPill status={row.status} />
+          {row.status === "rejected" && row.rejectionReason && (
+            <div
+              className="text-muted"
+              style={{ fontSize: 11, marginTop: 2, wordBreak: "break-word" }}
+              title={row.rejectionReason}
+            >
+              {row.rejectionReason}
+            </div>
+          )}
+        </div>
+      ),
     },
     {
       name: "Date",
@@ -230,6 +275,7 @@ const CapitalizationRequest = () => {
             <Button
               size="sm"
               color="success"
+              disabled={busyId === row._id}
               onClick={() => handleApprove(row._id)}
             >
               Approve
@@ -238,7 +284,11 @@ const CapitalizationRequest = () => {
               size="sm"
               color="danger"
               outline
-              onClick={() => setRejectTarget(row)}
+              disabled={busyId === row._id}
+              onClick={() => {
+                setRejectReason("");
+                setRejectTarget(row);
+              }}
             >
               Reject
             </Button>
@@ -263,6 +313,18 @@ const CapitalizationRequest = () => {
           </Button>
         )}
       </div>
+
+      {loadError && (
+        <div
+          className="p-3 mb-3 d-flex align-items-center justify-content-between"
+          style={{ background: "#fef3f2", border: "1px solid #fecdca", borderRadius: 10 }}
+        >
+          <span className="text-danger">{loadError}</span>
+          <Button size="sm" color="light" onClick={() => setRefreshFlag((n) => n + 1)}>
+            Try again
+          </Button>
+        </div>
+      )}
 
       <div className="uom-table-card">
         <DataTable
@@ -338,12 +400,28 @@ const CapitalizationRequest = () => {
             </Col>
           </Row>
 
+          {grnId && !grnSiteId && (
+            <div className="mb-3">
+              <Label>
+                Site <span className="text-danger">*</span>
+              </Label>
+              <Input type="select" value={siteId} onChange={(e) => setSiteId(e.target.value)}>
+                <option value="">Select site (this GRN has no delivery site)</option>
+                {centers.map((c) => (
+                  <option key={c._id} value={c._id}>{c.title}</option>
+                ))}
+              </Input>
+            </div>
+          )}
+
           <Row>
             <Col md={4} className="mb-3">
               <Label>Quantity</Label>
               <Input
                 type="number"
                 min={1}
+                max={receivedMax || undefined}
+                step={1}
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
               />
@@ -417,8 +495,8 @@ const CapitalizationRequest = () => {
             <Button color="light" onClick={() => setRejectTarget(null)}>
               Cancel
             </Button>
-            <Button color="danger" onClick={confirmReject}>
-              Reject
+            <Button color="danger" onClick={confirmReject} disabled={rejecting}>
+              {rejecting ? "Rejecting..." : "Reject"}
             </Button>
           </div>
         </ModalBody>

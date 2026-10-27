@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody, Label, Row, Col } from "reactstrap";
 import { toast } from "react-toastify";
@@ -12,10 +12,14 @@ import {
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText } from "../shared/assetUi";
+import useConfirm from "../shared/useConfirm";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+
+const NO_SITE = "none";
 
 const emptyItem = () => ({
   assetId: "",
@@ -41,6 +45,7 @@ const StatusPill = ({ status }) => {
 
 const AssetWriteOffRequest = () => {
   const handleAuthError = useAuthError();
+  const [confirm, confirmDialog] = useConfirm();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "ASSET_WRITEOFF", "WRITE");
@@ -58,6 +63,11 @@ const AssetWriteOffRequest = () => {
   const [centerId, setCenterId] = useState("");
   const [items, setItems] = useState([emptyItem()]);
   const [submitting, setSubmitting] = useState(false);
+  const [assetsLoading, setAssetsLoading] = useState(false);
+  const assetReq = useRef(0);
+  const [busyId, setBusyId] = useState(null);
+  const [rejecting, setRejecting] = useState(false);
+  const [detailModal, setDetailModal] = useState(null);
 
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -69,13 +79,16 @@ const AssetWriteOffRequest = () => {
       .then((res) => {
         if (!cancelled) setRequests(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (!cancelled && !handleAuthError(error)) toast.error(errText(error));
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFlag]);
 
   const openModal = () => {
@@ -91,12 +104,34 @@ const AssetWriteOffRequest = () => {
     setCenterId(id);
     setItems([emptyItem()]);
     if (!id) {
+      assetReq.current++;
       setAssets([]);
+      setAssetsLoading(false);
       return;
     }
-    getFixedAssets({ centerId: id, status: "active" })
-      .then((res) => setAssets(res?.data || []))
-      .catch(() => setAssets([]));
+    const req = ++assetReq.current;
+    setAssetsLoading(true);
+    const noSite = id === NO_SITE;
+    getFixedAssets(noSite ? {} : { centerId: id })
+      .then((res) => {
+        if (req !== assetReq.current) return;
+        // An asset with an employee, or already on a pending request, cannot be picked
+        setAssets(
+          (res?.data || []).filter(
+            (a) =>
+              a.status !== "written_off" &&
+              !a.assignedTo &&
+              !a.pendingWriteOff &&
+              (noSite ? !a.centerId : true),
+          ),
+        );
+      })
+      .catch(() => {
+        if (req === assetReq.current) setAssets([]);
+      })
+      .finally(() => {
+        if (req === assetReq.current) setAssetsLoading(false);
+      });
   };
 
   const updateItem = (idx, field, value) => {
@@ -125,12 +160,15 @@ const AssetWriteOffRequest = () => {
     if (invalidSale)
       return toast.error("Enter Buyer Name for items marked as Sale");
 
+    if (items.some((it) => Number(it.estValue) < 0))
+      return toast.error("Est. Value cannot be negative");
+
     setSubmitting(true);
     try {
       await createAssetWriteOffRequest({
         title,
         description,
-        centerId,
+        centerId: centerId === NO_SITE ? undefined : centerId,
         items: items.map((it) => ({
           assetId: it.assetId,
           disposalType: it.disposalType,
@@ -144,11 +182,7 @@ const AssetWriteOffRequest = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
-        );
+        toast.error(errText(error));
       }
     } finally {
       setSubmitting(false);
@@ -156,23 +190,37 @@ const AssetWriteOffRequest = () => {
   };
 
   const handleApprove = async (id) => {
+    if (busyId) return;
+    const ok = await confirm({
+      title: "Approve write-off",
+      message: "The assets in this request will be written off or sold. This cannot be undone.",
+      confirmText: "Approve",
+      danger: true,
+    });
+    if (!ok) return;
+    setBusyId(id);
     try {
       const res = await approveAssetWriteOffRequest(id);
       toast.success(res?.message || "Request approved");
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't approve.",
-        );
+        toast.error(errText(error, "Couldn't approve."));
       }
+    } finally {
+      setBusyId(null);
     }
+  };
+
+  const closeReject = () => {
+    setRejectTarget(null);
+    setRejectReason("");
   };
 
   const confirmReject = async () => {
     if (!rejectReason.trim()) return toast.error("Provide a rejection reason");
+    if (rejecting) return;
+    setRejecting(true);
     try {
       await rejectAssetWriteOffRequest(rejectTarget._id, {
         rejectionReason: rejectReason,
@@ -183,12 +231,10 @@ const AssetWriteOffRequest = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't reject.",
-        );
+        toast.error(errText(error, "Couldn't reject."));
       }
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -199,7 +245,11 @@ const AssetWriteOffRequest = () => {
       sortable: true,
       width: "150px",
     },
-    { name: "Title", selector: (row) => row.title },
+    {
+      name: "Title",
+      cell: (row) => <span title={row.title}>{row.title}</span>,
+      wrap: true,
+    },
     {
       name: "Site",
       cell: (row) => (
@@ -235,28 +285,38 @@ const AssetWriteOffRequest = () => {
     {
       name: "Actions",
       right: true,
-      width: "180px",
-      cell: (row) =>
-        row.status === "pending" &&
-        canApprove && (
-          <div className="d-flex gap-2">
-            <Button
-              size="sm"
-              color="success"
-              onClick={() => handleApprove(row._id)}
-            >
-              Approve
-            </Button>
-            <Button
-              size="sm"
-              color="danger"
-              outline
-              onClick={() => setRejectTarget(row)}
-            >
-              Reject
-            </Button>
-          </div>
-        ),
+      width: "260px",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          <Button size="sm" color="light" onClick={() => setDetailModal(row)}>
+            View
+          </Button>
+          {row.status === "pending" && canApprove && (
+            <>
+              <Button
+                size="sm"
+                color="success"
+                disabled={!!busyId}
+                onClick={() => handleApprove(row._id)}
+              >
+                {busyId === row._id ? "Approving..." : "Approve"}
+              </Button>
+              <Button
+                size="sm"
+                color="danger"
+                outline
+                disabled={!!busyId}
+                onClick={() => {
+                  setRejectReason("");
+                  setRejectTarget(row);
+                }}
+              >
+                Reject
+              </Button>
+            </>
+          )}
+        </div>
+      ),
     },
   ];
 
@@ -292,9 +352,10 @@ const AssetWriteOffRequest = () => {
         />
       </div>
 
+      {confirmDialog}
       <Modal
         isOpen={modalOpen}
-        toggle={() => setModalOpen(false)}
+        toggle={() => !submitting && setModalOpen(false)}
         centered
         size="lg"
       >
@@ -322,6 +383,7 @@ const AssetWriteOffRequest = () => {
                 onChange={(e) => handleCenterChange(e.target.value)}
               >
                 <option value="">Select source site</option>
+                <option value={NO_SITE}>No site assigned</option>
                 {centers.map((c) => (
                   <option key={c._id} value={c._id}>
                     {c.title}
@@ -367,13 +429,25 @@ const AssetWriteOffRequest = () => {
                     onChange={(e) => updateItem(idx, "assetId", e.target.value)}
                   >
                     <option value="">
-                      {!centerId ? "Select site first" : "Select asset"}
+                      {!centerId
+                        ? "Select site first"
+                        : assetsLoading
+                          ? "Loading assets..."
+                          : assets.length === 0
+                            ? "No eligible assets at this site"
+                            : "Select asset"}
                     </option>
-                    {assets.map((a) => (
-                      <option key={a._id} value={a._id}>
-                        {a.assetName} ({a.assetTag})
-                      </option>
-                    ))}
+                    {assets
+                      .filter(
+                        (a) =>
+                          a._id === it.assetId ||
+                          !items.some((o, i) => i !== idx && o.assetId === a._id),
+                      )
+                      .map((a) => (
+                        <option key={a._id} value={a._id}>
+                          {a.assetName} ({a.assetTag || a.serialNumber || "no tag"})
+                        </option>
+                      ))}
                   </Input>
                 </Col>
                 <Col md={3} className="mb-2">
@@ -464,7 +538,7 @@ const AssetWriteOffRequest = () => {
 
       <Modal
         isOpen={!!rejectTarget}
-        toggle={() => setRejectTarget(null)}
+        toggle={() => !rejecting && closeReject()}
         centered
       >
         <ModalBody className="p-4">
@@ -477,13 +551,83 @@ const AssetWriteOffRequest = () => {
             onChange={(e) => setRejectReason(e.target.value)}
           />
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setRejectTarget(null)}>
+            <Button color="light" onClick={closeReject} disabled={rejecting}>
               Cancel
             </Button>
-            <Button color="danger" onClick={confirmReject}>
-              Reject
+            <Button color="danger" onClick={confirmReject} disabled={rejecting}>
+              {rejecting ? "Rejecting..." : "Reject"}
             </Button>
           </div>
+        </ModalBody>
+      </Modal>
+
+      <Modal
+        isOpen={!!detailModal}
+        toggle={() => setDetailModal(null)}
+        centered
+        size="lg"
+      >
+        <ModalBody className="p-4">
+          {detailModal && (
+            <>
+              <h5 className="mb-1">{detailModal.title}</h5>
+              <p className="text-muted small mb-2">
+                {detailModal.requestNumber} · {detailModal.centerId?.title || "—"} ·{" "}
+                {dateFmt(detailModal.createdAt)}
+              </p>
+              <div className="mb-3">
+                <StatusPill status={detailModal.status} />
+              </div>
+              {detailModal.description && (
+                <div className="mb-3" style={{ overflowWrap: "anywhere" }}>
+                  <span className="text-muted small">Description: </span>
+                  {detailModal.description}
+                </div>
+              )}
+              {detailModal.status === "rejected" && (
+                <div className="mb-3" style={{ overflowWrap: "anywhere" }}>
+                  <span className="text-muted small">Rejection reason: </span>
+                  {detailModal.rejectionReason || "—"}
+                </div>
+              )}
+              <div style={{ overflowX: "auto" }}>
+                <table className="table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Asset</th>
+                      <th>Type</th>
+                      <th>Reason</th>
+                      <th>Buyer</th>
+                      <th>Est. Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(detailModal.items || []).map((it, idx) => (
+                      <tr key={it._id || idx}>
+                        <td>
+                          {it.assetId?.assetName || "—"}
+                          {it.assetId?.assetTag ? ` (${it.assetId.assetTag})` : ""}
+                        </td>
+                        <td className="small">
+                          {it.disposalType === "sale" ? "Sale" : "Write-off / Scrap"}
+                        </td>
+                        <td className="small" style={{ overflowWrap: "anywhere" }}>
+                          {it.reason || "—"}
+                        </td>
+                        <td className="small">{it.buyerName || "—"}</td>
+                        <td className="small">{money(it.estValue)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="d-flex justify-content-end mt-3">
+                <Button color="light" onClick={() => setDetailModal(null)}>
+                  Close
+                </Button>
+              </div>
+            </>
+          )}
         </ModalBody>
       </Modal>
     </div>

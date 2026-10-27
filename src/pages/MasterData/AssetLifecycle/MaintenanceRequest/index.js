@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody, Label, Row, Col } from "reactstrap";
 import { toast } from "react-toastify";
@@ -12,6 +12,7 @@ import {
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
@@ -22,6 +23,7 @@ const MAINTENANCE_TYPES = [
   { value: "inspection", label: "Inspection" },
   { value: "emergency", label: "Emergency" },
 ];
+const NO_SITE = "none";
 const PRIORITIES = ["low", "medium", "high", "critical"];
 
 const emptyItem = () => ({
@@ -69,6 +71,11 @@ const MaintenanceRequest = () => {
   const [description, setDescription] = useState("");
   const [items, setItems] = useState([emptyItem()]);
   const [submitting, setSubmitting] = useState(false);
+  const [assetsLoading, setAssetsLoading] = useState(false);
+  const assetReq = useRef(0);
+  const [busyId, setBusyId] = useState(null);
+  const [rejecting, setRejecting] = useState(false);
+  const [detailModal, setDetailModal] = useState(null);
 
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -77,12 +84,32 @@ const MaintenanceRequest = () => {
     setCenterId(id);
     setItems([emptyItem()]);
     if (!id) {
+      assetReq.current++;
       setAssets([]);
+      setAssetsLoading(false);
       return;
     }
-    getFixedAssets({ centerId: id })
-      .then((res) => setAssets(res?.data || []))
-      .catch(() => setAssets([]));
+    const req = ++assetReq.current;
+    setAssetsLoading(true);
+    const noSite = id === NO_SITE;
+    getFixedAssets(noSite ? {} : { centerId: id })
+      .then((res) => {
+        if (req !== assetReq.current) return;
+        setAssets(
+          (res?.data || []).filter(
+            (a) =>
+              a.status !== "written_off" &&
+              !a.pendingWriteOff &&
+              (noSite ? !a.centerId : true),
+          ),
+        );
+      })
+      .catch(() => {
+        if (req === assetReq.current) setAssets([]);
+      })
+      .finally(() => {
+        if (req === assetReq.current) setAssetsLoading(false);
+      });
   };
 
   useEffect(() => {
@@ -92,13 +119,16 @@ const MaintenanceRequest = () => {
       .then((res) => {
         if (!cancelled) setRequests(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (!cancelled && !handleAuthError(error)) toast.error(errText(error));
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFlag]);
 
   const openModal = () => {
@@ -124,6 +154,8 @@ const MaintenanceRequest = () => {
       return toast.error("Fill in Site and Title");
     const invalid = items.find((it) => !it.assetId);
     if (invalid) return toast.error("Select an asset for every item");
+    if (centerId === NO_SITE)
+      return toast.error("A maintenance request needs a site. Set the asset's site first");
 
     setSubmitting(true);
     try {
@@ -139,11 +171,7 @@ const MaintenanceRequest = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
-        );
+        toast.error(errText(error));
       }
     } finally {
       setSubmitting(false);
@@ -151,23 +179,30 @@ const MaintenanceRequest = () => {
   };
 
   const handleApprove = async (id) => {
+    if (busyId) return;
+    setBusyId(id);
     try {
       const res = await approveMaintenanceRequest(id);
       toast.success(res?.message || "Request approved — work orders created");
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't approve.",
-        );
+        toast.error(errText(error, "Couldn't approve."));
       }
+    } finally {
+      setBusyId(null);
     }
+  };
+
+  const closeReject = () => {
+    setRejectTarget(null);
+    setRejectReason("");
   };
 
   const confirmReject = async () => {
     if (!rejectReason.trim()) return toast.error("Provide a rejection reason");
+    if (rejecting) return;
+    setRejecting(true);
     try {
       await rejectMaintenanceRequest(rejectTarget._id, {
         rejectionReason: rejectReason,
@@ -178,12 +213,10 @@ const MaintenanceRequest = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't reject.",
-        );
+        toast.error(errText(error, "Couldn't reject."));
       }
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -194,7 +227,11 @@ const MaintenanceRequest = () => {
       sortable: true,
       width: "150px",
     },
-    { name: "Title", selector: (row) => row.title },
+    {
+      name: "Title",
+      cell: (row) => <span title={row.title}>{row.title}</span>,
+      wrap: true,
+    },
     {
       name: "Type",
       width: "110px",
@@ -231,28 +268,38 @@ const MaintenanceRequest = () => {
     {
       name: "Actions",
       right: true,
-      width: "180px",
-      cell: (row) =>
-        row.status === "pending" &&
-        canApprove && (
-          <div className="d-flex gap-2">
-            <Button
-              size="sm"
-              color="success"
-              onClick={() => handleApprove(row._id)}
-            >
-              Approve
-            </Button>
-            <Button
-              size="sm"
-              color="danger"
-              outline
-              onClick={() => setRejectTarget(row)}
-            >
-              Reject
-            </Button>
-          </div>
-        ),
+      width: "260px",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          <Button size="sm" color="light" onClick={() => setDetailModal(row)}>
+            View
+          </Button>
+          {row.status === "pending" && canApprove && (
+            <>
+              <Button
+                size="sm"
+                color="success"
+                disabled={!!busyId}
+                onClick={() => handleApprove(row._id)}
+              >
+                {busyId === row._id ? "Approving..." : "Approve"}
+              </Button>
+              <Button
+                size="sm"
+                color="danger"
+                outline
+                disabled={!!busyId}
+                onClick={() => {
+                  setRejectReason("");
+                  setRejectTarget(row);
+                }}
+              >
+                Reject
+              </Button>
+            </>
+          )}
+        </div>
+      ),
     },
   ];
 
@@ -290,7 +337,7 @@ const MaintenanceRequest = () => {
 
       <Modal
         isOpen={modalOpen}
-        toggle={() => setModalOpen(false)}
+        toggle={() => !submitting && setModalOpen(false)}
         centered
         size="lg"
       >
@@ -323,6 +370,7 @@ const MaintenanceRequest = () => {
                 onChange={(e) => handleCenterChange(e.target.value)}
               >
                 <option value="">Select site</option>
+                <option value={NO_SITE}>No site assigned</option>
                 {centers.map((c) => (
                   <option key={c._id} value={c._id}>
                     {c.title}
@@ -377,13 +425,25 @@ const MaintenanceRequest = () => {
                     onChange={(e) => updateItem(idx, "assetId", e.target.value)}
                   >
                     <option value="">
-                      {!centerId ? "Select site first" : "Select asset"}
+                      {!centerId
+                        ? "Select site first"
+                        : assetsLoading
+                          ? "Loading assets..."
+                          : assets.length === 0
+                            ? "No eligible assets at this site"
+                            : "Select asset"}
                     </option>
-                    {assets.map((a) => (
-                      <option key={a._id} value={a._id}>
-                        {a.assetName} ({a.assetTag})
-                      </option>
-                    ))}
+                    {assets
+                      .filter(
+                        (a) =>
+                          a._id === it.assetId ||
+                          !items.some((o, i) => i !== idx && o.assetId === a._id),
+                      )
+                      .map((a) => (
+                        <option key={a._id} value={a._id}>
+                          {a.assetName} ({a.assetTag || a.serialNumber || "no tag"})
+                        </option>
+                      ))}
                   </Input>
                 </Col>
                 <Col md={3} className="mb-2">
@@ -445,7 +505,7 @@ const MaintenanceRequest = () => {
 
       <Modal
         isOpen={!!rejectTarget}
-        toggle={() => setRejectTarget(null)}
+        toggle={() => !rejecting && closeReject()}
         centered
       >
         <ModalBody className="p-4">
@@ -458,13 +518,79 @@ const MaintenanceRequest = () => {
             onChange={(e) => setRejectReason(e.target.value)}
           />
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setRejectTarget(null)}>
+            <Button color="light" onClick={closeReject} disabled={rejecting}>
               Cancel
             </Button>
-            <Button color="danger" onClick={confirmReject}>
-              Reject
+            <Button color="danger" onClick={confirmReject} disabled={rejecting}>
+              {rejecting ? "Rejecting..." : "Reject"}
             </Button>
           </div>
+        </ModalBody>
+      </Modal>
+
+      <Modal
+        isOpen={!!detailModal}
+        toggle={() => setDetailModal(null)}
+        centered
+        size="lg"
+      >
+        <ModalBody className="p-4">
+          {detailModal && (
+            <>
+              <h5 className="mb-1">{detailModal.title}</h5>
+              <p className="text-muted small mb-2 text-capitalize">
+                {detailModal.requestNumber} · {detailModal.maintenanceType} ·{" "}
+                {detailModal.centerId?.title || "—"} · {dateFmt(detailModal.createdAt)}
+              </p>
+              <div className="mb-3">
+                <StatusPill status={detailModal.status} />
+              </div>
+              {detailModal.description && (
+                <div className="mb-3" style={{ overflowWrap: "anywhere" }}>
+                  <span className="text-muted small">Description: </span>
+                  {detailModal.description}
+                </div>
+              )}
+              {detailModal.status === "rejected" && (
+                <div className="mb-3" style={{ overflowWrap: "anywhere" }}>
+                  <span className="text-muted small">Rejection reason: </span>
+                  {detailModal.rejectionReason || "—"}
+                </div>
+              )}
+              <div style={{ overflowX: "auto" }}>
+                <table className="table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Asset</th>
+                      <th>Serial No.</th>
+                      <th>Priority</th>
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(detailModal.items || []).map((it, idx) => (
+                      <tr key={it._id || idx}>
+                        <td>
+                          {it.assetId?.assetName || "—"}
+                          {it.assetId?.assetTag ? ` (${it.assetId.assetTag})` : ""}
+                        </td>
+                        <td className="small">{it.serialNumber || "—"}</td>
+                        <td className="small text-capitalize">{it.priority || "—"}</td>
+                        <td className="small" style={{ overflowWrap: "anywhere" }}>
+                          {it.remarks || "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="d-flex justify-content-end mt-3">
+                <Button color="light" onClick={() => setDetailModal(null)}>
+                  Close
+                </Button>
+              </div>
+            </>
+          )}
         </ModalBody>
       </Modal>
     </div>

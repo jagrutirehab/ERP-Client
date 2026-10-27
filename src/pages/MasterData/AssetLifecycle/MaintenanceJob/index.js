@@ -8,13 +8,23 @@ import {
   updateMaintenanceJob,
   getWorkOrders,
   getUserLookup,
+  getVendors,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
-import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
-const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
+// Dates are saved as UTC midnight, so show them in UTC to keep the day the user picked
+const dateFmt = (d) =>
+  d ? new Date(d).toLocaleDateString("en-IN", { timeZone: "UTC" }) : "—";
+
+const NEXT_STATUS = {
+  assigned: ["in_progress", "completed", "cancelled"],
+  in_progress: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+};
 
 const vendorLabel = (v) => v?.tradeName || v?.legalName || "—";
 
@@ -39,6 +49,7 @@ const MaintenanceJob = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "MAINTENANCE_JOB", "WRITE");
+  const canUpdate = canCreate;
 
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -50,11 +61,20 @@ const MaintenanceJob = () => {
   const [showTechDropdown, setShowTechDropdown] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const debounceRef = React.useRef(null);
-  const { items: activeVendors } = useReferenceList("vendors");
-  const vendors = React.useMemo(
-    () => activeVendors.filter((v) => v.approvalStatus === "approved"),
-    [activeVendors],
-  );
+  const searchSeq = React.useRef(0);
+  // Any active, approved vendor can repair an asset (not only purchase-order vendors)
+  const [vendors, setVendors] = useState([]);
+  useEffect(() => {
+    getVendors({ status: "active", limit: 1000 })
+      .then((res) =>
+        setVendors(
+          (res?.data || []).filter(
+            (v) => v.approvalStatus === "approved" && v.status === "active",
+          ),
+        ),
+      )
+      .catch(() => setVendors([]));
+  }, []);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [workOrderId, setWorkOrderId] = useState("");
@@ -71,11 +91,14 @@ const MaintenanceJob = () => {
   const [detailModal, setDetailModal] = useState(null);
   const [updating, setUpdating] = useState(false);
 
-  useEffect(() => {
-    getWorkOrders({ status: "pending" })
-      .then((res) => setWorkOrders(res?.data || []))
-      .catch(() => {});
-  }, []);
+  const loadWorkOrders = () =>
+    getWorkOrders({})
+      .then((res) =>
+        setWorkOrders(
+          (res?.data || []).filter((w) => w.status !== "completed"),
+        ),
+      )
+      .catch(() => setWorkOrders([]));
 
   const handleTechnicianSearch = (text) => {
     setTechnicianSearch(text);
@@ -86,6 +109,7 @@ const MaintenanceJob = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (text.trim().length < 2) {
+      searchSeq.current++;
       setTechnicians([]);
       setShowTechDropdown(false);
       setSearchLoading(false);
@@ -93,15 +117,21 @@ const MaintenanceJob = () => {
     }
 
     setSearchLoading(true);
+    const seq = ++searchSeq.current;
     // Only fire the API call after the user pauses typing for 400ms
     debounceRef.current = setTimeout(() => {
       getUserLookup({ search: text })
         .then((res) => {
+          if (seq !== searchSeq.current) return;
           setTechnicians(res?.data || []);
           setShowTechDropdown(true);
         })
-        .catch(() => setTechnicians([]))
-        .finally(() => setSearchLoading(false));
+        .catch(() => {
+          if (seq === searchSeq.current) setTechnicians([]);
+        })
+        .finally(() => {
+          if (seq === searchSeq.current) setSearchLoading(false);
+        });
     }, 400);
   };
 
@@ -125,13 +155,16 @@ const MaintenanceJob = () => {
       .then((res) => {
         if (!cancelled) setJobs(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (!cancelled && !handleAuthError(error)) toast.error(errText(error));
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFlag]);
 
   const openModal = () => {
@@ -147,12 +180,17 @@ const MaintenanceJob = () => {
     setScheduledDate("");
     setScheduledTime("");
     setRemarks("");
+    loadWorkOrders();
     setModalOpen(true);
   };
 
   const handleSubmit = async () => {
     const assigneeMissing =
       assigneeType === "technician" ? !technicianId : !vendorId;
+
+    if (workOrderId && !centerId) {
+      return toast.error("This work order has no site. Set its site first");
+    }
 
     if (
       !workOrderId ||
@@ -185,11 +223,7 @@ const MaintenanceJob = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
-        );
+        toast.error(errText(error));
       }
     } finally {
       setSubmitting(false);
@@ -205,11 +239,7 @@ const MaintenanceJob = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't update.",
-        );
+        toast.error(errText(error, "Couldn't update."));
       }
     } finally {
       setUpdating(false);
@@ -225,10 +255,19 @@ const MaintenanceJob = () => {
     },
     {
       name: "Work Order",
+      wrap: true,
       cell: (row) => (
-        <span className="uom-cell-primary">
-          {row.workOrderId?.title || "—"}
-        </span>
+        <div className="py-1">
+          <span className="uom-cell-primary">
+            {row.workOrderId?.workOrderNumber || "—"}
+          </span>
+          <div className="small text-muted">
+            {row.workOrderId?.title || "—"}
+            {row.workOrderId?.assetId?.assetName
+              ? ` · ${row.workOrderId.assetId.assetName}`
+              : ""}
+          </div>
+        </div>
       ),
     },
     {
@@ -258,7 +297,7 @@ const MaintenanceJob = () => {
       name: "Scheduled",
       cell: (row) => (
         <span className="uom-cell-muted">
-          {dateFmt(row.scheduledDate)} at {row.scheduledTime}
+          {dateFmt(row.scheduledDate)} at {row.scheduledTime || "—"}
         </span>
       ),
     },
@@ -311,7 +350,7 @@ const MaintenanceJob = () => {
 
       <Modal
         isOpen={modalOpen}
-        toggle={() => setModalOpen(false)}
+        toggle={() => !submitting && setModalOpen(false)}
         centered
         size="lg"
       >
@@ -336,10 +375,17 @@ const MaintenanceJob = () => {
               setSelectedWOCenter(wo?.centerId?.title || null);
             }}
           >
-            <option value="">Select Work Order</option>
+            <option value="">
+              {workOrders.length === 0
+                ? "No open work orders"
+                : "Select Work Order"}
+            </option>
             {workOrders.map((w) => (
               <option key={w._id} value={w._id}>
                 {w.workOrderNumber} — {w.title}
+                {w.assetId?.assetName
+                  ? ` — ${w.assetId.assetName} (${w.assetId.assetTag || "no tag"})`
+                  : ""}
               </option>
             ))}
           </Input>
@@ -373,11 +419,18 @@ const MaintenanceJob = () => {
                 <Input
                   value={technicianSearch}
                   onChange={(e) => handleTechnicianSearch(e.target.value)}
+                  onBlur={() => setShowTechDropdown(false)}
                   placeholder="Type at least 2 letters to search..."
                 />
                 {searchLoading && (
                   <div className="text-muted small mt-1">Searching...</div>
                 )}
+                {showTechDropdown &&
+                  !searchLoading &&
+                  technicians.length === 0 &&
+                  technicianSearch.trim().length >= 2 && (
+                    <div className="text-muted small mt-1">No matches</div>
+                  )}
                 {showTechDropdown && technicians.length > 0 && (
                   <div
                     style={{
@@ -435,7 +488,10 @@ const MaintenanceJob = () => {
 
           <Label>Site (auto-filled from Work Order)</Label>
           <Input
-            value={selectedWOCenter || "Select a Work Order first"}
+            value={
+              selectedWOCenter ||
+              (workOrderId ? "This work order has no site" : "Select a Work Order first")
+            }
             disabled
             className="mb-3"
           />
@@ -493,7 +549,7 @@ const MaintenanceJob = () => {
 
       <Modal
         isOpen={!!detailModal}
-        toggle={() => setDetailModal(null)}
+        toggle={() => !updating && setDetailModal(null)}
         centered
       >
         <ModalBody className="p-4">
@@ -501,7 +557,11 @@ const MaintenanceJob = () => {
             <>
               <h5 className="mb-1">{detailModal.jobNumber}</h5>
               <p className="text-muted small mb-3">
+                {detailModal.workOrderId?.workOrderNumber}{" "}
                 {detailModal.workOrderId?.title}
+                {detailModal.workOrderId?.assetId?.assetName
+                  ? ` · ${detailModal.workOrderId.assetId.assetName}`
+                  : ""}
               </p>
 
               <div className="mb-2">
@@ -516,32 +576,41 @@ const MaintenanceJob = () => {
               </div>
               <div className="mb-2">
                 <span className="text-muted small">Site: </span>
-                {detailModal.centerId?.title}
+                {detailModal.centerId?.title || "—"}
               </div>
               <div className="mb-2">
                 <span className="text-muted small">Scheduled: </span>
                 {dateFmt(detailModal.scheduledDate)} at{" "}
-                {detailModal.scheduledTime}
+                {detailModal.scheduledTime || "—"}
               </div>
               <div className="mb-3">
                 <span className="text-muted small">Remarks: </span>
                 {detailModal.remarks || "—"}
               </div>
 
-              <div className="text-muted small mb-2">Update Status</div>
-              <div className="d-flex gap-2 flex-wrap">
-                {Object.entries(STATUS_META).map(([key, meta]) => (
-                  <Button
-                    key={key}
-                    size="sm"
-                    color={detailModal.status === key ? "primary" : "light"}
-                    disabled={updating || detailModal.status === key}
-                    onClick={() => handleStatusChange(detailModal, key)}
-                  >
-                    {meta.label}
-                  </Button>
-                ))}
-              </div>
+              {canUpdate && (NEXT_STATUS[detailModal.status] || []).length > 0 && (
+                <>
+                  <div className="text-muted small mb-2">Update Status</div>
+                  <div className="d-flex gap-2 flex-wrap">
+                    {NEXT_STATUS[detailModal.status].map((key) => (
+                      <Button
+                        key={key}
+                        size="sm"
+                        color="light"
+                        disabled={updating}
+                        onClick={() => handleStatusChange(detailModal, key)}
+                      >
+                        {STATUS_META[key].label}
+                      </Button>
+                    ))}
+                  </div>
+                </>
+              )}
+              {(NEXT_STATUS[detailModal.status] || []).length === 0 && (
+                <div className="text-muted small">
+                  This job is closed and its status cannot be changed.
+                </div>
+              )}
 
               <div className="d-flex justify-content-end mt-4">
                 <Button color="light" onClick={() => setDetailModal(null)}>

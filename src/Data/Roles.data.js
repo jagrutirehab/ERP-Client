@@ -720,6 +720,7 @@ export const permissionList = [
       { name: "VERIFICATION_JOB", label: "Verification Jobs" },
       { name: "PHYSICAL_VERIFICATION", label: "Physical Verifications" },
       { name: "ASSET_TAG", label: "Create Tags" },
+      { name: "ASSET_SCAN", label: "Verifications" },
     ],
   },
   {

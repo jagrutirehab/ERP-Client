@@ -78,6 +78,7 @@ const MODULE_GROUPS = [
       { value: "PM_SCHEDULE", label: "PM Schedule" },
       { value: "VERIFICATION_JOB", label: "Verification Job" },
       { value: "PHYSICAL_VERIFICATION", label: "Physical Verification" },
+      { value: "ASSET_SCAN", label: "Verification" },
     ],
   },
 ];

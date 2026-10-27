@@ -8,6 +8,7 @@ import {
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText, useBusy } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
@@ -38,6 +39,14 @@ const STATUS_META = {
     icon: "bx-error-circle",
     color: "#f04438",
   },
+};
+
+// Allowed next statuses (mirrors the server). "overdue" is never set by hand.
+const NEXT_STATUS = {
+  pending: ["in_progress", "completed"],
+  in_progress: ["pending", "completed"],
+  overdue: ["in_progress", "completed"],
+  completed: [],
 };
 
 const PRIORITY_META = {
@@ -84,11 +93,14 @@ const DetailRow = ({ icon, label, value }) => (
     >
       <i className={`bx ${icon} text-primary`}></i>
     </div>
-    <div>
+    <div style={{ minWidth: 0 }}>
       <div className="text-muted" style={{ fontSize: 12 }}>
         {label}
       </div>
-      <div className="fw-semibold" style={{ fontSize: 14 }}>
+      <div
+        className="fw-semibold"
+        style={{ fontSize: 14, wordBreak: "break-word" }}
+      >
         {value}
       </div>
     </div>
@@ -113,7 +125,7 @@ const WorkOrder = () => {
   const [refreshFlag, setRefreshFlag] = useState(0);
 
   const [detailModal, setDetailModal] = useState(null);
-  const [updating, setUpdating] = useState(false);
+  const [updating, runUpdate] = useBusy();
 
   useEffect(() => {
     let cancelled = false;
@@ -126,40 +138,44 @@ const WorkOrder = () => {
           res?.stats || { total: 0, pending: 0, highPriority: 0, overdue: 0 },
         );
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (!cancelled && !handleAuthError(error)) {
+          toast.error(errText(error, "Couldn't load work orders."));
+        }
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFlag]);
 
   const filtered = workOrders.filter(
     (w) =>
-      w.workOrderNumber.toLowerCase().includes(search.toLowerCase()) ||
+      (w.workOrderNumber || "")
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      (w.title || "").toLowerCase().includes(search.toLowerCase()) ||
       w.assetId?.assetName?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const handleStatusChange = async (workOrder, newStatus) => {
-    setUpdating(true);
-    try {
-      const res = await updateWorkOrder(workOrder._id, { status: newStatus });
-      toast.success("Work order updated");
-      setDetailModal(res?.data || { ...workOrder, status: newStatus });
-      setRefreshFlag((f) => f + 1);
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't update.",
-        );
+  const handleStatusChange = (workOrder, newStatus) =>
+    runUpdate(async () => {
+      try {
+        const res = await updateWorkOrder(workOrder._id, {
+          status: newStatus,
+        });
+        toast.success("Work order updated");
+        setDetailModal(res?.data || { ...workOrder, status: newStatus });
+        setRefreshFlag((f) => f + 1);
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(errText(error, "Couldn't update."));
+        }
       }
-    } finally {
-      setUpdating(false);
-    }
-  };
+    });
 
   const columns = [
     {
@@ -190,9 +206,10 @@ const WorkOrder = () => {
       width: "100px",
       cell: (row) => (
         <span
-          className={`uom-status-pill ${row.priority === "critical" || row.priority === "high" ? "status-blacklisted" : "status-active"}`}
+          className={`uom-status-pill ${row.priority === "critical" || row.priority === "high" ? "status-blacklisted" : row.priority === "medium" ? "status-draft" : "status-inactive"}`}
         >
-          <span className="dot"></span> {row.priority}
+          <span className="dot"></span>{" "}
+          {PRIORITY_META[row.priority]?.label || row.priority}
         </span>
       ),
     },
@@ -315,7 +332,9 @@ const WorkOrder = () => {
               >
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
-                    <h5 className="mb-1">{detailModal.title}</h5>
+                    <h5 className="mb-1" style={{ wordBreak: "break-word" }}>
+                      {detailModal.title}
+                    </h5>
                     <div className="d-flex align-items-center gap-2 flex-wrap">
                       <span
                         className="text-muted"
@@ -355,7 +374,11 @@ const WorkOrder = () => {
                 <DetailRow
                   icon="bx-cog"
                   label="Asset"
-                  value={`${detailModal.assetId?.assetName || "—"} (${detailModal.assetId?.assetTag || "—"})`}
+                  value={
+                    [detailModal.assetId?.assetName, detailModal.assetId?.assetTag]
+                      .filter(Boolean)
+                      .join(" - ") || "—"
+                  }
                 />
                 <DetailRow
                   icon="bx-wrench"
@@ -424,27 +447,26 @@ const WorkOrder = () => {
                     UPDATE STATUS
                   </div>
                   <div className="d-flex gap-2 flex-wrap">
-                    {Object.entries(STATUS_META).map(([key, meta]) => (
+                    {(NEXT_STATUS[detailModal.status] || []).length === 0 && (
+                      <span className="text-muted small">
+                        No further status changes are allowed.
+                      </span>
+                    )}
+                    {(NEXT_STATUS[detailModal.status] || []).map((key) => {
+                      const meta = STATUS_META[key];
+                      return (
                       <Button
                         key={key}
                         size="sm"
-                        outline={detailModal.status !== key}
-                        style={
-                          detailModal.status === key
-                            ? {
-                                backgroundColor: meta.color,
-                                borderColor: meta.color,
-                                color: "#fff",
-                              }
-                            : { borderColor: meta.color, color: meta.color }
-                        }
-                        disabled={updating || detailModal.status === key}
+                        outline
+                        style={{ borderColor: meta.color, color: meta.color }}
+                        disabled={updating}
                         onClick={() => handleStatusChange(detailModal, key)}
                       >
-                        <i className={`bx ${meta.icon} me-1`}></i>
                         {meta.label}
                       </Button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

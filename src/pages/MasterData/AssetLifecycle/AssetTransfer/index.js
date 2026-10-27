@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody, Label, Row, Col } from "reactstrap";
 import { toast } from "react-toastify";
@@ -11,6 +11,8 @@ import {
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText } from "../shared/assetUi";
+import useConfirm from "../shared/useConfirm";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
@@ -21,14 +23,16 @@ const CONDITIONS = [
   { value: "scrap", label: "Scrap" },
 ];
 
+const NO_SITE = "none";
+
 const emptyItem = () => ({
   assetId: "",
   condition: "good",
-  expectedDispatchDate: "",
 });
 
 const AssetTransferRequest = () => {
   const handleAuthError = useAuthError();
+  const [confirm, confirmDialog] = useConfirm();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "ASSET_TRANSFER", "WRITE");
@@ -48,6 +52,8 @@ const AssetTransferRequest = () => {
   const [reason, setReason] = useState("");
   const [remarks, setRemarks] = useState("");
   const [items, setItems] = useState([emptyItem()]);
+  const [assetsLoading, setAssetsLoading] = useState(false);
+  const assetReq = useRef(0);
   const [submitting, setSubmitting] = useState(false);
 
   const [detailModal, setDetailModal] = useState(null);
@@ -59,13 +65,16 @@ const AssetTransferRequest = () => {
       .then((res) => {
         if (!cancelled) setTransfers(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (!cancelled && !handleAuthError(error)) toast.error(errText(error));
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFlag]);
 
   const openModal = () => {
@@ -85,12 +94,30 @@ const AssetTransferRequest = () => {
     setFromCenterId(id);
     setItems([emptyItem()]);
     if (!id) {
+      assetReq.current++;
       setAssets([]);
+      setAssetsLoading(false);
       return;
     }
-    getFixedAssets({ centerId: id, status: "active" })
-      .then((res) => setAssets(res?.data || []))
-      .catch(() => setAssets([]));
+    const req = ++assetReq.current;
+    setAssetsLoading(true);
+    const noSite = id === NO_SITE;
+    getFixedAssets(noSite ? { status: "active" } : { centerId: id, status: "active" })
+      .then((res) => {
+        if (req !== assetReq.current) return;
+        const list = res?.data || [];
+        setAssets(
+          list.filter(
+            (a) => (noSite ? !a.centerId : true) && !a.assignedTo && !a.pendingWriteOff,
+          ),
+        );
+      })
+      .catch(() => {
+        if (req === assetReq.current) setAssets([]);
+      })
+      .finally(() => {
+        if (req === assetReq.current) setAssetsLoading(false);
+      });
   };
 
   const handleToCenterChange = (id) => {
@@ -127,6 +154,25 @@ const AssetTransferRequest = () => {
     }
     const invalid = items.find((it) => !it.assetId);
     if (invalid) return toast.error("Select an asset for every item");
+    const sameSpot = items
+      .map((it) => assets.find((a) => a._id === it.assetId))
+      .find(
+        (a) =>
+          a &&
+          String(a.centerId?._id || "") === String(toCenterId) &&
+          String(a.storageLocationId?._id || "") === String(toLocationId || ""),
+      );
+    if (sameSpot) {
+      return toast.error(
+        `${sameSpot.assetName} is already at that site and location`,
+      );
+    }
+    const ok = await confirm({
+      title: "Transfer assets",
+      message: `Transfer ${items.length} asset(s) now? The assets move to the destination immediately.`,
+      confirmText: "Transfer",
+    });
+    if (!ok) return;
 
     setSubmitting(true);
     try {
@@ -137,7 +183,6 @@ const AssetTransferRequest = () => {
         items: items.map((it) => ({
           assetId: it.assetId,
           condition: it.condition,
-          expectedDispatchDate: it.expectedDispatchDate || undefined,
         })),
         reason,
         remarks,
@@ -147,11 +192,7 @@ const AssetTransferRequest = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
-        );
+        toast.error(errText(error));
       }
     } finally {
       setSubmitting(false);
@@ -165,7 +206,11 @@ const AssetTransferRequest = () => {
       sortable: true,
       width: "150px",
     },
-    { name: "Title", selector: (row) => row.title },
+    {
+      name: "Title",
+      cell: (row) => <span title={row.title}>{row.title}</span>,
+      wrap: true,
+    },
     {
       name: "Items",
       width: "80px",
@@ -184,7 +229,12 @@ const AssetTransferRequest = () => {
     },
     {
       name: "Reason",
-      cell: (row) => <span className="small text-muted">{row.reason}</span>,
+      wrap: true,
+      cell: (row) => (
+        <span className="small text-muted" title={row.reason}>
+          {row.reason}
+        </span>
+      ),
     },
     {
       name: "Date",
@@ -237,16 +287,17 @@ const AssetTransferRequest = () => {
         />
       </div>
 
+      {confirmDialog}
       <Modal
         isOpen={modalOpen}
-        toggle={() => setModalOpen(false)}
+        toggle={() => !submitting && setModalOpen(false)}
         centered
         size="lg"
       >
         <ModalBody className="p-4">
-          <h5 className="mb-1">Create Asset Transfer Request</h5>
+          <h5 className="mb-1">Transfer Assets</h5>
           <p className="text-muted small mb-3">
-            Submit a new asset transfer request with required details
+            Assets move to the destination as soon as you submit
           </p>
 
           <h6 className="fw-semibold mb-3">Basic Details</h6>
@@ -270,6 +321,7 @@ const AssetTransferRequest = () => {
             onChange={(e) => handleFromCenterChange(e.target.value)}
           >
             <option value="">Select source site</option>
+            <option value={NO_SITE}>No site assigned</option>
             {centers.map((c) => (
               <option key={c._id} value={c._id}>
                 {c.title}
@@ -356,13 +408,23 @@ const AssetTransferRequest = () => {
                       <option value="">
                         {!fromCenterId
                           ? "Select source site first"
-                          : "Select asset"}
+                          : assetsLoading
+                            ? "Loading assets..."
+                            : assets.length === 0
+                              ? "No eligible assets at this site"
+                              : "Select asset"}
                       </option>
-                      {assets.map((a) => (
-                        <option key={a._id} value={a._id}>
-                          {a.assetName} ({a.assetTag})
-                        </option>
-                      ))}
+                      {assets
+                        .filter(
+                          (a) =>
+                            a._id === it.assetId ||
+                            !items.some((o, i) => i !== idx && o.assetId === a._id),
+                        )
+                        .map((a) => (
+                          <option key={a._id} value={a._id}>
+                            {a.assetName} ({a.assetTag || a.serialNumber || "no tag"})
+                          </option>
+                        ))}
                     </Input>
                     {asset && (
                       <div className="text-muted small mt-1">
@@ -370,8 +432,8 @@ const AssetTransferRequest = () => {
                       </div>
                     )}
                   </Col>
-                  <Col md={3} className="mb-2">
-                    <Label className="small">Condition</Label>
+                  <Col md={7} className="mb-2">
+                    <Label className="small">Condition (record only)</Label>
                     <Input
                       type="select"
                       value={it.condition}
@@ -385,16 +447,6 @@ const AssetTransferRequest = () => {
                         </option>
                       ))}
                     </Input>
-                  </Col>
-                  <Col md={4} className="mb-2">
-                    <Label className="small">Expected Dispatch Date</Label>
-                    <Input
-                      type="date"
-                      value={it.expectedDispatchDate}
-                      onChange={(e) =>
-                        updateItem(idx, "expectedDispatchDate", e.target.value)
-                      }
-                    />
                   </Col>
                 </Row>
               </div>
@@ -465,9 +517,9 @@ const AssetTransferRequest = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {detailModal.items.map((it, idx) => (
+                    {(detailModal.items || []).map((it, idx) => (
                       <tr key={idx}>
-                        <td>{it.assetId?.assetName}</td>
+                        <td>{it.assetId?.assetName || "—"}</td>
                         <td className="small text-muted">
                           {it.fromCenterId?.title || "—"}
                           {it.fromLocationId

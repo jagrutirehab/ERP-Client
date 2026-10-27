@@ -12,6 +12,7 @@ import {
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText, useBusy } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleString("en-IN") : "—");
@@ -70,12 +71,16 @@ const PhysicalVerification = () => {
   const [designation, setDesignation] = useState("");
   const [serialNumber, setSerialNumber] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, runSubmit] = useBusy();
 
   const [createdRecordId, setCreatedRecordId] = useState(null);
   const [assetImageFile, setAssetImageFile] = useState(null);
   const [tagImageFile, setTagImageFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [assetImageCount, setAssetImageCount] = useState(0);
+  const [tagUploaded, setTagUploaded] = useState(false);
+  const [assetKey, setAssetKey] = useState(0);
+  const [tagKey, setTagKey] = useState(0);
 
   const [detailModal, setDetailModal] = useState(null);
   const [reviewing, setReviewing] = useState(false);
@@ -117,6 +122,8 @@ const PhysicalVerification = () => {
     setSerialNumber("");
     setRemarks("");
     setCreatedRecordId(null);
+    setAssetImageCount(0);
+    setTagUploaded(false);
     setAssetImageFile(null);
     setTagImageFile(null);
     setModalOpen(true);
@@ -124,38 +131,28 @@ const PhysicalVerification = () => {
 
   const selectedAsset = assets.find((a) => a._id === assetId);
 
-  const handleSubmit = async () => {
-    if (!jobId || !assetId) return toast.error("Select a Job and an Asset");
-    setSubmitting(true);
-    try {
-      const res = await createPhysicalVerification({
-        jobId,
-        assetId,
-        locationMatch: locationMatch === "true",
-        condition,
-        roomNo,
-        floorNo,
-        employeeName,
-        designation,
-        serialNumber,
-        remarks,
-      });
-      toast.success(
-        "Physical verification recorded — now add photos (optional)",
-      );
-      setCreatedRecordId(res?.data?._id);
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
-        );
+  const handleSubmit = () =>
+    runSubmit(async () => {
+      if (!jobId || !assetId) return toast.error("Select a Job and an Asset");
+      try {
+        const res = await createPhysicalVerification({
+          jobId,
+          assetId,
+          locationMatch: locationMatch === "true",
+          condition,
+          roomNo,
+          floorNo,
+          employeeName,
+          designation,
+          serialNumber,
+          remarks,
+        });
+        toast.success("Register check recorded. Now add photos (optional)");
+        setCreatedRecordId(res?.data?._id);
+      } catch (error) {
+        if (!handleAuthError(error)) toast.error(errText(error));
       }
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    });
 
   const uploadImage = async (file, imageType) => {
     if (!file || !createdRecordId) return;
@@ -169,12 +166,17 @@ const PhysicalVerification = () => {
         formData,
       );
       toast.success(`${imageType === "tag" ? "Tag" : "Asset"} image uploaded`);
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message || error?.message || "Upload failed",
-        );
+      if (imageType === "tag") {
+        setTagImageFile(null);
+        setTagUploaded(true);
+        setTagKey((k) => k + 1);
+      } else {
+        setAssetImageFile(null);
+        setAssetImageCount((n) => n + 1);
+        setAssetKey((k) => k + 1);
       }
+    } catch (error) {
+      if (!handleAuthError(error)) toast.error(errText(error, "Upload failed"));
     } finally {
       setUploadingImage(false);
     }
@@ -189,17 +191,11 @@ const PhysicalVerification = () => {
     setReviewing(true);
     try {
       await reviewPhysicalVerification(record._id, { status });
-      toast.success(`Verification ${status}`);
+      toast.success(`Register check ${status}`);
       setDetailModal(null);
       setRefreshFlag((f) => f + 1);
     } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't update.",
-        );
-      }
+      if (!handleAuthError(error)) toast.error(errText(error, "Couldn't update."));
     } finally {
       setReviewing(false);
     }
@@ -243,7 +239,7 @@ const PhysicalVerification = () => {
       width: "120px",
       cell: (row) => (
         <span className="text-capitalize small">
-          {row.condition?.replace("_", " ")}
+          {row.condition?.replace(/_/g, " ")}
         </span>
       ),
     },
@@ -274,15 +270,15 @@ const PhysicalVerification = () => {
     <div className="uom-page">
       <div className="uom-list-header">
         <div>
-          <h4>Physical Verifications</h4>
-          <p>Manage and track physical verification processes</p>
+          <h4>Register Check</h4>
+          <p>Manage and track register checks</p>
         </div>
       </div>
 
       <div className="d-flex justify-content-end mb-3">
         {canCreate && (
           <Button color="primary" onClick={openModal}>
-            <i className="bx bx-plus me-1"></i> Record Verification
+            <i className="bx bx-plus me-1"></i> Record Register Check
           </Button>
         )}
       </div>
@@ -295,7 +291,7 @@ const PhysicalVerification = () => {
           pagination
           highlightOnHover
           noDataComponent={
-            <div className="uom-empty-state">No physical verifications yet</div>
+            <div className="uom-empty-state">No register checks yet</div>
           }
         />
       </div>
@@ -309,7 +305,7 @@ const PhysicalVerification = () => {
         size="lg"
       >
         <ModalBody className="p-4">
-          <h5 className="mb-3">Record Physical Verification</h5>
+          <h5 className="mb-3">Record Register Check</h5>
 
           {!createdRecordId ? (
             <>
@@ -470,28 +466,36 @@ const PhysicalVerification = () => {
                 style={{ background: "#f0fdf4" }}
               >
                 <i className="bx bx-check-circle text-success me-1"></i>{" "}
-                Verification saved. Add photos below (optional), then finish.
+                Register check saved. Add photos below (optional), then finish.
               </div>
 
-              <Label>Asset Image</Label>
+              <Label>
+                Asset Image{" "}
+                <span className="text-muted small">({assetImageCount} of 5 uploaded)</span>
+              </Label>
               <div className="d-flex gap-2 mb-4">
                 <Input
+                  key={`a${assetKey}`}
                   type="file"
                   accept="image/*"
                   onChange={(e) => setAssetImageFile(e.target.files[0])}
                 />
                 <Button
                   color="light"
-                  disabled={!assetImageFile || uploadingImage}
+                  disabled={!assetImageFile || uploadingImage || assetImageCount >= 5}
                   onClick={() => uploadImage(assetImageFile, "asset")}
                 >
                   Upload
                 </Button>
               </div>
 
-              <Label>Tag Image</Label>
+              <Label>
+                Tag Image{" "}
+                {tagUploaded && <span className="text-muted small">(uploaded; a new upload replaces it)</span>}
+              </Label>
               <div className="d-flex gap-2 mb-4">
                 <Input
+                  key={`t${tagKey}`}
                   type="file"
                   accept="image/*"
                   onChange={(e) => setTagImageFile(e.target.files[0])}

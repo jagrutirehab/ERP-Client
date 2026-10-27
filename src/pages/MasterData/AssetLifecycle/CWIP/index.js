@@ -10,10 +10,12 @@ import {
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
-const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const money = (n) =>
+  `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
 const StatusPill = ({ status }) => {
   const map = {
@@ -40,6 +42,8 @@ const CWIP = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
+  const [loadError, setLoadError] = useState("");
+  const [busyId, setBusyId] = useState("");
 
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [expectedCompletionDate, setExpectedCompletionDate] = useState("");
@@ -50,24 +54,33 @@ const CWIP = () => {
     if (view !== "list") return;
     let cancelled = false;
     setLoading(true);
+    setLoadError("");
     getCWIPs({})
       .then((res) => {
         if (!cancelled) setCwips(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (cancelled) return;
+        if (!handleAuthError(error)) setLoadError(errText(error, "Couldn't load CWIP records."));
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, refreshFlag]);
 
   const openSelectRequest = () => {
     setLoading(true);
+    setLoadError("");
     getApprovedRequestsForCWIP()
       .then((res) => setPendingRequests(res?.data || []))
-      .catch(() => setPendingRequests([]))
+      .catch((error) => {
+        setPendingRequests([]);
+        if (!handleAuthError(error)) setLoadError(errText(error, "Couldn't load approved requests."));
+      })
       .finally(() => setLoading(false));
     setView("select-request");
   };
@@ -105,6 +118,8 @@ const CWIP = () => {
   };
 
   const handleMarkReady = async (id) => {
+    if (busyId) return;
+    setBusyId(id);
     try {
       await markCWIPReady(id, {});
       toast.success("Marked ready for Asset Capitalization");
@@ -117,6 +132,8 @@ const CWIP = () => {
             "Couldn't update.",
         );
       }
+    } finally {
+      setBusyId("");
     }
   };
 
@@ -127,7 +144,12 @@ const CWIP = () => {
       sortable: true,
       width: "150px",
     },
-    { name: "Item", selector: (row) => row.itemName },
+    {
+      name: "Request #",
+      width: "140px",
+      selector: (row) => row.capitalizationRequestId?.requestNumber || "—",
+    },
+    { name: "Item", selector: (row) => row.itemName, wrap: true },
     {
       name: "Total Cost",
       cell: (row) => (
@@ -158,11 +180,13 @@ const CWIP = () => {
       right: true,
       width: "150px",
       cell: (row) =>
-        row.status === "in_progress" && (
+        row.status === "in_progress" &&
+        canCreate && (
           <Button
             size="sm"
             color="success"
             style={{ fontSize: 12, padding: "4px 10px", whiteSpace: "nowrap" }}
+            disabled={busyId === row._id}
             onClick={() => handleMarkReady(row._id)}
           >
             Mark Ready
@@ -186,7 +210,19 @@ const CWIP = () => {
 
         {loading && <div className="text-muted p-3">Loading...</div>}
 
-        {!loading && pendingRequests.length === 0 && (
+        {loadError && (
+        <div
+          className="p-3 mb-3 d-flex align-items-center justify-content-between"
+          style={{ background: "#fef3f2", border: "1px solid #fecdca", borderRadius: 10 }}
+        >
+          <span className="text-danger">{loadError}</span>
+          <Button size="sm" color="light" onClick={openSelectRequest}>
+            Try again
+          </Button>
+        </div>
+      )}
+
+        {!loading && !loadError && pendingRequests.length === 0 && (
           <div className="uom-empty-state">
             <p className="uom-empty-title">Nothing pending</p>
             <p className="uom-empty-sub">
@@ -207,7 +243,7 @@ const CWIP = () => {
                 <div>
                   <div className="fw-semibold">{req.requestNumber}</div>
                   <div className="text-muted small">
-                    {req.itemName} · Qty {req.quantity} · {req.centerId?.title}
+                    {req.itemName} · Qty {req.quantity} · {req.centerId?.title || "—"}
                   </div>
                 </div>
                 <div className="fw-semibold">{money(req.totalCost)}</div>
@@ -294,6 +330,18 @@ const CWIP = () => {
           </Button>
         )}
       </div>
+
+      {loadError && (
+        <div
+          className="p-3 mb-3 d-flex align-items-center justify-content-between"
+          style={{ background: "#fef3f2", border: "1px solid #fecdca", borderRadius: 10 }}
+        >
+          <span className="text-danger">{loadError}</span>
+          <Button size="sm" color="light" onClick={() => setRefreshFlag((n) => n + 1)}>
+            Try again
+          </Button>
+        </div>
+      )}
 
       <div className="uom-table-card">
         <DataTable

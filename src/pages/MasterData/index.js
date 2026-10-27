@@ -39,6 +39,8 @@ import MaintenanceJob from "./AssetLifecycle/MaintenanceJob";
 import VerificationJob from "./AssetLifecycle/VerificationJob";
 import PhysicalVerification from "./AssetLifecycle/PhysicalVerification";
 import AssetTag from "./AssetLifecycle/AssetTag";
+import ScanIntake from "./AssetLifecycle/ScanIntake";
+import AddScan from "./AssetLifecycle/AddScan";
 import LocationStock from "./Inventory/LocationStock";
 import AssetTransferRequest from "./AssetLifecycle/AssetTransfer";
 import VendorInvoice from "./Finance/VendorInvoice";
@@ -173,6 +175,8 @@ const ROUTES = [
     element: <PhysicalVerification />,
   },
   { path: "asset-tag/*", perm: "ASSET_TAG", element: <AssetTag /> },
+  { path: "asset-scan/*", perm: "ASSET_SCAN", element: <ScanIntake /> },
+  { path: "asset-scan-add/*", perm: "ASSET_SCAN", element: <AddScan /> },
 ];
 
 const MasterData = () => {

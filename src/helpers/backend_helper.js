@@ -6676,6 +6676,10 @@ export const createTaskTemplate = (data) =>
   axios.post("/master/task-template", data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+export const updateTaskTemplate = (id, data) =>
+  axios.put(`/master/task-template/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
 export const deleteTaskTemplate = (id) =>
   axios.delete(`/master/task-template/${id}`, {
     headers: { "X-No-Cookie-Token": "true" },
@@ -6770,6 +6774,59 @@ export const uploadPhysicalVerificationImage = (id, imageType, formData) =>
       },
     },
   );
+// ---- Asset scans (Scan Intake / Add Scan) and the extra asset tag actions ----
+export const getAssetScans = (params = {}) =>
+  axios.get("/master/asset-scan", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getAssetScan = (id) =>
+  axios.get(`/master/asset-scan/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createAssetScan = (data) =>
+  axios.post("/master/asset-scan", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const updateAssetScan = (id, data) =>
+  axios.put(`/master/asset-scan/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+// action: verify | reject | halt | reconcile (data: { reason })
+export const actOnAssetScan = (id, action, data = {}) =>
+  axios.patch(`/master/asset-scan/${id}/${action}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const bulkActOnAssetScans = (data) =>
+  axios.post("/master/asset-scan/bulk-action", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const downloadAssetScanTemplate = () =>
+  axios.get("/master/asset-scan/template", {
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const uploadAssetScans = (formData) =>
+  axios.post("/master/asset-scan/upload", formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+export const createSingleAssetTag = (data) =>
+  axios.post("/master/asset-tag/single", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const markAssetTagStatus = (id, data) =>
+  axios.patch(`/master/asset-tag/${id}/status`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const fitAssetTag = (id, data) =>
+  axios.post(`/master/asset-tag/${id}/fit`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 export const getProcurementDashboard = () =>
   axios.get("/master/po-dashboard", {
     headers: { "X-No-Cookie-Token": "true" },

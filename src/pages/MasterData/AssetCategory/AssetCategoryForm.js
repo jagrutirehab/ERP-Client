@@ -30,6 +30,8 @@ const AssetCategoryForm = ({ editingItem, level, onSaved, onCancel }) => {
       parentCategoryId:
         editingItem?.parentCategoryId?._id || editingItem?.parentCategoryId || "",
       isCountable: editingItem?.isCountable || false,
+      assignableToEmployee: editingItem?.assignableToEmployee || false,
+      identifierLabel: editingItem?.identifierLabel || "",
       usefulLifeYears: editingItem?.usefulLifeYears ?? 0,
       costGL: editingItem?.costGL || "",
       inventoryGL: editingItem?.inventoryGL || "",
@@ -181,6 +183,38 @@ const AssetCategoryForm = ({ editingItem, level, onSaved, onCancel }) => {
                   </div>
                 </div>
               </div>
+            </Col>
+          </Row>
+
+          <h6 className="uom-form-section-title">Employee Assets</h6>
+          <p className="uom-form-section-sub">
+            For things given to staff, such as laptop, phone, SIM card, uniform. They show up at exit
+            and must be returned before FNF
+          </p>
+          <Row>
+            <Col md={6} className="mb-4">
+              <div className="d-flex align-items-center gap-2" style={{ marginTop: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={v.assignableToEmployee}
+                  onChange={(e) => validation.setFieldValue("assignableToEmployee", e.target.checked)}
+                />
+                <div>
+                  <div className="fw-semibold small">Can be given to an employee</div>
+                  <div className="text-muted" style={{ fontSize: 11.5 }}>
+                    Applies to this category and everything under it
+                  </div>
+                </div>
+              </div>
+            </Col>
+            <Col md={6} className="mb-4">
+              <Label>Serial box name</Label>
+              <Input
+                name="identifierLabel"
+                placeholder="e.g. IMEI number, SIM number, Size"
+                value={v.identifierLabel}
+                onChange={validation.handleChange}
+              />
             </Col>
           </Row>
 

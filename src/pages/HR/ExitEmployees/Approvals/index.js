@@ -19,6 +19,7 @@ import DataTable from 'react-data-table-component';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import ApproveModal from '../../components/ApproveModal';
 import Select from "react-select";
+import EmployeeAssetsModal from '../../../MasterData/AssetLifecycle/shared/EmployeeAssetsModal';
 import EditExitEmployeeModal from '../../components/EditExitEmployeeModal';
 import { normalizeUnderscores } from '../../../../utils/normalizeUnderscore';
 
@@ -43,6 +44,7 @@ const ExitApprovals = () => {
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [note, setNote] = useState("");
+    const [assetsRow, setAssetsRow] = useState(null);
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -242,6 +244,15 @@ const ExitApprovals = () => {
                     cell: row => (
                         <div className="d-flex gap-2">
 
+                            <Button
+                                color="info"
+                                className="text-white"
+                                size="sm"
+                                title="Company assets with this employee"
+                                onClick={() => setAssetsRow(row)}
+                            >
+                                <i className="bx bx-laptop"></i>
+                            </Button>
                             {/* APPROVE EXIT */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
@@ -465,6 +476,13 @@ const ExitApprovals = () => {
                 }}
                 onConfirm={handleDelete}
                 loading={modalLoading}
+            />
+            <EmployeeAssetsModal
+                isOpen={!!assetsRow}
+                toggle={() => setAssetsRow(null)}
+                employeeId={assetsRow?.employeeId}
+                employeeName={assetsRow?.employeeName}
+                canReturn={false}
             />
             <ApproveModal
                 isOpen={approveModalOpen}

@@ -2,30 +2,30 @@ import React, { useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody } from "reactstrap";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 import {
   getFixedAssets,
   getFixedAsset,
   updateFixedAsset,
   createFixedAsset,
+  createAssetWriteOffRequest,
   assignFixedAsset,
   returnFixedAsset,
   searchEmployeesForAsset,
+  getAssetCategories,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
+import { useDebounce } from "../../../../Components/Hooks/useDebounce";
+import CategoryLevelSelect, { EMPTY_CATEGORY } from "../shared/CategoryLevelSelect";
+import { DASH, chipText, categoryPath, moneyOrDash, errText, useBusy } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
-const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
-// Each category gets its own label for the identifier field
-const ASSET_CATEGORIES = [
-  { name: "Laptop", idLabel: "Serial number", idHint: "e.g. SN123456" },
-  { name: "Phone", idLabel: "IMEI number", idHint: "15-digit IMEI" },
-  { name: "SIM Card", idLabel: "SIM number", idHint: "SIM / mobile number" },
-  { name: "Debit Card", idLabel: "Card number (last 4 digits)", idHint: "e.g. 4321" },
-  { name: "Uniform", idLabel: "Size / details", idHint: "e.g. Size L, 2 sets" },
-];
+const SOURCE_LABEL = { manual: "Manual", verification: "Verification", capitalization: "Capitalization", import: "Import" };
+const idOf = (v) => (v && typeof v === "object" ? v._id : v || "");
 
 const STATUS_META = {
   active: {
@@ -48,6 +48,13 @@ const STATUS_META = {
   },
 };
 
+const Field = ({ label, value }) => (
+  <div className="col-sm-6">
+    <div className="text-muted" style={{ fontSize: 12 }}>{label}</div>
+    <div className="fw-semibold" style={{ fontSize: 14, wordBreak: "break-word" }}>{value}</div>
+  </div>
+);
+
 const StatusPill = ({ status }) => {
   const s = STATUS_META[status] || STATUS_META.active;
   return (
@@ -67,24 +74,52 @@ const FixedAssetRegister = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [refreshFlag, setRefreshFlag] = useState(0);
-  const [catFilter, setCatFilter] = useState("ALL");
   const [assignFilter, setAssignFilter] = useState("ALL"); // ALL | assigned | in_stock
 
+  // More filters (done by the server)
+  const EMPTY_FILTERS = { centerId: "", categoryL1: "", status: "" };
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const debouncedFilters = useDebounce(filters, 400);
+  const debouncedSearch = useDebounce(search, 400);
+  const [loadError, setLoadError] = useState("");
+  const { items: centers } = useReferenceList("centers");
+  const [level1, setLevel1] = useState([]);
+  const filtersOn = Object.values(filters).some(Boolean) || assignFilter !== "ALL";
+  const setFilter = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
+
+  // Edit identifiers, cost and depreciation of an existing asset
+  const [editForm, setEditForm] = useState(null);
+  const [editCategory, setEditCategory] = useState(EMPTY_CATEGORY);
+  const [savingEdit, runSaveEdit] = useBusy();
+
+  // Extra fields on the Add Asset form
+  const EMPTY_EXTRA = { assetCode: "", epcCode: "", barcode: "", accumulatedDepreciation: "", currentYearDepreciation: "" };
+  const [addExtra, setAddExtra] = useState(EMPTY_EXTRA);
+  const [addCategory, setAddCategory] = useState(EMPTY_CATEGORY);
+  const [addSettings, setAddSettings] = useState({ canAssign: true, identifierLabel: "" });
+
   const [detailModal, setDetailModal] = useState(null);
+  const [detailTab, setDetailTab] = useState("overview");
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   // Add asset
   const EMPTY_FORM = {
+    centerId: "",
     assetName: "",
     category: "",
     serialNumber: "",
     purchaseCost: "",
     purchaseDate: "",
+    quantity: "1",
     remarks: "",
   };
+  const [disposeFor, setDisposeFor] = useState(null); // the asset being discarded / sold
+  const [disposeForm, setDisposeForm] = useState({ disposalType: "write_off", reason: "", estValue: "", buyerName: "", centerId: "" });
+  const [needSite, setNeedSite] = useState(false); // shown only when the server cannot find the asset's site
+  const [disposing, runDispose] = useBusy();
   const [addModal, setAddModal] = useState(false);
   const [addForm, setAddForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
+  const [saving, runCreate] = useBusy();
 
   // Assign / return
   const [empQuery, setEmpQuery] = useState("");
@@ -119,35 +154,90 @@ const FixedAssetRegister = () => {
     setAssignRemarks("");
     setReturnCondition("good");
     setReturnRemarks("");
+    setDetailTab("overview");
     setDetailModal(row);
     // The list does not carry the assignment history, so load the full record
     getFixedAsset(row._id)
-      .then((res) => res?.data && setDetailModal(res.data))
+      .then((res) => {
+        if (res?.data) setDetailModal((cur) => (cur?._id === res.data._id ? res.data : cur));
+      })
       .catch(() => {});
   };
 
-  const handleCreate = async () => {
-    const f = addForm;
-    if (!f.assetName.trim() || !f.category.trim() || f.purchaseCost === "" || !f.purchaseDate) {
-      toast.error("Name, category, cost and purchase date are required");
-      return;
-    }
-    setSaving(true);
-    try {
-      await createFixedAsset({
-        ...f,
-        purchaseCost: Number(f.purchaseCost),
+  const handleCreate = () =>
+    runCreate(async () => {
+      const f = addForm;
+      if (!f.assetName.trim() || !addCategory.categoryL1 || !f.centerId || f.purchaseCost === "" || !f.purchaseDate) {
+        toast.error("Name, category, site, cost and purchase date are required");
+        return;
+      }
+      const extra = {};
+      ["assetCode", "epcCode", "barcode"].forEach((k) => {
+        if (addExtra[k].trim()) extra[k] = addExtra[k].trim();
       });
-      toast.success("Asset added");
-      setAddModal(false);
-      setAddForm(EMPTY_FORM);
-      setRefreshFlag((n) => n + 1);
-    } catch (error) {
-      fail(error, "Couldn't add asset.");
-    } finally {
-      setSaving(false);
-    }
+      ["accumulatedDepreciation", "currentYearDepreciation"].forEach((k) => {
+        if (addExtra[k] !== "") extra[k] = Number(addExtra[k]); // left out when empty: never saved as 0
+      });
+      if (addCategory.categoryL1) {
+        ["categoryL1", "categoryL2", "categoryL3", "categoryL4"].forEach((k) => {
+          if (addCategory[k]) extra[k] = addCategory[k];
+        });
+      }
+      const qty = Math.max(1, Math.min(100, Math.floor(Number(f.quantity)) || 1));
+      try {
+        await createFixedAsset({
+          ...f,
+          ...extra,
+          purchaseCost: Number(f.purchaseCost),
+          quantity: qty,
+        });
+        toast.success(qty > 1 ? `${qty} assets added` : "Asset added");
+        setAddModal(false);
+        setAddForm(EMPTY_FORM);
+        setAddExtra(EMPTY_EXTRA);
+        setAddCategory(EMPTY_CATEGORY);
+        setRefreshFlag((n) => n + 1);
+      } catch (error) {
+        fail(error, "Couldn't add asset.");
+      }
+    });
+
+  const openDispose = (asset) => {
+    setDisposeForm({ disposalType: "write_off", reason: "", estValue: "", buyerName: "", centerId: idOf(asset.centerId) });
+    setNeedSite(false);
+    setDisposeFor(asset);
   };
+
+  const handleDispose = () =>
+    runDispose(async () => {
+      const f = disposeForm;
+      if (!f.reason.trim()) return toast.error("Write the reason");
+      if (f.disposalType === "sale" && !f.buyerName.trim()) return toast.error("Enter the buyer name for a sale");
+      try {
+        const res = await createAssetWriteOffRequest({
+          title: `${f.disposalType === "sale" ? "Sale" : "Write-off"}: ${disposeFor.assetName}`,
+          centerId: f.centerId || undefined,
+          items: [
+            {
+              assetId: disposeFor._id,
+              disposalType: f.disposalType,
+              reason: f.reason.trim(),
+              estValue: Number(f.estValue) || 0,
+              buyerName: f.disposalType === "sale" ? f.buyerName.trim() : undefined,
+            },
+          ],
+        });
+        toast.success(`Request ${res?.data?.requestNumber || ""} raised. It needs approval on the Asset Write-Off page`);
+        const id = disposeFor._id;
+        setDisposeFor(null);
+        setRefreshFlag((n) => n + 1);
+        const full = await getFixedAsset(id).catch(() => null);
+        if (full?.data) setDetailModal(full.data);
+      } catch (error) {
+        if (/no site/i.test(error?.response?.data?.message || "")) setNeedSite(true);
+        fail(error, "Couldn't raise the request.");
+      }
+    });
 
   const handleAssign = async (asset, employee) => {
     setAssigning(true);
@@ -186,13 +276,23 @@ const FixedAssetRegister = () => {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getFixedAssets({ search })
+    setLoadError("");
+    const df = debouncedFilters;
+    getFixedAssets({
+      search: debouncedSearch,
+      centerId: df.centerId || undefined,
+      categoryL1: df.categoryL1 || undefined,
+      // "Active" and "Under maintenance" are asset statuses, "Retired" and "Sold" are how it ended
+      status: ["active", "under_maintenance"].includes(df.status) ? df.status : undefined,
+      lifecycleStatus: ["retired", "sold"].includes(df.status) ? df.status : undefined,
+    })
       .then((res) => {
         if (!cancelled) setAssets(res?.data || []);
       })
       .catch((error) => {
         if (cancelled) return;
         if (!handleAuthError(error)) {
+          setLoadError(errText(error, "Couldn't load assets."));
           toast.error(
             error?.response?.data?.message ||
               error?.message ||
@@ -207,7 +307,79 @@ const FixedAssetRegister = () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, refreshFlag]);
+  }, [debouncedSearch, refreshFlag, debouncedFilters]);
+
+  useEffect(() => {
+    getAssetCategories({ level: 1, status: "active" })
+      .then((res) => setLevel1(res?.data || []))
+      .catch(() => {});
+  }, []);
+
+  // Fill the edit section whenever another asset (or a fresh copy of it) is opened
+  useEffect(() => {
+    if (!detailModal) {
+      setEditForm(null);
+      return;
+    }
+    const d = detailModal;
+    setEditForm({
+      assetName: d.assetName || "",
+      serialNumber: d.serialNumber || "",
+      remarks: d.remarks || "",
+      centerId: idOf(d.centerId),
+      assetCode: d.assetCode || "",
+      epcCode: d.epcCode || "",
+      barcode: d.barcode || "",
+      purchaseCost: d.purchaseCost ?? "",
+      purchaseDate: d.purchaseDate ? new Date(d.purchaseDate).toISOString().slice(0, 10) : "",
+      accumulatedDepreciation: d.accumulatedDepreciation ?? "",
+      currentYearDepreciation: d.currentYearDepreciation ?? "",
+    });
+    setEditCategory({
+      categoryL1: idOf(d.categoryL1),
+      categoryL2: idOf(d.categoryL2),
+      categoryL3: idOf(d.categoryL3),
+      categoryL4: idOf(d.categoryL4),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailModal?._id]);
+
+  const handleSaveEdit = (d) =>
+    runSaveEdit(async () => {
+      const f = editForm;
+      const body = {};
+      if (!f.assetName.trim()) return toast.error("Asset name cannot be empty");
+      if (f.assetName.trim() !== (d.assetName || "")) body.assetName = f.assetName.trim();
+      if (f.serialNumber.trim() !== (d.serialNumber || "")) body.serialNumber = f.serialNumber.trim();
+      if (f.remarks.trim() !== (d.remarks || "")) body.remarks = f.remarks.trim();
+      if (f.centerId && f.centerId !== idOf(d.centerId)) body.centerId = f.centerId;
+      ["assetCode", "epcCode", "barcode"].forEach((k) => {
+        if (f[k].trim() !== (d[k] || "")) body[k] = f[k].trim(); // "" clears it
+      });
+      ["accumulatedDepreciation", "currentYearDepreciation"].forEach((k) => {
+        const before = d[k] ?? "";
+        if (String(f[k]) !== String(before)) body[k] = f[k] === "" ? "" : Number(f[k]);
+      });
+      if (f.purchaseCost !== "" && String(f.purchaseCost) !== String(d.purchaseCost ?? "")) body.purchaseCost = Number(f.purchaseCost);
+      const dateBefore = d.purchaseDate ? new Date(d.purchaseDate).toISOString().slice(0, 10) : "";
+      if (f.purchaseDate && f.purchaseDate !== dateBefore) body.purchaseDate = f.purchaseDate;
+      const levels = ["categoryL1", "categoryL2", "categoryL3", "categoryL4"];
+      if (levels.some((k) => (editCategory[k] || "") !== idOf(d[k]))) {
+        levels.forEach((k) => {
+          body[k] = editCategory[k] || "";
+        });
+      }
+      if (Object.keys(body).length === 0) return toast.info("Nothing was changed");
+      try {
+        const res = await updateFixedAsset(d._id, body);
+        toast.success(res?.message || "Asset updated");
+        const full = await getFixedAsset(d._id).catch(() => null);
+        if (full?.data) setDetailModal(full.data);
+        setRefreshFlag((n) => n + 1);
+      } catch (error) {
+        fail(error, "Couldn't save the changes.");
+      }
+    });
 
   const handleStatusChange = async (asset, newStatus) => {
     if (asset.status === newStatus) return;
@@ -234,12 +406,11 @@ const FixedAssetRegister = () => {
 
   const visible = assets.filter(
     (a) =>
-      (catFilter === "ALL" || a.category === catFilter) &&
       (assignFilter === "ALL" ||
-        (assignFilter === "assigned" ? !!a.assignedTo : !a.assignedTo)),
+        (assignFilter === "assigned" ? !!a.assignedTo : !a.assignedTo && a.status === "active")),
   );
   const stats = [
-    { label: "Total assets", value: assets.length },
+    { label: "Matching assets", value: assets.length },
     { label: "In stock", value: assets.filter((a) => !a.assignedTo && a.status === "active").length },
     { label: "Assigned", value: assets.filter((a) => a.assignedTo).length },
     { label: "Under maintenance", value: assets.filter((a) => a.status === "under_maintenance").length },
@@ -250,12 +421,12 @@ const FixedAssetRegister = () => {
       name: "Asset",
       sortable: true,
       sortFunction: (x, y) => x.assetName.localeCompare(y.assetName),
-      minWidth: "280px",
+      minWidth: "260px",
       cell: (row) => {
         return (
           <div className="py-2">
             <div style={{ minWidth: 0 }}>
-              <div className="fw-semibold text-truncate">{row.assetName}</div>
+              <div className="fw-semibold text-truncate" title={row.assetName}>{row.assetName}</div>
               <div className="text-muted" style={{ fontSize: 12, fontFamily: "monospace" }}>
                 {row.assetTag}
                 {row.serialNumber ? ` · ${row.serialNumber}` : ""}
@@ -269,10 +440,11 @@ const FixedAssetRegister = () => {
       name: "Category",
       sortable: true,
       selector: (row) => row.category,
-      width: "130px",
+      width: "150px",
       cell: (row) => (
         <span
-          style={{ background: "#f5f6fa", color: "#495057", fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 999 }}
+          title={row.category}
+          style={{ background: "#f5f6fa", color: "#495057", fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 999, maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
         >
           {row.category}
         </span>
@@ -280,7 +452,7 @@ const FixedAssetRegister = () => {
     },
     {
       name: "Assigned To",
-      minWidth: "200px",
+      minWidth: "210px",
       cell: (row) =>
         row.assignedTo ? (
           <div>
@@ -306,28 +478,28 @@ const FixedAssetRegister = () => {
       ),
     },
     {
-      name: "Purchased",
-      selector: (row) => row.purchaseDate,
-      sortable: true,
-      width: "120px",
-      cell: (row) => (
-        <span className="uom-cell-muted">{dateFmt(row.purchaseDate)}</span>
-      ),
-    },
-    {
       name: "Cost",
       selector: (row) => row.purchaseCost,
       sortable: true,
       right: true,
       width: "120px",
       cell: (row) => (
-        <span className="uom-cell-primary">{money(row.purchaseCost)}</span>
+        <span className="uom-cell-primary">{moneyOrDash(row.purchaseCost)}</span>
       ),
     },
     {
       name: "Status",
-      width: "170px",
-      cell: (row) => <StatusPill status={row.status} />,
+      width: "175px",
+      cell: (row) => (
+        <div>
+          <StatusPill status={row.status} />
+          {row.pendingWriteOff && (
+            <div className="text-muted" style={{ fontSize: 11, marginTop: 2 }}>
+              Write-off pending
+            </div>
+          )}
+        </div>
+      ),
     },
     {
       name: "",
@@ -377,9 +549,9 @@ const FixedAssetRegister = () => {
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="d-flex flex-wrap align-items-center gap-3 mb-3">
-        <div className="uom-search-wrap" style={{ maxWidth: 300 }}>
+      {/* Filters: the ones used most */}
+      <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <div className="uom-search-wrap" style={{ maxWidth: 280 }}>
           <i className="bx bx-search"></i>
           <Input
             placeholder="Search name, tag or serial..."
@@ -387,49 +559,63 @@ const FixedAssetRegister = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="d-flex flex-wrap gap-2">
-          {["ALL", ...ASSET_CATEGORIES.map((c) => c.name)].map((name) => {
-            const on = catFilter === name;
-            return (
-              <button
-                key={name}
-                type="button"
-                onClick={() => setCatFilter(name)}
-                style={{
-                  border: `1px solid ${on ? "#4f46e5" : "#e5e7eb"}`,
-                  background: on ? "#eef2ff" : "#fff",
-                  color: on ? "#4f46e5" : "#495057",
-                  borderRadius: 999,
-                  padding: "4px 14px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                {name === "ALL" ? "All" : name}
-              </button>
-            );
-          })}
-        </div>
-        <Input
-          type="select"
-          style={{ width: 160 }}
-          className="ms-md-auto"
-          value={assignFilter}
-          onChange={(e) => setAssignFilter(e.target.value)}
-        >
-          <option value="ALL">All assets</option>
+        <Input type="select" style={{ width: 170 }} value={filters.centerId} onChange={setFilter("centerId")}>
+          <option value="">All sites</option>
+          {centers.map((c) => (
+            <option key={c._id} value={c._id}>{c.title}</option>
+          ))}
+        </Input>
+        <Input type="select" style={{ width: 170 }} value={filters.categoryL1} onChange={setFilter("categoryL1")}>
+          <option value="">All categories</option>
+          {level1.map((c) => (
+            <option key={c._id} value={c._id}>{c.name}</option>
+          ))}
+        </Input>
+        <Input type="select" style={{ width: 150 }} value={assignFilter} onChange={(e) => setAssignFilter(e.target.value)}>
+          <option value="ALL">Assigned or not</option>
           <option value="assigned">Assigned</option>
           <option value="in_stock">In stock</option>
         </Input>
+        <Input type="select" style={{ width: 160 }} value={filters.status} onChange={setFilter("status")}>
+          <option value="">Any status</option>
+          <option value="active">Active</option>
+          <option value="under_maintenance">Under maintenance</option>
+          <option value="retired">Discarded</option>
+          <option value="sold">Sold</option>
+        </Input>
+        {filtersOn && (
+          <Button
+            color="light"
+            onClick={() => {
+              setFilters(EMPTY_FILTERS);
+              setAssignFilter("ALL");
+            }}
+          >
+            Clear
+          </Button>
+        )}
       </div>
 
+      {loadError && (
+        <div className="p-3 mb-3 d-flex align-items-center justify-content-between" style={{ background: "#fef3f2", border: "1px solid #fecdca", borderRadius: 10 }}>
+          <span className="text-danger">{loadError}</span>
+          <Button size="sm" color="light" onClick={() => setRefreshFlag((n) => n + 1)}>Try again</Button>
+        </div>
+      )}
+
+      {!loading && (
+        <div className="text-muted mb-2" style={{ fontSize: 13 }}>
+          Showing {visible.length} of {assets.length} asset{assets.length === 1 ? "" : "s"}. Click a row to open it.
+        </div>
+      )}
       <div className="uom-table-card">
         <DataTable
           columns={columns}
           data={visible}
           progressPending={loading}
           pagination
+          paginationPerPage={25}
+          paginationRowsPerPageOptions={[10, 25, 50, 100]}
           highlightOnHover
           pointerOnHover
           onRowClicked={openDetail}
@@ -471,7 +657,6 @@ const FixedAssetRegister = () => {
         <ModalBody className="p-0">
           {detailModal && (() => {
             const d = detailModal;
-            const cat = ASSET_CATEGORIES.find((c) => c.name === d.category);
             const sectionTitle = {
               fontSize: 12,
               fontWeight: 600,
@@ -479,13 +664,7 @@ const FixedAssetRegister = () => {
               color: "#6c757d",
             };
             const history = [...(d.assignmentHistory || [])].reverse();
-            const idLabel = cat?.idLabel || "Serial / IMEI / SIM";
-            const Field = ({ label, value }) => (
-              <div className="col-sm-6">
-                <div className="text-muted" style={{ fontSize: 12 }}>{label}</div>
-                <div className="fw-semibold" style={{ fontSize: 14 }}>{value}</div>
-              </div>
-            );
+            const idLabel = d.identifierLabel || "Serial / identifier";
             return (
               <>
                 {/* Header */}
@@ -494,7 +673,7 @@ const FixedAssetRegister = () => {
                   style={{ borderBottom: "1px solid #f1f3f5" }}
                 >
                   <div className="flex-grow-1">
-                    <h5 className="mb-1">{d.assetName}</h5>
+                    <h5 className="mb-1" style={{ wordBreak: "break-word" }}>{d.assetName}</h5>
                     <div className="d-flex align-items-center gap-2 flex-wrap">
                       <span
                         className="text-muted"
@@ -507,12 +686,43 @@ const FixedAssetRegister = () => {
                   </div>
                   <div className="text-end">
                     <div className="text-muted" style={{ fontSize: 12 }}>Purchase Cost</div>
-                    <div className="fs-4 fw-bold text-primary">{money(d.purchaseCost)}</div>
+                    <div className="fs-4 fw-bold text-primary">{moneyOrDash(d.purchaseCost)}</div>
                   </div>
                   <button type="button" className="btn-close ms-2" aria-label="Close" onClick={() => setDetailModal(null)} />
                 </div>
 
                 <div className="p-4">
+                  {/* Tabs */}
+                  <div className="d-flex gap-1 mb-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
+                    {[
+                      ["overview", "Overview"],
+                      ...(canEdit ? [["actions", "Actions"]] : []),
+                      ["history", `History (${history.length})`],
+                      ["more", "More details"],
+                    ].map(([key, text]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setDetailTab(key)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          padding: "8px 14px",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          color: detailTab === key ? "#4f46e5" : "#6c757d",
+                          borderBottom: `2px solid ${detailTab === key ? "#4f46e5" : "transparent"}`,
+                          marginBottom: -1,
+                        }}
+                      >
+                        {text}
+                      </button>
+                    ))}
+                  </div>
+
+                  {detailTab === "overview" && (
+                    <>
                   {/* Who has it */}
                   <div
                     className="p-3 mb-4"
@@ -537,26 +747,43 @@ const FixedAssetRegister = () => {
                     </div>
                   </div>
 
-                  {/* Details */}
-                  <div style={sectionTitle} className="mb-2">DETAILS</div>
-                  <div className="row g-3 mb-4">
-                    <Field label="Category" value={d.category} />
-                    <Field label={idLabel} value={d.serialNumber || "—"} />
-                    <Field label="Purchase Date" value={dateFmt(d.purchaseDate)} />
-                    <Field label="Site" value={d.centerId?.title || "—"} />
-                    {d.storageLocationId && (
-                      <Field
-                        label="Location"
-                        value={`${d.storageLocationId?.name || ""} (${d.storageLocationId?.code || ""})`}
-                      />
-                    )}
-                    <div className="col-12">
-                      <Field label="Remarks" value={d.remarks || "—"} />
-                    </div>
-                  </div>
+                      <div className="row g-3">
+                        <Field label="Category" value={d.category} />
+                        <Field label="Site" value={d.centerId?.title || "—"} />
+                        <Field label={idLabel} value={d.serialNumber || "—"} />
+                        <Field label="Purchase Date" value={dateFmt(d.purchaseDate)} />
+                        <div className="col-12">
+                          <Field label="Remarks" value={d.remarks || "—"} />
+                        </div>
+                      </div>
+                      {d.disposal && d.status === "written_off" && (
+                        <div className="p-3 mt-4" style={{ border: "1px solid #e5e7eb", borderRadius: 10, background: "#fafbfc" }}>
+                          <div style={sectionTitle} className="mb-1">
+                            {d.disposal.type === "sale" ? "SOLD" : "DISCARDED (WRITTEN OFF)"}
+                          </div>
+                          <div style={{ fontSize: 13 }}>
+                            {d.disposal.reason}
+                            {d.disposal.type === "sale" && (
+                              <>
+                                <br />
+                                Buyer: {d.disposal.buyerName || DASH}
+                                {d.disposal.value ? ` · ${moneyOrDash(d.disposal.value)}` : ""}
+                              </>
+                            )}
+                            <br />
+                            <span className="text-muted">
+                              {dateFmt(d.disposal.at)} · request {d.disposal.requestNumber || DASH}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
 
+                  {detailTab === "actions" && canEdit && (
+                    <>
                   {/* Assign / return */}
-                  {canEdit && d.status !== "written_off" && (
+                  {canEdit && d.status !== "written_off" && (d.assignedTo || d.canAssign || d.pendingWriteOff) && (
                     <div className="mb-4">
                       <div style={sectionTitle} className="mb-2">
                         {d.assignedTo ? "TAKE BACK FROM EMPLOYEE" : "ASSIGN TO EMPLOYEE"}
@@ -568,9 +795,9 @@ const FixedAssetRegister = () => {
                               <label className="mb-1 text-muted" style={{ fontSize: 12 }}>Condition</label>
                               <Input type="select" value={returnCondition} onChange={(e) => setReturnCondition(e.target.value)}>
                                 <option value="good">Good</option>
-                                <option value="needs_repair">Needs repair</option>
-                                <option value="damaged">Damaged</option>
-                                <option value="lost">Lost</option>
+                                <option value="needs_repair">Needs repair (goes to maintenance)</option>
+                                <option value="damaged">Damaged, not usable (write-off)</option>
+                                <option value="lost">Lost (write-off)</option>
                               </Input>
                             </div>
                             <div className="col-md-5">
@@ -583,6 +810,14 @@ const FixedAssetRegister = () => {
                               </Button>
                             </div>
                           </div>
+                        ) : d.pendingWriteOff ? (
+                          <span className="text-muted" style={{ fontSize: 13 }}>
+                            Waiting for write-off approval ({d.pendingWriteOff}). It cannot be given to anyone meanwhile.
+                          </span>
+                        ) : !d.canAssign ? (
+                          <span className="text-muted" style={{ fontSize: 13 }}>
+                            This is not an employee asset (it cannot be given to a person).
+                          </span>
                         ) : d.status === "active" ? (
                           <>
                             <div className="row g-2">
@@ -631,11 +866,59 @@ const FixedAssetRegister = () => {
                     </div>
                   )}
 
+                      {canEdit && d.status !== "written_off" && !d.assignedTo && (
+                        <div className="p-3 mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 10 }}>
+                          <div style={sectionTitle} className="mb-1">NOT USABLE ANY MORE?</div>
+                          {d.pendingWriteOff ? (
+                            <div className="text-muted" style={{ fontSize: 13 }}>
+                              Request {d.pendingWriteOff} is waiting for approval.{" "}
+                              <Link to="/vendor-management/asset-writeoff">Open Asset Write-Off</Link>
+                            </div>
+                          ) : (
+                            <div className="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                              <div className="text-muted" style={{ fontSize: 13 }}>
+                                Damaged, old or not needed? Discard it or sell it. It goes for approval, and nothing is deleted.
+                              </div>
+                              <Button size="sm" color="danger" outline onClick={() => openDispose(d)}>
+                                Discard or sell
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {d.status !== "written_off" && (
+                      <>
+                      <div style={sectionTitle} className="mb-2">CHANGE STATUS</div>
+                      <div className="d-flex gap-2 flex-wrap">
+
+                        {Object.entries(STATUS_META).filter(([key]) => key !== "written_off").map(([key, meta]) => (
+                          <Button
+                            key={key}
+                            size="sm"
+                            outline={d.status !== key}
+                            style={
+                              d.status === key
+                                ? { backgroundColor: meta.color, borderColor: meta.color, color: "#fff" }
+                                : { borderColor: meta.color, color: meta.color }
+                            }
+                            disabled={updatingStatus || d.status === key}
+                            onClick={() => handleStatusChange(d, key)}
+                          >
+                            {meta.label}
+                          </Button>
+                        ))}
+                      </div>
+                      </>
+                      )}
+                    </>
+                  )}
+
+                  {detailTab === "history" && (
+                    <>
                   {/* History */}
-                  <div style={sectionTitle} className="mb-2">ASSIGNMENT HISTORY</div>
                   {history.length === 0 ? (
-                    <div className="text-muted mb-4" style={{ fontSize: 13 }}>
-                      This asset has not been assigned yet.
+                    <div className="text-muted" style={{ fontSize: 13 }}>
+                      This asset has not been given to anyone yet.
                     </div>
                   ) : (
                     <div className="mb-4" style={{ borderLeft: "2px solid #e5e7eb", marginLeft: 6 }}>
@@ -665,28 +948,86 @@ const FixedAssetRegister = () => {
                     </div>
                   )}
 
-                  {/* Status */}
-                  {canEdit && (
+                    </>
+                  )}
+
+                  {detailTab === "more" && (
                     <>
-                      <div style={sectionTitle} className="mb-2">UPDATE STATUS</div>
-                      <div className="d-flex gap-2 flex-wrap">
-                        {Object.entries(STATUS_META).map(([key, meta]) => (
-                          <Button
-                            key={key}
-                            size="sm"
-                            outline={d.status !== key}
-                            style={
-                              d.status === key
-                                ? { backgroundColor: meta.color, borderColor: meta.color, color: "#fff" }
-                                : { borderColor: meta.color, color: meta.color }
-                            }
-                            disabled={updatingStatus || d.status === key}
-                            onClick={() => handleStatusChange(d, key)}
-                          >
-                            {meta.label}
-                          </Button>
-                        ))}
+                      <div className="row g-3 mb-4">
+                        <Field label="Tag" value={d.tag?.tagCode || DASH} />
+                        <Field label="Asset code" value={d.assetCode || DASH} />
+                        <Field label="Chip number" value={chipText(d.epcCode || d.tag?.epcCode)} />
+                        <Field label="Barcode" value={d.barcode || DASH} />
+                        <div className="col-12">
+                          <Field label="Category (levels)" value={categoryPath(d)} />
+                        </div>
+                        <Field label="Accumulated depreciation" value={moneyOrDash(d.accumulatedDepreciation)} />
+                        <Field label="Current-year depreciation" value={moneyOrDash(d.currentYearDepreciation)} />
+                        <Field label="Net book value" value={moneyOrDash(d.netBookValue)} />
+                        <Field label="Lifecycle status" value={d.lifecycleStatus ? d.lifecycleStatus[0].toUpperCase() + d.lifecycleStatus.slice(1) : DASH} />
+                        <Field label="Where it came from" value={SOURCE_LABEL[d.source] || "Manual"} />
+                        {d.storageLocationId && (
+                          <Field label="Location" value={`${d.storageLocationId?.name || ""} (${d.storageLocationId?.code || ""})`} />
+                        )}
                       </div>
+                  {/* Edit numbers, cost and depreciation */}
+                  {canEdit && d.status !== "written_off" && editForm && (
+                    <div className="mb-4">
+                      <div style={sectionTitle} className="mb-2">EDIT NUMBERS, COST AND DEPRECIATION</div>
+                      <div className="p-3" style={{ border: "1px solid #e5e7eb", borderRadius: 10 }}>
+                        <div className="row g-2 mb-2">
+                          <div className="col-md-4">
+                            <label className="mb-1 text-muted" style={{ fontSize: 12 }}>Asset name</label>
+                            <Input value={editForm.assetName} onChange={(e) => setEditForm((f) => ({ ...f, assetName: e.target.value }))} />
+                          </div>
+                          <div className="col-md-4">
+                            <label className="mb-1 text-muted" style={{ fontSize: 12 }}>{d.identifierLabel || "Serial / identifier"}</label>
+                            <Input value={editForm.serialNumber} onChange={(e) => setEditForm((f) => ({ ...f, serialNumber: e.target.value }))} />
+                          </div>
+                          <div className="col-md-4">
+                            <label className="mb-1 text-muted" style={{ fontSize: 12 }}>Site</label>
+                            <Input type="select" value={editForm.centerId} onChange={(e) => setEditForm((f) => ({ ...f, centerId: e.target.value }))}>
+                              <option value="">{idOf(d.centerId) ? "Keep current site" : "Select site"}</option>
+                              {centers.map((c) => (
+                                <option key={c._id} value={c._id}>{c.title}</option>
+                              ))}
+                            </Input>
+                          </div>
+                          <div className="col-12">
+                            <label className="mb-1 text-muted" style={{ fontSize: 12 }}>Remarks</label>
+                            <Input type="textarea" rows={2} value={editForm.remarks} onChange={(e) => setEditForm((f) => ({ ...f, remarks: e.target.value }))} />
+                          </div>
+                          {[
+                            ["assetCode", "Asset code", "text"],
+                            ["epcCode", "Chip number", "text"],
+                            ["barcode", "Barcode", "text"],
+                            ["purchaseCost", "Cost", "number"],
+                            ["purchaseDate", "Purchase date", "date"],
+                            ["accumulatedDepreciation", "Accumulated depreciation", "number"],
+                            ["currentYearDepreciation", "Current-year depreciation", "number"],
+                          ].map(([key, label, type]) => (
+                            <div className="col-md-4" key={key}>
+                              <label className="mb-1 text-muted" style={{ fontSize: 12 }}>{label}</label>
+                              <Input
+                                type={type}
+                                min={type === "number" ? 0 : undefined}
+                                value={editForm[key]}
+                                onChange={(e) => setEditForm((f) => ({ ...f, [key]: e.target.value }))}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="text-muted small mb-2">Leave a number empty to remove it. An empty cost or depreciation stays empty, it is never saved as 0.</div>
+                        <CategoryLevelSelect value={editCategory} onChange={setEditCategory} disabled={savingEdit} />
+                        <div className="d-flex justify-content-end">
+                          <Button color="primary" disabled={savingEdit} onClick={() => handleSaveEdit(d)}>
+                            {savingEdit ? "Saving..." : "Save changes"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                     </>
                   )}
                 </div>
@@ -702,10 +1043,73 @@ const FixedAssetRegister = () => {
           })()}
         </ModalBody>
       </Modal>
+      <Modal isOpen={!!disposeFor} toggle={() => setDisposeFor(null)} centered>
+        <ModalBody className="p-4">
+          {disposeFor && (
+            <>
+              <h5 className="mb-1">Discard or sell</h5>
+              <div className="text-muted mb-3" style={{ fontSize: 13 }}>
+                {disposeFor.assetName} ({disposeFor.assetTag}). A request is raised and an approver confirms it.
+              </div>
+              <div className="d-flex gap-2 mb-3">
+                {[["write_off", "Discard (write-off)"], ["sale", "Sell"]].map(([val, text]) => (
+                  <Button
+                    key={val}
+                    color={disposeForm.disposalType === val ? "primary" : "light"}
+                    onClick={() => setDisposeForm((f) => ({ ...f, disposalType: val }))}
+                  >
+                    {text}
+                  </Button>
+                ))}
+              </div>
+              {needSite && (
+                <div className="mb-2">
+                  <label className="mb-1" style={{ fontSize: 12, fontWeight: 600 }}>Site * (this asset has no site yet)</label>
+                  <Input type="select" value={disposeForm.centerId} onChange={(e) => setDisposeForm((f) => ({ ...f, centerId: e.target.value }))}>
+                    <option value="">Select site</option>
+                    {centers.map((c) => (
+                      <option key={c._id} value={c._id}>{c.title}</option>
+                    ))}
+                  </Input>
+                </div>
+              )}
+              <div className="mb-2">
+                <label className="mb-1" style={{ fontSize: 12, fontWeight: 600 }}>Reason *</label>
+                <Input
+                  type="textarea"
+                  rows={2}
+                  placeholder="e.g. Uniform torn, SIM card damaged, laptop too old"
+                  value={disposeForm.reason}
+                  onChange={(e) => setDisposeForm((f) => ({ ...f, reason: e.target.value }))}
+                />
+              </div>
+              <div className="row g-2">
+                <div className={disposeForm.disposalType === "sale" ? "col-6" : "col-12"}>
+                  <label className="mb-1" style={{ fontSize: 12, fontWeight: 600 }}>
+                    {disposeForm.disposalType === "sale" ? "Sale value" : "Scrap value (if any)"}
+                  </label>
+                  <Input type="number" min={0} placeholder="0" value={disposeForm.estValue} onChange={(e) => setDisposeForm((f) => ({ ...f, estValue: e.target.value }))} />
+                </div>
+                {disposeForm.disposalType === "sale" && (
+                  <div className="col-6">
+                    <label className="mb-1" style={{ fontSize: 12, fontWeight: 600 }}>Buyer name *</label>
+                    <Input value={disposeForm.buyerName} onChange={(e) => setDisposeForm((f) => ({ ...f, buyerName: e.target.value }))} />
+                  </div>
+                )}
+              </div>
+              <div className="d-flex justify-content-end gap-2 mt-4">
+                <Button color="light" onClick={() => setDisposeFor(null)}>Cancel</Button>
+                <Button color="danger" disabled={disposing} onClick={handleDispose}>
+                  {disposing ? "Raising..." : "Raise request"}
+                </Button>
+              </div>
+            </>
+          )}
+        </ModalBody>
+      </Modal>
       <Modal isOpen={addModal} toggle={() => setAddModal(false)} centered size="lg">
         <ModalBody className="p-0">
           {(() => {
-            const cat = ASSET_CATEGORIES.find((c) => c.name === addForm.category);
             const label = { fontSize: 12, fontWeight: 600, color: "#495057" };
             const set = (key) => (e) =>
               setAddForm((f) => ({ ...f, [key]: e.target.value }));
@@ -719,7 +1123,7 @@ const FixedAssetRegister = () => {
                   <div className="flex-grow-1">
                     <h5 className="mb-0">Add Asset</h5>
                     <div className="text-muted" style={{ fontSize: 13 }}>
-                      Register an item that can be given to an employee
+                      Pick the category first. Types are managed in Asset Category master
                     </div>
                   </div>
                   <button
@@ -731,38 +1135,8 @@ const FixedAssetRegister = () => {
                 </div>
 
                 <div className="p-4">
-                  {/* Category tiles */}
-                  <div style={label} className="mb-2">
-                    WHAT ARE YOU ADDING? <span className="text-danger">*</span>
-                  </div>
-                  <div
-                    className="d-grid gap-2 mb-4"
-                    style={{ gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))" }}
-                  >
-                    {ASSET_CATEGORIES.map((c) => {
-                      const active = addForm.category === c.name;
-                      return (
-                        <button
-                          key={c.name}
-                          type="button"
-                          onClick={() => setAddForm((f) => ({ ...f, category: c.name }))}
-                          className="d-flex align-items-center justify-content-center py-3"
-                          style={{
-                            borderRadius: 10,
-                            cursor: "pointer",
-                            border: `1.5px solid ${active ? "#4f46e5" : "#e5e7eb"}`,
-                            background: active ? "#eef2ff" : "#fff",
-                            color: active ? "#4f46e5" : "#495057",
-                            fontWeight: 600,
-                            fontSize: 13,
-                            transition: "all .15s",
-                          }}
-                        >
-                          {c.name}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <div style={label} className="mb-2">WHAT ARE YOU ADDING? (CATEGORY) <span className="text-danger">*</span></div>
+                  <CategoryLevelSelect value={addCategory} onChange={setAddCategory} onSettings={setAddSettings} required disabled={saving} />
 
                   {/* Fields */}
                   <div className="row g-3">
@@ -771,17 +1145,17 @@ const FixedAssetRegister = () => {
                         Asset name <span className="text-danger">*</span>
                       </label>
                       <Input
-                        placeholder={cat ? `e.g. ${cat.name === "Laptop" ? "Dell Latitude 5420" : cat.name === "Phone" ? "Samsung Galaxy A15" : cat.name === "SIM Card" ? "Airtel corporate SIM" : cat.name === "Debit Card" ? "HDFC Debit Card" : "Staff uniform set"}` : "Asset name"}
+                        placeholder="e.g. Dell Latitude 5420"
                         value={addForm.assetName}
                         onChange={set("assetName")}
                       />
                     </div>
                     <div className="col-md-6">
                       <label className="mb-1" style={label}>
-                        {cat ? cat.idLabel : "Serial / IMEI / SIM no."}
+                        {addSettings.identifierLabel || "Serial / identifier"}
                       </label>
                       <Input
-                        placeholder={cat ? cat.idHint : "Pick a category first"}
+                        placeholder="Optional"
                         value={addForm.serialNumber}
                         onChange={set("serialNumber")}
                       />
@@ -810,6 +1184,51 @@ const FixedAssetRegister = () => {
                         value={addForm.purchaseDate}
                         onChange={set("purchaseDate")}
                       />
+                    </div>
+                    {[
+                      ["assetCode", "Asset code", "text"],
+                      ["epcCode", "Chip number", "text"],
+                      ["barcode", "Barcode", "text"],
+                      ["accumulatedDepreciation", "Accumulated depreciation", "number"],
+                      ["currentYearDepreciation", "Current-year depreciation", "number"],
+                    ].map(([key, text, type]) => (
+                      <div className="col-md-6" key={key}>
+                        <label className="mb-1" style={label}>{text}</label>
+                        <Input
+                          type={type}
+                          min={type === "number" ? 0 : undefined}
+                          placeholder="Optional"
+                          value={addExtra[key]}
+                          onChange={(e) => setAddExtra((x) => ({ ...x, [key]: e.target.value }))}
+                        />
+                      </div>
+                    ))}
+                    <div className="col-md-6">
+                      <label className="mb-1" style={label}>
+                        Site <span className="text-danger">*</span>
+                      </label>
+                      <Input type="select" value={addForm.centerId} onChange={set("centerId")}>
+                        <option value="">Select site</option>
+                        {centers.map((c) => (
+                          <option key={c._id} value={c._id}>{c.title}</option>
+                        ))}
+                      </Input>
+                      <div className="text-muted" style={{ fontSize: 11.5 }}>
+                        The branch this asset belongs to
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="mb-1" style={label}>How many pieces?</label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={addForm.quantity}
+                        onChange={set("quantity")}
+                      />
+                      <div className="text-muted" style={{ fontSize: 11.5 }}>
+                        Each piece becomes its own asset with its own tag (for example 10 uniforms)
+                      </div>
                     </div>
                     <div className="col-12">
                       <label className="mb-1" style={label}>Remarks</label>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody, Label, Row, Col } from "reactstrap";
 import { toast } from "react-toastify";
@@ -13,6 +13,7 @@ import {
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText, useBusy } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
@@ -40,6 +41,8 @@ const PMSchedule = () => {
   const [assets, setAssets] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [generating, setGenerating] = useState(false);
+  const [toggling, runToggle] = useBusy();
+  const assetReq = useRef(0);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [scheduleName, setScheduleName] = useState("");
@@ -61,7 +64,12 @@ const PMSchedule = () => {
   useEffect(() => {
     getTaskTemplates({})
       .then((res) => setTemplates(res?.data || []))
-      .catch(() => {});
+      .catch((error) => {
+        if (!handleAuthError(error)) {
+          toast.error(errText(error, "Couldn't load task templates."));
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -71,13 +79,18 @@ const PMSchedule = () => {
       .then((res) => {
         if (!cancelled) setSchedules(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (!cancelled && !handleAuthError(error)) {
+          toast.error(errText(error, "Couldn't load PM schedules."));
+        }
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFlag]);
 
   const openModal = () => {
@@ -96,25 +109,39 @@ const PMSchedule = () => {
     setNotifyDaysBefore(3);
     setAutoGenerateWorkOrders(true);
     setAssets([]);
+    assetReq.current += 1;
     setModalOpen(true);
   };
 
   const handleCenterChange = (id) => {
     setCenterId(id);
     setAssetId("");
+    const reqId = ++assetReq.current;
     if (!id) {
       setAssets([]);
       return;
     }
-    getFixedAssets({ centerId: id, status: "active" })
-      .then((res) => setAssets(res?.data || []))
-      .catch(() => setAssets([]));
+    // Written-off assets cannot have a schedule; assets under maintenance still can
+    getFixedAssets({ centerId: id })
+      .then((res) => {
+        if (reqId !== assetReq.current) return;
+        setAssets(
+          (res?.data || []).filter((a) => a.status !== "written_off"),
+        );
+      })
+      .catch(() => {
+        if (reqId === assetReq.current) setAssets([]);
+      });
   };
 
   const handleTemplateChange = (id) => {
     setTaskTemplateId(id);
     const t = templates.find((tpl) => tpl._id === id);
-    if (t) {
+    if (!t) {
+      setTaskDescription("");
+      setEstimatedDurationMinutes(60);
+      setEstimatedCost(0);
+    } else {
       setTaskDescription(t.description || t.templateName);
       setEstimatedDurationMinutes(t.estimatedDurationMinutes || 60);
       setEstimatedCost(t.estimatedCost || 0);
@@ -125,13 +152,17 @@ const PMSchedule = () => {
     if (!scheduleName.trim() || !centerId || !assetId || !startDate) {
       return toast.error("Fill in Schedule Name, Site, Asset, and Start Date");
     }
+    const freq = Number(frequencyValue);
+    if (!Number.isInteger(freq) || freq < 1) {
+      return toast.error("Frequency Value must be a whole number, 1 or more");
+    }
     setSubmitting(true);
     try {
       await createPMSchedule({
         scheduleName,
         centerId,
         assetId,
-        frequencyValue: Number(frequencyValue),
+        frequencyValue: freq,
         frequencyUnit,
         priority,
         startDate,
@@ -148,18 +179,15 @@ const PMSchedule = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
-        );
+        toast.error(errText(error, "Something went wrong"));
       }
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleToggleStatus = async (schedule) => {
+  const handleToggleStatus = (schedule) =>
+    runToggle(async () => {
     try {
       await updatePMSchedule(schedule._id, {
         status: schedule.status === "active" ? "paused" : "active",
@@ -168,14 +196,10 @@ const PMSchedule = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't update.",
-        );
+        toast.error(errText(error, "Couldn't update."));
       }
     }
-  };
+    });
 
   const handleGenerateDue = async () => {
     setGenerating(true);
@@ -185,11 +209,7 @@ const PMSchedule = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't generate.",
-        );
+        toast.error(errText(error, "Couldn't generate."));
       }
     } finally {
       setGenerating(false);
@@ -241,11 +261,17 @@ const PMSchedule = () => {
     {
       name: "",
       right: true,
-      cell: (row) => (
-        <Button size="sm" color="light" onClick={() => handleToggleStatus(row)}>
-          {row.status === "active" ? "Pause" : "Resume"}
-        </Button>
-      ),
+      cell: (row) =>
+        canCreate ? (
+          <Button
+            size="sm"
+            color="light"
+            disabled={toggling}
+            onClick={() => handleToggleStatus(row)}
+          >
+            {row.status === "active" ? "Pause" : "Resume"}
+          </Button>
+        ) : null,
     },
   ];
 
@@ -259,10 +285,16 @@ const PMSchedule = () => {
       </div>
 
       <div className="d-flex justify-content-end gap-2 mb-3">
-        <Button color="light" onClick={handleGenerateDue} disabled={generating}>
-          <i className="bx bx-refresh me-1"></i>
-          {generating ? "Generating..." : "Generate Due Work Orders"}
-        </Button>
+        {canCreate && (
+          <Button
+            color="light"
+            onClick={handleGenerateDue}
+            disabled={generating}
+          >
+            <i className="bx bx-refresh me-1"></i>
+            {generating ? "Generating..." : "Generate Due Work Orders"}
+          </Button>
+        )}
         {canCreate && (
           <Button color="primary" onClick={openModal}>
             <i className="bx bx-plus me-1"></i> Create PM Schedule
@@ -409,7 +441,9 @@ const PMSchedule = () => {
             onChange={(e) => handleTemplateChange(e.target.value)}
           >
             <option value="">None</option>
-            {templates.map((t) => (
+            {templates
+              .filter((t) => t.active !== false)
+              .map((t) => (
               <option key={t._id} value={t._id}>
                 {t.templateName}
               </option>

@@ -1989,6 +1989,11 @@ export const MASTER_DATA = [
     isAccordion: true,
     children: [
       {
+        id: "asset-divider-acquire",
+        label: "— Acquire —",
+        isDivider: true,
+      },
+      {
         id: "asset-cap-request",
         label: "Capitalization Requests",
         link: "/vendor-management/capitalization-request",
@@ -2007,10 +2012,49 @@ export const MASTER_DATA = [
         permissionModule: "ASSET_CAPITALIZATION",
       },
       {
+        id: "asset-divider-register",
+        label: "— Register —",
+        isDivider: true,
+      },
+      {
         id: "asset-fixed-register",
         label: "Fixed Assets Register",
         link: "/vendor-management/fixed-asset",
         permissionModule: "FIXED_ASSET",
+      },
+      {
+        id: "asset-tag",
+        label: "Asset Tags",
+        link: "/vendor-management/asset-tag",
+        permissionModule: "ASSET_TAG",
+      },
+      {
+        id: "asset-divider-verification",
+        label: "— Verification —",
+        isDivider: true,
+      },
+      {
+        id: "asset-verification-job",
+        label: "Verification Jobs",
+        link: "/vendor-management/verification-job",
+        permissionModule: "VERIFICATION_JOB",
+      },
+      {
+        id: "asset-scan-intake",
+        label: "Verifications",
+        link: "/vendor-management/asset-scan",
+        permissionModule: "ASSET_SCAN",
+      },
+      {
+        id: "asset-physical-verification",
+        label: "Register Check",
+        link: "/vendor-management/physical-verification",
+        permissionModule: "PHYSICAL_VERIFICATION",
+      },
+      {
+        id: "asset-divider-move",
+        label: "— Move & Dispose —",
+        isDivider: true,
       },
       {
         id: "asset-transfer",
@@ -2026,7 +2070,7 @@ export const MASTER_DATA = [
       },
       {
         id: "asset-maintenance-divider",
-        label: "— Asset Maintenance —",
+        label: "— Maintenance —",
         isDivider: true,
       },
       {
@@ -2042,12 +2086,6 @@ export const MASTER_DATA = [
         permissionModule: "WORK_ORDER",
       },
       {
-        id: "asset-task-template",
-        label: "Task Templates",
-        link: "/vendor-management/task-template",
-        permissionModule: "TASK_TEMPLATE",
-      },
-      {
         id: "asset-pm-schedule",
         label: "PM Schedules",
         link: "/vendor-management/pm-schedule",
@@ -2060,22 +2098,10 @@ export const MASTER_DATA = [
         permissionModule: "MAINTENANCE_JOB",
       },
       {
-        id: "asset-verification-job",
-        label: "Verification Jobs",
-        link: "/vendor-management/verification-job",
-        permissionModule: "VERIFICATION_JOB",
-      },
-      {
-        id: "asset-physical-verification",
-        label: "Physical Verifications",
-        link: "/vendor-management/physical-verification",
-        permissionModule: "PHYSICAL_VERIFICATION",
-      },
-      {
-        id: "asset-tag",
-        label: "Create Tags",
-        link: "/vendor-management/asset-tag",
-        permissionModule: "ASSET_TAG",
+        id: "asset-task-template",
+        label: "Task Templates",
+        link: "/vendor-management/task-template",
+        permissionModule: "TASK_TEMPLATE",
       },
     ],
   },

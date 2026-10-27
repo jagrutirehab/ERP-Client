@@ -19,8 +19,8 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 const CONDITIONS = [
   { value: "good", label: "Good" },
   { value: "needs_repair", label: "Needs repair" },
-  { value: "damaged", label: "Damaged" },
-  { value: "lost", label: "Lost" },
+  { value: "damaged", label: "Damaged (write-off)" },
+  { value: "lost", label: "Lost (write-off)" },
 ];
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
@@ -42,10 +42,12 @@ const EmployeeAssetsModal = ({
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [form, setForm] = useState({});
+  const [loadError, setLoadError] = useState("");
 
   const load = async () => {
     if (!employeeId) return;
     setLoading(true);
+    setLoadError("");
     try {
       const res = await getAssetsByEmployee(employeeId);
       const list = res?.data || [];
@@ -53,9 +55,7 @@ const EmployeeAssetsModal = ({
       onChange?.(list.length);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message || "Couldn't load assets.",
-        );
+        setLoadError(error?.response?.data?.message || error?.message || "Couldn't load assets.");
       }
     } finally {
       setLoading(false);
@@ -64,6 +64,7 @@ const EmployeeAssetsModal = ({
 
   useEffect(() => {
     if (isOpen) load();
+    else setForm({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, employeeId]);
 
@@ -101,6 +102,11 @@ const EmployeeAssetsModal = ({
           <div className="text-center py-4">
             <Spinner className="text-primary" />
           </div>
+        ) : loadError ? (
+          <div className="p-3 d-flex align-items-center justify-content-between" style={{ background: "#fef3f2", border: "1px solid #fecdca", borderRadius: 10 }}>
+            <span className="text-danger">{loadError}</span>
+            <Button size="sm" color="light" onClick={load}>Try again</Button>
+          </div>
         ) : assets.length === 0 ? (
           <div className="text-center text-success py-4">
             <p className="mb-0">
@@ -111,7 +117,8 @@ const EmployeeAssetsModal = ({
           <>
             <p className="text-muted">
               {assets.length} asset(s) still with this employee. Collect each
-              one and mark it as received.
+              one and mark it as received. Damaged or lost items raise a write-off
+              request automatically.
             </p>
             <div className="table-responsive">
               <Table className="align-middle mb-0">

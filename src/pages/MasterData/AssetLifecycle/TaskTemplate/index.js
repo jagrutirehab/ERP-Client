@@ -5,12 +5,15 @@ import { toast } from "react-toastify";
 import {
   getTaskTemplates,
   createTaskTemplate,
+  updateTaskTemplate,
   deleteTaskTemplate,
   getTaskTemplateCategories,
   createTaskTemplateCategory,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText, moneyOrDash, useBusy } from "../shared/assetUi";
+import useConfirm from "../shared/useConfirm";
 import "../../UnitOfMeasurement/uom.scss";
 
 const INPUT_TYPES = [
@@ -30,11 +33,18 @@ const emptyItem = () => ({
   required: false,
   placeholder: "",
   maxLength: "",
+  optionsText: "",
 });
 const emptySection = () => ({ sectionName: "", items: [emptyItem()] });
 
+const durationText = (m) => {
+  const mins = Number(m) || 0;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+};
+
 const TaskTemplate = () => {
   const handleAuthError = useAuthError();
+  const [confirm, confirmDialog] = useConfirm();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "TASK_TEMPLATE", "WRITE");
@@ -44,6 +54,8 @@ const TaskTemplate = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [busy, runBusy] = useBusy();
   const [refreshFlag, setRefreshFlag] = useState(0);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -67,7 +79,11 @@ const TaskTemplate = () => {
   const fetchCategories = () => {
     getTaskTemplateCategories()
       .then((res) => setCategories(res?.data || []))
-      .catch(() => {});
+      .catch((error) => {
+        if (!handleAuthError(error)) {
+          toast.error(errText(error, "Couldn't load categories."));
+        }
+      });
   };
 
   useEffect(() => {
@@ -75,20 +91,30 @@ const TaskTemplate = () => {
   }, []);
 
   useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getTaskTemplates({ search })
+    getTaskTemplates({ search: debouncedSearch })
       .then((res) => {
         if (!cancelled) setTemplates(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (!cancelled && !handleAuthError(error)) {
+          toast.error(errText(error, "Couldn't load task templates."));
+        }
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [search, refreshFlag]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, refreshFlag]);
 
   const openModal = () => {
     setTemplateName("");
@@ -140,6 +166,12 @@ const TaskTemplate = () => {
     );
   };
 
+  const closeCategoryModal = () => {
+    setCategoryModalOpen(false);
+    setNewCategoryName("");
+    setNewCategoryDesc("");
+  };
+
   const handleSaveCategory = async () => {
     if (!newCategoryName.trim()) return toast.error("Enter a category name");
     setSavingCategory(true);
@@ -156,11 +188,7 @@ const TaskTemplate = () => {
       setNewCategoryDesc("");
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't add category.",
-        );
+        toast.error(errText(error, "Couldn't add category."));
       }
     } finally {
       setSavingCategory(false);
@@ -177,6 +205,19 @@ const TaskTemplate = () => {
       s.items.some((it) => !it.label.trim()),
     );
     if (invalidItem) return toast.error("Every checklist item needs a label");
+    const parseOptions = (it) =>
+      it.inputType === "dropdown"
+        ? it.optionsText
+            .split(",")
+            .map((o) => o.trim())
+            .filter(Boolean)
+        : [];
+    const noOptions = sections.some((s) =>
+      s.items.some((it) => it.inputType === "dropdown" && !parseOptions(it).length),
+    );
+    if (noOptions) {
+      return toast.error("Dropdown items need at least one option");
+    }
 
     setSubmitting(true);
     try {
@@ -190,9 +231,10 @@ const TaskTemplate = () => {
         estimatedCost: Number(estimatedCost),
         sections: sections.map((s) => ({
           ...s,
-          items: s.items.map((it) => ({
+          items: s.items.map(({ optionsText, ...it }) => ({
             ...it,
             maxLength: it.maxLength !== "" ? Number(it.maxLength) : undefined,
+            options: it.inputType === "dropdown" ? parseOptions({ ...it, optionsText }) : undefined,
           })),
         })),
       });
@@ -201,11 +243,7 @@ const TaskTemplate = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
-        );
+        toast.error(errText(error, "Something went wrong"));
       }
     } finally {
       setSubmitting(false);
@@ -213,20 +251,46 @@ const TaskTemplate = () => {
   };
 
   const handleDelete = async (id) => {
-    try {
-      await deleteTaskTemplate(id);
-      toast.success("Task template deleted successfully");
-      setRefreshFlag((f) => f + 1);
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't delete.",
-        );
+    const ok = await confirm({
+      title: "Delete task template",
+      message: "Delete this task template? This cannot be undone.",
+      confirmText: "Delete",
+      danger: true,
+    });
+    if (!ok) return undefined;
+    return runBusy(async () => {
+      try {
+        await deleteTaskTemplate(id);
+        toast.success("Task template deleted successfully");
+        setRefreshFlag((f) => f + 1);
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(errText(error, "Couldn't delete."));
+        }
       }
-    }
+    });
   };
+
+  const handleToggleActive = (template) =>
+    runBusy(async () => {
+      try {
+        const res = await updateTaskTemplate(template._id, {
+          active: !template.active,
+        });
+        toast.success("Task template updated");
+        setDetailModal({
+          ...template,
+          ...(res?.data || {}),
+          categoryId: template.categoryId,
+          active: res?.data?.active ?? !template.active,
+        });
+        setRefreshFlag((f) => f + 1);
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(errText(error, "Couldn't update."));
+        }
+      }
+    });
 
   const columns = [
     {
@@ -252,8 +316,7 @@ const TaskTemplate = () => {
       width: "120px",
       cell: (row) => (
         <span className="uom-cell-muted">
-          {Math.floor(row.estimatedDurationMinutes / 60)}h{" "}
-          {row.estimatedDurationMinutes % 60}m
+          {durationText(row.estimatedDurationMinutes)}
         </span>
       ),
     },
@@ -281,6 +344,7 @@ const TaskTemplate = () => {
             <Button
               size="sm"
               color="light"
+              disabled={busy}
               onClick={() => handleDelete(row._id)}
             >
               <i className="bx bx-trash text-danger"></i>
@@ -329,6 +393,7 @@ const TaskTemplate = () => {
         />
       </div>
 
+      {confirmDialog}
       <Modal
         isOpen={modalOpen}
         toggle={() => setModalOpen(false)}
@@ -530,6 +595,21 @@ const TaskTemplate = () => {
                         }
                       />
                     </Col>
+                    {item.inputType === "dropdown" && (
+                      <Col md={12} className="mb-2">
+                        <Label className="small">
+                          Options (comma separated){" "}
+                          <span className="text-danger">*</span>
+                        </Label>
+                        <Input
+                          value={item.optionsText}
+                          placeholder="e.g. OK, Needs repair, Replace"
+                          onChange={(e) =>
+                            updateItem(sIdx, iIdx, "optionsText", e.target.value)
+                          }
+                        />
+                      </Col>
+                    )}
                   </Row>
                   <div className="d-flex justify-content-between align-items-center">
                     <div className="form-check">
@@ -593,7 +673,7 @@ const TaskTemplate = () => {
 
       <Modal
         isOpen={categoryModalOpen}
-        toggle={() => setCategoryModalOpen(false)}
+        toggle={closeCategoryModal}
         centered
       >
         <ModalBody className="p-4">
@@ -616,7 +696,7 @@ const TaskTemplate = () => {
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button
               color="light"
-              onClick={() => setCategoryModalOpen(false)}
+              onClick={closeCategoryModal}
               disabled={savingCategory}
             >
               Cancel
@@ -675,7 +755,7 @@ const TaskTemplate = () => {
                     </div>
                     <div className="fs-5 fw-bold text-primary">
                       {detailModal.estimatedCost > 0
-                        ? `₹${detailModal.estimatedCost}`
+                        ? moneyOrDash(detailModal.estimatedCost)
                         : "—"}
                     </div>
                   </div>
@@ -687,9 +767,7 @@ const TaskTemplate = () => {
                 )}
                 <div className="d-flex align-items-center gap-1 text-muted small mt-2">
                   <i className="bx bx-time-five"></i>
-                  Est. {Math.floor(
-                    detailModal.estimatedDurationMinutes / 60,
-                  )}h {detailModal.estimatedDurationMinutes % 60}m
+                  Est. {durationText(detailModal.estimatedDurationMinutes)}
                 </div>
               </div>
 
@@ -698,7 +776,7 @@ const TaskTemplate = () => {
                 className="px-4 py-3"
                 style={{ maxHeight: 420, overflowY: "auto" }}
               >
-                {detailModal.sections.map((section, idx) => (
+                {(detailModal.sections || []).map((section, idx) => (
                   <div key={idx} className="mb-3">
                     <div
                       className="fw-semibold mb-2 d-flex align-items-center gap-2"
@@ -718,10 +796,12 @@ const TaskTemplate = () => {
                       >
                         {idx + 1}
                       </span>
-                      {section.sectionName}
+                      <span style={{ minWidth: 0, wordBreak: "break-word" }}>
+                        {section.sectionName}
+                      </span>
                     </div>
                     <div className="d-flex flex-column gap-2 ps-4">
-                      {section.items.map((item, i) => (
+                      {(section.items || []).map((item, i) => (
                         <div
                           key={i}
                           className="d-flex justify-content-between align-items-center p-2"
@@ -731,7 +811,7 @@ const TaskTemplate = () => {
                             fontSize: 13,
                           }}
                         >
-                          <span>
+                          <span style={{ minWidth: 0, wordBreak: "break-word" }}>
                             {item.label}
                             {item.required && (
                               <span className="text-danger"> *</span>
@@ -756,9 +836,29 @@ const TaskTemplate = () => {
               </div>
 
               <div
-                className="d-flex justify-content-end p-3"
+                className="d-flex justify-content-between align-items-center p-3"
                 style={{ borderTop: "1px solid #f1f3f5" }}
               >
+                {canCreate ? (
+                  <div className="form-check form-switch mb-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={!!detailModal.active}
+                      disabled={busy}
+                      onChange={() => handleToggleActive(detailModal)}
+                      id="detailActiveSwitch"
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="detailActiveSwitch"
+                    >
+                      Active
+                    </label>
+                  </div>
+                ) : (
+                  <span></span>
+                )}
                 <Button color="light" onClick={() => setDetailModal(null)}>
                   Close
                 </Button>

@@ -9,10 +9,12 @@ import {
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
+import { errText } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
-const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const money = (n) =>
+  `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
 const AssetCapitalization = () => {
   const handleAuthError = useAuthError();
@@ -25,6 +27,7 @@ const AssetCapitalization = () => {
   const [readyCwips, setReadyCwips] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
+  const [loadError, setLoadError] = useState("");
 
   const [selectedCwip, setSelectedCwip] = useState(null);
   const [usefulLifeYears, setUsefulLifeYears] = useState(5);
@@ -35,24 +38,33 @@ const AssetCapitalization = () => {
     if (view !== "list") return;
     let cancelled = false;
     setLoading(true);
+    setLoadError("");
     getAssetCapitalizations()
       .then((res) => {
         if (!cancelled) setRecords(res?.data || []);
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (cancelled) return;
+        if (!handleAuthError(error)) setLoadError(errText(error, "Couldn't load capitalizations."));
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, refreshFlag]);
 
   const openSelectCwip = () => {
     setLoading(true);
+    setLoadError("");
     getReadyCWIPs()
       .then((res) => setReadyCwips(res?.data || []))
-      .catch(() => setReadyCwips([]))
+      .catch((error) => {
+        setReadyCwips([]);
+        if (!handleAuthError(error)) setLoadError(errText(error, "Couldn't load CWIP records."));
+      })
       .finally(() => setLoading(false));
     setView("select-cwip");
   };
@@ -69,8 +81,8 @@ const AssetCapitalization = () => {
     : 0;
 
   const handleSubmit = async () => {
-    if (!usefulLifeYears || Number(usefulLifeYears) <= 0) {
-      return toast.error("Enter a valid useful life (in years)");
+    if (!Number.isInteger(Number(usefulLifeYears)) || Number(usefulLifeYears) < 1) {
+      return toast.error("Useful life must be a whole number of years, at least 1");
     }
     setSubmitting(true);
     try {
@@ -94,7 +106,8 @@ const AssetCapitalization = () => {
 
   const columns = [
     { name: "Capitalization #", selector: (row) => row.capitalizationNumber, sortable: true, width: "170px" },
-    { name: "Item", selector: (row) => row.itemName },
+    { name: "Asset Tag", width: "150px", selector: (row) => row.fixedAssetId?.assetTag || "—" },
+    { name: "Item", selector: (row) => row.itemName, wrap: true },
     {
       name: "Total Cost",
       cell: (row) => <span className="uom-cell-primary">{money(row.totalCost)}</span>,
@@ -130,7 +143,19 @@ const AssetCapitalization = () => {
 
         {loading && <div className="text-muted p-3">Loading...</div>}
 
-        {!loading && readyCwips.length === 0 && (
+        {loadError && (
+          <div
+            className="p-3 mb-3 d-flex align-items-center justify-content-between"
+            style={{ background: "#fef3f2", border: "1px solid #fecdca", borderRadius: 10 }}
+          >
+            <span className="text-danger">{loadError}</span>
+            <Button size="sm" color="light" onClick={openSelectCwip}>
+              Try again
+            </Button>
+          </div>
+        )}
+
+        {!loading && !loadError && readyCwips.length === 0 && (
           <div className="uom-empty-state">
             <p className="uom-empty-title">Nothing ready</p>
             <p className="uom-empty-sub">
@@ -151,7 +176,7 @@ const AssetCapitalization = () => {
                 <div>
                   <div className="fw-semibold">{cwip.cwipNumber}</div>
                   <div className="text-muted small">
-                    {cwip.itemName} · Qty {cwip.quantity} · {cwip.centerId?.title}
+                    {cwip.itemName} · Qty {cwip.quantity} · {cwip.centerId?.title || "—"}
                   </div>
                 </div>
                 <div className="fw-semibold">{money(cwip.totalCost)}</div>
@@ -190,6 +215,7 @@ const AssetCapitalization = () => {
           <Input
             type="number"
             min={1}
+            step={1}
             className="mb-3"
             value={usefulLifeYears}
             onFocus={(e) => e.target.select()}
@@ -233,6 +259,18 @@ const AssetCapitalization = () => {
           </Button>
         )}
       </div>
+
+      {loadError && (
+        <div
+          className="p-3 mb-3 d-flex align-items-center justify-content-between"
+          style={{ background: "#fef3f2", border: "1px solid #fecdca", borderRadius: 10 }}
+        >
+          <span className="text-danger">{loadError}</span>
+          <Button size="sm" color="light" onClick={() => setRefreshFlag((n) => n + 1)}>
+            Try again
+          </Button>
+        </div>
+      )}
 
       <div className="uom-table-card">
         <DataTable
