@@ -511,7 +511,7 @@ export const Issues = (
     width: "180px",
   },
 
-  ...((type === "MAINTENANCE"
+  ...((type === "MAINTENANCE" || type === "OPERATIONAL"
     ? status !== "resolved"
     : status === "new" && type !== "HR") && canEdit
     ? [
@@ -630,7 +630,8 @@ export const Issues = (
   // canChangeStatus &&
   ...((type === "HR" ||
     (type === "COMPLAINT" && status !== "new") ||
-    (type === "MAINTENANCE" && status !== "new")) &&
+    (type === "MAINTENANCE" && status !== "new") ||
+    (type === "OPERATIONAL" && status !== "new")) &&
   canEdit &&
   (status !== "resolved" || status === "")
     ? [
