@@ -40,14 +40,18 @@ export const NewJoiningBiometricColumn = ({
     {
       name: "Name",
       selector: (row) => row?.employeeName?.toUpperCase() || "-",
-      sortable: true,
       minWidth: "160px",
       wrap: true,
     },
     {
       name: "Center",
       selector: (row) => row?.center?.title || "-",
-      sortable: true,
+      minWidth: "150px",
+      wrap: true,
+    },
+    {
+      name: "Department",
+      selector: (row) => row?.department?.department || "-",
       minWidth: "150px",
       wrap: true,
     },
@@ -93,7 +97,6 @@ export const NewJoiningBiometricColumn = ({
     {
       name: "Status",
       selector: (row) => row?.status || "-",
-      sortable: true,
       minWidth: "130px",
       cell: (row) =>
         renderStatusBadge(
@@ -104,7 +107,6 @@ export const NewJoiningBiometricColumn = ({
       name: "Requested By",
       selector: (row) => row?.author?.name || "-",
       cell: (row) => <PersonCell person={row?.author} />,
-      sortable: true,
       minWidth: "200px",
       wrap: true,
     },
