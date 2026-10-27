@@ -65,7 +65,8 @@ export const NewJoiningBiometricColumn = ({
     {
       name: "Shifts",
       selector: (row) => row?.shifts?.length || 0,
-      minWidth: "200px",
+      minWidth: "220px",
+      wrap: true,
       cell: (row) =>
         row?.shifts?.length ? (
           <div
@@ -74,10 +75,8 @@ export const NewJoiningBiometricColumn = ({
               gridTemplateColumns: "max-content 1fr",
               columnGap: "16px",
               rowGap: "4px",
-              maxHeight: "120px",
-              overflowY: "auto",
               width: "100%",
-              padding: "4px 0",
+              padding: "8px 0",
               fontSize: "13px",
             }}
           >
