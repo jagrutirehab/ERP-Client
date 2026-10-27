@@ -269,6 +269,28 @@ export const myDashboardTypeOptions = [
     { value: "TPM", label: "TPM" },
 ];
 
+export const biometricDepartmentOptions = [
+    "ACCOUNTS",
+    "ADMIN",
+    "CARETAKER",
+    "COUNSELLING",
+    "DRIVER",
+    "FACILITY MANAGER",
+    "HOUSEKEEPING",
+    "HR",
+    "KITCHEN",
+    "MARKETING",
+    "MEDICAL",
+    "NURSING",
+    "PHARMACIST",
+    "PSYCHIATRIST",
+    "PSYCHOLOGIST",
+    "RECEPTIONIST",
+    "SOCIAL WORKER",
+    "WATCHMAN",
+    "YOGA",
+].map((department) => ({ label: department, value: department }));
+
 export const activeFinanceOptions = [
     { value: "ALL", label: "All" },
     { value: "ACTIVE", label: "Active" },

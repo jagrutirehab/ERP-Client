@@ -51,7 +51,7 @@ export const NewJoiningBiometricColumn = ({
     },
     {
       name: "Department",
-      selector: (row) => row?.department?.department || "-",
+      selector: (row) => row?.department || "-",
       minWidth: "150px",
       wrap: true,
     },

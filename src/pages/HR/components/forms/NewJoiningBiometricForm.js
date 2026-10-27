@@ -1,14 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Select from "react-select";
 import { Button, FormGroup, Label, Input, Spinner } from "reactstrap";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
-import {
-  addNewJoiningBiometricData,
-  getDepartments,
-} from "../../../../helpers/backend_helper";
+import { biometricDepartmentOptions } from "../../../../Components/constants/HR";
+import { addNewJoiningBiometricData } from "../../../../helpers/backend_helper";
 
 const emptyShift = { shift: "", answers: "" };
 
@@ -20,38 +18,9 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
   const [loading, setLoading] = useState(false);
   const [shifts, setShifts] = useState([{ ...emptyShift }]);
   const [errors, setErrors] = useState({});
-  const [departmentOptions, setDepartmentOptions] = useState([]);
 
   const centerOptions = useCenterOptions({ includeAll: false });
   const handleAuthError = useAuthError();
-
-  useEffect(() => {
-    const fetchDepartment = async () => {
-      try {
-        const response = await getDepartments({ version: 2 });
-        setDepartmentOptions(
-          (response?.data || []).map((dept) => ({
-            label: dept.department,
-            value: dept._id,
-          })),
-        );
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          toast.error("Failed to fetch department");
-        }
-      }
-    };
-    fetchDepartment();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const sortedDepartmentOptions = useMemo(
-    () =>
-      [...departmentOptions].sort((a, b) =>
-        (a.label || "").localeCompare(b.label || ""),
-      ),
-    [departmentOptions],
-  );
 
   const handleShiftChange = (index, field, value) => {
     setShifts((prev) =>
@@ -156,7 +125,7 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
         <Select
           placeholder="Select Department"
           isClearable
-          options={sortedDepartmentOptions}
+          options={biometricDepartmentOptions}
           value={selectedDepartment}
           onChange={(option) => {
             setSelectedDepartment(option || null);
