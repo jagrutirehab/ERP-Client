@@ -28,7 +28,7 @@ const NurseFilters = ({ flag, setFlag }) => {
             bsSize="sm"
             type="select"
           >
-            <option value={""}>All Patients</option>
+            <option value={""}>All Status</option>
             <option value={"urgent"}>Urgent(Red)</option>
             <option value={"attention"}>Attention(Yellow)</option>
             <option value={"stable"}>Stable(Green)</option>

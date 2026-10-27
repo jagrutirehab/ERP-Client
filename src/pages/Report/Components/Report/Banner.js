@@ -88,7 +88,9 @@ const Banner = ({ data, billType }) => {
           </RenderWhen>
           <RenderWhen isTrue={billType !== INVOICE}>
             <div className="d-flex align-items-center">
-              <h6 className="display-6 fs-6">TOTAL PAID AMOUNT (₹): </h6>
+              <h6 className="display-6 fs-6">
+                {billType === DEPOSIT ? "TOTAL DEPOSIT AMOUNT" : "TOTAL PAID AMOUNT"} (₹):{" "}
+              </h6>
               <h5 className="display-5 ms-2 fs-17 font-semi-bold">
                 {totalAdvancePayment(data) || 0.0}
               </h5>

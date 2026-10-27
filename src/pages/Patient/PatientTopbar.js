@@ -56,6 +56,8 @@ const PatientTopbar = ({
   admissions,
   doctors,
   psychologists,
+  nurses,
+  rmos,
   deletePatient,
   loading,
   nurseLoading,
@@ -73,6 +75,8 @@ const PatientTopbar = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedPsychologist, setSelectedPsychologist] = useState(null);
+  const [selectedNurse, setSelectedNurse] = useState(null);
+  const [selectedRmo, setSelectedRmo] = useState(null);
   const [notesModal, setNotesModal] = useState(false);
   const [nurseModal, setNurseModal] = useState(false);
   // const [additionalDiagnosis, setAdditionalDiagnosis] = useState(null);
@@ -150,12 +154,27 @@ const PatientTopbar = ({
         label: admission.psychologist.name || "",
       });
     }
+    // Unlike doctor/psychologist, nurse and RMO can be empty — reset to null so
+    // a previous patient's selection never carries over into this modal.
+    setSelectedNurse(
+      admission?.nurse
+        ? { value: admission.nurse._id || "", label: admission.nurse.name || "" }
+        : null,
+    );
+    setSelectedRmo(
+      admission?.rmo
+        ? { value: admission.rmo._id || "", label: admission.rmo.name || "" }
+        : null,
+    );
     setIsEditModalOpen(true);
   };
 
+  const hasAnySelection =
+    selectedDoctor || selectedPsychologist || selectedNurse || selectedRmo;
+
   const handleSave = async () => {
-    if (!selectedDoctor && !selectedPsychologist) {
-      toast.error("Please select at least one doctor or psychologist");
+    if (!hasAnySelection) {
+      toast.error("Please select at least one assignment");
       return;
     }
 
@@ -165,6 +184,8 @@ const PatientTopbar = ({
         admissionId: admission?._id,
         doctorId: selectedDoctor?.value,
         psychologistId: selectedPsychologist?.value,
+        nurseId: selectedNurse?.value,
+        rmoId: selectedRmo?.value,
       }),
     );
   };
@@ -561,6 +582,36 @@ const PatientTopbar = ({
                   </UncontrolledTooltip>
                 </li>
 
+                <li
+                  id="patient-nurse"
+                  className="list-inline-item m-0 ms-4 d-none d-md-inline"
+                  onClick={handleEditClick}
+                  style={{ cursor: "pointer" }}
+                >
+                  <i className="ri-nurse-line align-middle me-1 fs-18"></i>
+                  <span className={admission?.nurse?.name ? "" : "text-muted"}>
+                    {admission?.nurse?.name || "Add nurse"}
+                  </span>
+                  <UncontrolledTooltip target={"patient-nurse"}>
+                    Click to edit Nurse
+                  </UncontrolledTooltip>
+                </li>
+
+                <li
+                  id="patient-rmo"
+                  className="list-inline-item m-0 ms-4 d-none d-md-inline"
+                  onClick={handleEditClick}
+                  style={{ cursor: "pointer" }}
+                >
+                  <i className="ri-user-heart-line align-middle me-1 fs-18"></i>
+                  <span className={admission?.rmo?.name ? "" : "text-muted"}>
+                    {admission?.rmo?.name || "Add RMO"}
+                  </span>
+                  <UncontrolledTooltip target={"patient-rmo"}>
+                    Click to edit RMO
+                  </UncontrolledTooltip>
+                </li>
+
                 <li className="list-inline-item m-0">
                   <Dropdown isOpen={search_Menu} toggle={toggleSearch}>
                     <DropdownToggle
@@ -729,6 +780,32 @@ const PatientTopbar = ({
                   isLoading={!psychologists?.length}
                 />
               </Col>
+              <Col md={12} className="mb-3">
+                <Label>Nurse</Label>
+                <Select
+                  value={selectedNurse}
+                  onChange={setSelectedNurse}
+                  options={nurses?.map((nurse) => ({
+                    value: nurse._id,
+                    label: nurse.name,
+                  }))}
+                  placeholder="Select nurse"
+                  isLoading={!nurses}
+                />
+              </Col>
+              <Col md={12} className="mb-3">
+                <Label>RMO</Label>
+                <Select
+                  value={selectedRmo}
+                  onChange={setSelectedRmo}
+                  options={rmos?.map((rmo) => ({
+                    value: rmo._id,
+                    label: rmo.name,
+                  }))}
+                  placeholder="Select RMO"
+                  isLoading={!rmos}
+                />
+              </Col>
             </Row>
             <div className="text-end mt-3">
               <Button
@@ -741,7 +818,7 @@ const PatientTopbar = ({
               <Button
                 color="primary"
                 onClick={handleSave}
-                disabled={loading || (!selectedDoctor && !selectedPsychologist)}
+                disabled={loading || !hasAnySelection}
               >
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
@@ -772,6 +849,8 @@ const mapStateToProps = (state) => ({
   user: state.User?.user,
   doctors: state.User?.doctor,
   psychologists: state.User?.counsellors,
+  nurses: state.User?.nurses,
+  rmos: state.User?.rmos,
   admissions: state.Chart.data,
   loading: state.Patient.admissionLoading,
   nurseLoading: state.Patient.nurseLoading,

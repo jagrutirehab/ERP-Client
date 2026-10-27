@@ -69,11 +69,22 @@ const AdmitPatient = ({
   centers,
   doctors,
   counsellors,
+  nurses,
+  rmos,
+  chartAdmissions,
   doctorLoading,
   referrals,
   referralsLoading,
 }) => {
   const dispatch = useDispatch();
+  // Nurse and RMO ride on the chart's admissions. "Edit Admission" is also
+  // opened from Billing, whose admission rows don't carry them, so fall back to
+  // the chart's copy of the same admission rather than showing them blank.
+  const chartAdmission = data?._id
+    ? (chartAdmissions || []).find((a) => a._id === data._id)
+    : null;
+  const assignedNurse = data?.nurse || chartAdmission?.nurse;
+  const assignedRmo = data?.rmo || chartAdmission?.rmo;
   const [step, setStep] = useState(1);
   const [isOtherReferral, setIsOtherReferral] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState(null);
@@ -128,6 +139,9 @@ const AdmitPatient = ({
       }),
       psychologist: data ? data.psychologist?._id : "",
       doctor: data ? data.doctor?._id : "",
+      // Optional. Admissions that predate them have neither, so fall back to "".
+      nurse: assignedNurse?._id || "",
+      rmo: assignedRmo?._id || "",
       provisional_diagnosis: [],
       Ipdnum: data ? data.Ipdnum : "",
       ward: data ? data.ward || "" : "",
@@ -496,6 +510,22 @@ const AdmitPatient = ({
       name: "psychologist",
       type: "select",
       options: counsellors,
+    },
+    // Optional: may be left blank, so `optional` keeps them out of the
+    // required-field checks on submit.
+    {
+      label: "Nurse",
+      name: "nurse",
+      type: "select",
+      options: nurses,
+      optional: true,
+    },
+    {
+      label: "RMO",
+      name: "rmo",
+      type: "select",
+      options: rmos,
+      optional: true,
     },
   ];
 
@@ -1160,7 +1190,7 @@ const AdmitPatient = ({
             const step2Fields = [
               "center",
               "addmissionDate",
-              ...admissionFields.map((f) => f.name),
+              ...admissionFields.filter((f) => !f.optional).map((f) => f.name),
             ];
 
             // Touch all step 2 fields
@@ -1333,6 +1363,9 @@ const mapStateToProps = (state) => ({
   doctorLoading: state.User.doctorLoading,
   doctors: state.User.doctor,
   counsellors: state.User.counsellors,
+  nurses: state.User.nurses,
+  rmos: state.User.rmos,
+  chartAdmissions: state.Chart.data,
   referrals: state.Referral.data,
   referralsLoading: state.Referral.loading,
 });
