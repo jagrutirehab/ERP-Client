@@ -22,6 +22,7 @@ import {
   OPD_BILL,
   INTERN,
   paymentModeLabel,
+  isPinelabs,
   advancePaymentHeaders,
   advancePaymentHeadersAddmissionDischargeDate,
   depositHeaders,
@@ -111,6 +112,10 @@ const Menu = ({
           const prevItem = arr[idx - 1];
           const prefix = prevItem ? "\n" : "";
           const label = paymentModeLabel(item);
+          // Pine Labs: label and amount only — no card no. / txn id.
+          if (isPinelabs(item)) {
+            return `${prefix}${label} ₹${item.amount}`;
+          }
           if (item.paymentMode === CASH || item.type === CASH) {
             return `${prefix}${label} ₹${item.amount}`;
           }

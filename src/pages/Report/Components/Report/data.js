@@ -1,12 +1,14 @@
-// The payment mode to SHOW for one payment row in the reports (table and CSV).
 // A Pine Labs terminal payment is saved as mode CARD or UPI with bank account
-// "pinelabs"; the reports label it "Pinelabs" instead of the mode. Everything
-// else shows its mode as stored (receipts/deposits use `paymentMode`, OPD
-// invoice receipts use `type`).
+// "pinelabs".
+export const isPinelabs = (payment) =>
+  String(payment?.bankAccount || "").trim().toLowerCase() === "pinelabs";
+
+// The payment mode to SHOW for one payment row in the reports (table and CSV).
+// Pine Labs payments read "Pinelabs" instead of the mode, and show no card
+// number / transaction id. Everything else shows its mode as stored
+// (receipts/deposits use `paymentMode`, OPD invoice receipts use `type`).
 export const paymentModeLabel = (payment) =>
-  String(payment?.bankAccount || "").trim().toLowerCase() === "pinelabs"
-    ? "Pinelabs"
-    : payment?.paymentMode || payment?.type || "";
+  isPinelabs(payment) ? "Pinelabs" : payment?.paymentMode || payment?.type || "";
 
 export const ALL_TRANSACTIONS = "ALL_TRANSACTIONS";
 export const ADVANCE_PAYMENT = "ADVANCE_PAYMENT";

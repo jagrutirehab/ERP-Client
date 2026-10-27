@@ -257,7 +257,7 @@ export const editAdmissionAssignment = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Doctor and Psychologist Updated Successfully!",
+          message: "Assignments updated successfully",
         })
       );
       dispatch(setChartAdmission(response.payload));

@@ -1,15 +1,46 @@
 import React from "react";
-import { Card, CardBody, Col, Input, Row, Spinner } from "reactstrap";
+import { Card, CardBody, Col, Input, Label, Row, Spinner } from "reactstrap";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 import NurseFilters from "./NurseFilters";
-import { connect } from "react-redux";
+import { connect, useDispatch } from "react-redux";
+import { setPatientIdsFromSearch } from "../../../../store/features/nurse/nurseSlice";
 
-const NurseBar = ({ search, setSearch, flag, setFlag, loading }) => {
+const NurseBar = ({
+  search,
+  setSearch,
+  flag,
+  setFlag,
+  scope,
+  setScope,
+  loading,
+}) => {
+  const dispatch = useDispatch();
+
+  const handleScopeChange = (e) => {
+    setScope(e.target.value);
+    // Same reset the status filter does: the stored patient-id list is for the
+    // previous result set.
+    dispatch(setPatientIdsFromSearch(true));
+  };
+
   return (
     <React.Fragment>
       <Card>
         <CardBody>
           <Row className="gap-2 align-items-end">
+            <Col xs={12} md={3} lg={2}>
+              <Label>Patients</Label>
+              <Input
+                className="form-control"
+                onChange={handleScopeChange}
+                value={scope}
+                bsSize="sm"
+                type="select"
+              >
+                <option value="ALL">All Patients</option>
+                <option value="MY">My Patients</option>
+              </Input>
+            </Col>
             <Col xs={12} md={4} lg={3}>
               <NurseFilters flag={flag} setFlag={setFlag} />
             </Col>

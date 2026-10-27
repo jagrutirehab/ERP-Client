@@ -12,6 +12,7 @@ import {
   INTERN,
   ALL_TRANSACTIONS,
   paymentModeLabel,
+  isPinelabs,
 } from "./data";
 import DataTable from "react-data-table-component";
 import { OPD } from "../../../../Components/constants/patient";
@@ -179,12 +180,15 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
         name: "Payment Modes",
         selector: (row) => {
           // paymentModeLabel → "Pinelabs" for Pine Labs payments, else the mode.
+          // Pine Labs payments show the label alone — no card no. / txn id.
           if (row.intern && row.receipt?.paymentModes) {
             return row.receipt.paymentModes
               .map((payment) =>
-                `${paymentModeLabel(payment)} ${payment?.bankName || ""} ${payment?.transactionId || ""
-                  } ${payment?.chequeNumber || ""} ${payment?.cardNumber || ""
-                  }`.trim()
+                isPinelabs(payment)
+                  ? paymentModeLabel(payment)
+                  : `${paymentModeLabel(payment)} ${payment?.bankName || ""} ${payment?.transactionId || ""
+                    } ${payment?.chequeNumber || ""} ${payment?.cardNumber || ""
+                    }`.trim()
               )
               .filter(Boolean)
               .join("\n");
@@ -192,9 +196,11 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
           if (row.type === OPD && row.receiptInvoice?.paymentModes) {
             return row.receiptInvoice.paymentModes
               .map((payment) =>
-                `${paymentModeLabel(payment)} ${payment?.bankName || ""} ${payment?.transactionId || ""
-                  } ${payment?.chequeNumber || ""} ${payment?.cardNumber || ""
-                  }`.trim()
+                isPinelabs(payment)
+                  ? paymentModeLabel(payment)
+                  : `${paymentModeLabel(payment)} ${payment?.bankName || ""} ${payment?.transactionId || ""
+                    } ${payment?.chequeNumber || ""} ${payment?.cardNumber || ""
+                    }`.trim()
               )
               .filter(Boolean)
               .join("\n");
@@ -202,8 +208,10 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
           if (row.deposit?.paymentModes) {
             return row.deposit.paymentModes
               .map((payment) =>
-                `${paymentModeLabel(payment)} ${payment.bankName || ""} ${payment.chequeNumber || ""
-                  } ${payment.cardNumber || ""}`.trim()
+                isPinelabs(payment)
+                  ? paymentModeLabel(payment)
+                  : `${paymentModeLabel(payment)} ${payment.bankName || ""} ${payment.chequeNumber || ""
+                    } ${payment.cardNumber || ""}`.trim()
               )
               .filter(Boolean)
               .join("\n");
@@ -211,8 +219,10 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
           if (row.advancePayment?.paymentModes) {
             return row.advancePayment.paymentModes
               .map((payment) =>
-                `${paymentModeLabel(payment)} ${payment.bankName || ""} ${payment.chequeNumber || ""
-                  } ${payment.cardNumber || ""}`.trim()
+                isPinelabs(payment)
+                  ? paymentModeLabel(payment)
+                  : `${paymentModeLabel(payment)} ${payment.bankName || ""} ${payment.chequeNumber || ""
+                    } ${payment.cardNumber || ""}`.trim()
               )
               .filter(Boolean)
               .join("\n");
@@ -223,7 +233,7 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
       : null,
     billType !== DUE_AMOUNT && billType !== INVOICE
       ? {
-        name: "Paid Amount",
+        name: billType === DEPOSIT ? "Deposit Amount" : "Paid Amount",
         selector: (row) =>
           row.intern && row.receipt
             ? row.receipt.totalAmount

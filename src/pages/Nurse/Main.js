@@ -24,6 +24,8 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
   const [selectedPatient, setSelectedPatient] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [flag, setFlag] = useState("");
+  // "ALL" (default) or "MY" — applied by the server so paging stays correct.
+  const [scope, setScope] = useState("ALL");
   const [mainTab, setMainTab] = useState("PATIENTS");
   const limit = 12;
   const microUser = localStorage.getItem("micrologin");
@@ -65,7 +67,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, flag]);
+  }, [debouncedSearch, flag, scope]);
 
   useEffect(() => {
     if (!hasTomorrowActivity) return;
@@ -79,10 +81,11 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
         limit,
         search: debouncedSearch,
         flag,
+        scope,
         centerAccess,
       })
     );
-  }, [dispatch, page, limit, flag, debouncedSearch, centerAccess, roles, hasTomorrowActivity]);
+  }, [dispatch, page, limit, flag, scope, debouncedSearch, centerAccess, roles, hasTomorrowActivity]);
 
   useEffect(() => {
     if (permissionLoader) return;
@@ -177,6 +180,8 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
               search={search}
               setSearch={setSearch}
               setFlag={setFlag}
+              scope={scope}
+              setScope={setScope}
             />
             {centerAccess.length === 0 && (
               <div
