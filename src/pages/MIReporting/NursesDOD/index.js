@@ -287,7 +287,7 @@ const NursesDOD = () => {
                                 <Select
                                     value={{
                                         value: selectedOutpass,
-                                        label: selectedOutpass === "YES" ? "On Outpass" : selectedOutpass === "NO" ? "Not On Outpass" : "All (Outpass)",
+                                        label: selectedOutpass === "YES" ? "On Outpass" : selectedOutpass === "NO" ? "Not On Outpass" : "All Patients",
                                     }}
                                     onChange={(opt) => setSelectedOutpass(opt.value)}
                                     options={[
