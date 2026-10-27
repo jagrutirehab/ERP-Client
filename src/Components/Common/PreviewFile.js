@@ -6,6 +6,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { downloadFile } from "./downloadFile";
 import * as XLSX from "xlsx";
 import axios from "axios";
+import { useMediaQuery } from "../Hooks/useMediaQuery";
 
 const PreviewFile = ({
   title = "Preview File",
@@ -16,6 +17,7 @@ const PreviewFile = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [excelData, setExcelData] = useState([]);
+  const isMobile = useMediaQuery("(max-width: 640px)");
   const url = file?.url;
 
   const hasExt = (regex) =>
@@ -28,19 +30,19 @@ const PreviewFile = ({
 
   const isExcel =
     file?.type ===
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
     file?.type === "application/vnd.ms-excel" ||
     hasExt(/\.(xlsx|xls)$/i);
 
   const isWord =
     file?.type ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
     file?.type === "application/msword" ||
     hasExt(/\.(docx|doc)$/i);
 
   const isPpt =
     file?.type ===
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
     file?.type === "application/vnd.ms-powerpoint" ||
     hasExt(/\.(pptx|ppt)$/i);
 
@@ -118,110 +120,128 @@ const PreviewFile = ({
       isOpen={isOpen}
       toggle={toggle}
     >
-      {loading && (isPdf || isImage) && (
-        <div
-          className="d-flex justify-content-center align-items-center"
-          style={{ height: 300 }}
-        >
-          <Spinner color="primary" />
+      {isMobile ? (
+        <div className="text-center p-4 border rounded bg-light">
+          <p className="text-muted mb-3">
+            Preview not available, please download.
+          </p>
+          <Button
+            color="primary"
+            size="sm"
+            onClick={handleDownload}
+            className="text-white"
+          >
+            <i className="ri-download-2-line align-bottom me-1"></i> Download
+          </Button>
         </div>
-      )}
+      ) : (
+        <>
+          {loading && (isPdf || isImage) && (
+            <div
+              className="d-flex justify-content-center align-items-center"
+              style={{ height: 300 }}
+            >
+              <Spinner color="primary" />
+            </div>
+          )}
 
-      {isPdf && (
-        <iframe
-          src={url}
-          title={file?.originalName || "Attachment Preview"}
-          width="100%"
-          height="600"
-          style={{
-            display: loading ? "none" : "block",
-            border: "none",
-          }}
-          onLoad={() => setLoading(false)}
-        />
-      )}
-
-      {isImage && (
-        <TransformWrapper
-          minScale={1}
-          maxScale={5}
-          centerOnInit
-          doubleClick={{ disabled: true }}
-          wheel={{ step: 0.2 }}
-        >
-          <TransformComponent>
-            <img
+          {isPdf && (
+            <iframe
               src={url}
-              alt="Preview"
-              className="img-fluid mx-auto d-block"
+              title={file?.originalName || "Attachment Preview"}
+              width="100%"
+              height="600"
+              style={{
+                display: loading ? "none" : "block",
+                border: "none",
+              }}
               onLoad={() => setLoading(false)}
             />
-          </TransformComponent>
-        </TransformWrapper>
-      )}
+          )}
 
-      {isExcel && isLocalExcel && (
-        <div style={{ maxHeight: "70vh" }}>
-          <div className="mb-2 text-muted small fw-semibold">
-            Showing first 10 rows
-          </div>
+          {isImage && (
+            <TransformWrapper
+              minScale={1}
+              maxScale={5}
+              centerOnInit
+              doubleClick={{ disabled: true }}
+              wheel={{ step: 0.2 }}
+            >
+              <TransformComponent>
+                <img
+                  src={url}
+                  alt="Preview"
+                  className="img-fluid mx-auto d-block"
+                  onLoad={() => setLoading(false)}
+                />
+              </TransformComponent>
+            </TransformWrapper>
+          )}
 
-          <div className="table-responsive">
-            <table className="table table-bordered table-sm">
-              <tbody>
-                {excelData.map((row, i) => (
-                  <tr key={i}>
-                    {row.map((cell, j) => (
-                      <td key={j}>{cell}</td>
+          {isExcel && isLocalExcel && (
+            <div style={{ maxHeight: "70vh" }}>
+              <div className="mb-2 text-muted small fw-semibold">
+                Showing first 10 rows
+              </div>
+
+              <div className="table-responsive">
+                <table className="table table-bordered table-sm">
+                  <tbody>
+                    {excelData.map((row, i) => (
+                      <tr key={i}>
+                        {row.map((cell, j) => (
+                          <td key={j}>{cell}</td>
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-      {isExcel && !isLocalExcel && (
-        <div style={{ height: "80vh", width: "100%" }}>
-          <iframe
-            title="Excel Preview"
-            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
-            width="100%"
-            height="100%"
-            style={{ border: "none" }}
-          />
-        </div>
-      )}
+          {isExcel && !isLocalExcel && (
+            <div style={{ height: "80vh", width: "100%" }}>
+              <iframe
+                title="Excel Preview"
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+                width="100%"
+                height="100%"
+                style={{ border: "none" }}
+              />
+            </div>
+          )}
 
-      {isWord && (
-        <div style={{ height: "80vh", width: "100%" }}>
-          <iframe
-            title="Word Document Preview"
-            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
-            width="100%"
-            height="100%"
-            style={{ border: "none" }}
-          />
-        </div>
-      )}
+          {isWord && (
+            <div style={{ height: "80vh", width: "100%" }}>
+              <iframe
+                title="Word Document Preview"
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+                width="100%"
+                height="100%"
+                style={{ border: "none" }}
+              />
+            </div>
+          )}
 
-      {isPpt && (
-        <div style={{ height: "80vh", width: "100%" }}>
-          <iframe
-            title="Presentation Preview"
-            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
-            width="100%"
-            height="100%"
-            style={{ border: "none" }}
-          />
-        </div>
-      )}
+          {isPpt && (
+            <div style={{ height: "80vh", width: "100%" }}>
+              <iframe
+                title="Presentation Preview"
+                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+                width="100%"
+                height="100%"
+                style={{ border: "none" }}
+              />
+            </div>
+          )}
 
-      {!isPdf && !isImage && !isExcel && !isWord && !isPpt && (
-        <p className="text-center text-muted py-5">
-          Preview not supported for this file type
-        </p>
+          {!isPdf && !isImage && !isExcel && !isWord && !isPpt && (
+            <p className="text-center text-muted py-5">
+              Preview not supported for this file type
+            </p>
+          )}
+        </>
       )}
     </CustomModal>
   );
