@@ -3082,6 +3082,14 @@ export const getPatientsWithSuspendedStaff = (data) => {
   });
 };
 
+export const getSopAlertsMonthly = (data) => {
+  return api.get(url.GET_SOP_ALERTS_MONTHLY, {
+    params: {
+      period_type: data?.period_type,
+    },
+  });
+};
+
 export const getCashRecoCompliance = (data) => {
   return api.get(url.GET_CASH_RECO_COMPLIANCE, {
     params: {

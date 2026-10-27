@@ -51,6 +51,7 @@ import {
   getAttritionMonthly,
   getAssignedData,
   getPatientsWithSuspendedStaff,
+  getSopAlertsMonthly,
   getCashRecoCompliance,
 
 } from "../../../helpers/backend_helper";
@@ -113,6 +114,7 @@ const initialState = {
   attritionMonthly: [],
   assignedData: [],
   patientsWithSuspendedStaff: [],
+  sopAlertsMonthly: [],
   cashRecoCompliance: [],
 
   loading: false,
@@ -870,6 +872,20 @@ export const fetchPatientsWithSuspendedStaff = createAsyncThunk(
   }
 );
 
+export const fetchSopAlertsMonthly = createAsyncThunk(
+  "miReporting/fetchSopAlertsMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getSopAlertsMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch SOP Alerts Monthly"
+      );
+    }
+  }
+);
+
 export const fetchCashRecoCompliance = createAsyncThunk(
   "miReporting/fetchCashRecoCompliance",
   async (data, { rejectWithValue }) => {
@@ -1581,6 +1597,20 @@ const miReportingSlice = createSlice({
         state.patientsWithSuspendedStaff = action.payload.payload || [];
       })
       .addCase(fetchPatientsWithSuspendedStaff.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // SOP Alerts Monthly
+      .addCase(fetchSopAlertsMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchSopAlertsMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.sopAlertsMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchSopAlertsMonthly.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

@@ -636,6 +636,7 @@ export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
 export const GET_ATTRITION_MONTHLY = "/mi-reporting/attrition-monthly";
 export const GET_ASSIGNED_DATA = "/mi-reporting/assigned-data";
 export const GET_PATIENTS_WITH_SUSPENDED_STAFF = "/mi-reporting/patients-with-suspended-staff";
+export const GET_SOP_ALERTS_MONTHLY = "/mi-reporting/sop-alerts-monthly";
 export const GET_CASH_RECO_COMPLIANCE = "/mi-reporting/cash-reco-compliance";
 
 // CENTER DASHBOARD

@@ -177,6 +177,7 @@ const Sidebar = () => {
       submodule: "QUALITY_INCIDENTS",
       items: [
         { id: "incident", label: "Incident", link: "/mi-reporting/incident", icon: "bx bx-error-circle", submodule: "INCIDENT" },
+        { id: "sop-alerts", label: "SOP Alerts", link: "/mi-reporting/sop-alerts", icon: "bx bx-bell", submodule: "SOP_ALERTS" },
       ],
     },
     {

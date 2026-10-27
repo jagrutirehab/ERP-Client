@@ -377,6 +377,7 @@ export const permissionList = [
 
       // Quality & Incidents
       { name: "INCIDENT", label: "Incident" },
+      { name: "SOP_ALERTS", label: "SOP Alerts" },
 
       // HR & Attendance
       { name: "ATTENDANCE", label: "Attendance" },

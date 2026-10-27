@@ -46,6 +46,7 @@ import DoctorPsychologistStayRange from "./DoctorPsychologistStayRange";
 import NursesDashboardDOD from "./NursesDashboardDOD";
 import Occupancy from "./Occupancy";
 import Incident from "./Incident";
+import SOPAlerts from "./SOPAlerts";
 import Readmission from "./Readmission";
 import AttritionData from "./AttritionData";
 import PatientAssignedStatus from "./PatientAssignedStatus";
@@ -159,6 +160,7 @@ const MiReporting = () => {
   const hasDocsCompliancePermission = hasPermission("MIS_REPORTS", "DOCS_COMPLIANCE", "READ");
   const hasFormsDataPermission = hasPermission("MIS_REPORTS", "FORMS_DATA", "READ");
   const hasIncidentPermission = hasPermission("MIS_REPORTS", "INCIDENT", "READ");
+  const hasSopAlertsPermission = hasPermission("MIS_REPORTS", "SOP_ALERTS", "READ");
   const hasAttendancePermission = hasPermission("MIS_REPORTS", "ATTENDANCE", "READ");
   const hasAttritionDataPermission = hasPermission("MIS_REPORTS", "ATTRITION_DATA", "READ");
 
@@ -360,6 +362,11 @@ const MiReporting = () => {
                   {hasMISPermission && hasIncidentPermission && <Route
                     path="/incident"
                     element={<Incident />}
+                  />}
+
+                  {hasMISPermission && hasSopAlertsPermission && <Route
+                    path="/sop-alerts"
+                    element={<SOPAlerts />}
                   />}
 
                   {hasMISPermission && hasReadmissionPermission && <Route
