@@ -8,7 +8,7 @@ import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchExitEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
-import { deleteExitEmployee, exitEmployeeFNFAction } from "../../../../../helpers/backend_helper";
+import { deleteExitEmployee, exitEmployeeFNFAction, getAssetsByEmployee } from "../../../../../helpers/backend_helper";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import { format } from "date-fns";
@@ -21,6 +21,7 @@ import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import ApproveModal from "../../../components/ApproveModal";
 import { useSearchParams } from "react-router-dom";
 import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
+import EmployeeAssetsModal from "../../../../MasterData/AssetLifecycle/shared/EmployeeAssetsModal";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 
 
@@ -45,6 +46,7 @@ const PendingApprovals = ({ activeTab }) => {
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [note, setNote] = useState("");
+    const [assetsRow, setAssetsRow] = useState(null);
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -167,6 +169,22 @@ const PendingApprovals = ({ activeTab }) => {
         }
     }
 
+    // Company assets must be back before FNF can be closed
+    const handleApproveClick = async (row) => {
+        try {
+            const res = await getAssetsByEmployee(row.employeeId);
+            if ((res?.data || []).length > 0) {
+                toast.warning("Employee still holds company assets. Collect them first.");
+                setAssetsRow(row);
+                return;
+            }
+        } catch (error) {
+            if (handleAuthError(error)) return;
+        }
+        setSelectedEmployee(row);
+        setApproveModalOpen(true);
+    };
+
     const columns = [
         {
             name: <div>ECode</div>,
@@ -272,6 +290,15 @@ const PendingApprovals = ({ activeTab }) => {
                     name: <div>Actions</div>,
                     cell: row => (
                         <div className="d-flex gap-2">
+                            <Button
+                                color="info"
+                                className="text-white"
+                                size="sm"
+                                title="Company assets"
+                                onClick={() => setAssetsRow(row)}
+                            >
+                                <i className="bx bx-laptop"></i>
+                            </Button>
                             {/* APPROVE EXIT */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
@@ -282,10 +309,7 @@ const PendingApprovals = ({ activeTab }) => {
                                     color="success"
                                     className="text-white"
                                     size="sm"
-                                    onClick={() => {
-                                        setSelectedEmployee(row);
-                                        setApproveModalOpen(true);
-                                    }}
+                                    onClick={() => handleApproveClick(row)}
                                 >
                                     <CheckCheck size={18} />
                                 </Button>
@@ -457,6 +481,13 @@ const PendingApprovals = ({ activeTab }) => {
                 }}
                 onConfirm={handleDelete}
                 loading={modalLoading}
+            />
+            <EmployeeAssetsModal
+                isOpen={!!assetsRow}
+                toggle={() => setAssetsRow(null)}
+                employeeId={assetsRow?.employeeId}
+                employeeName={assetsRow?.employeeName}
+                canReturn={hasPermission("HR", "EXIT_EMPLOYEE_FNF", "WRITE")}
             />
             <ApproveModal
                 isOpen={approveModalOpen}

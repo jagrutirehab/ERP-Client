@@ -6576,6 +6576,32 @@ export const updateFixedAsset = (id, data) =>
     headers: { "X-No-Cookie-Token": "true" },
   });
 
+export const createFixedAsset = (data) =>
+  axios.post("/master/fixed-asset", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getFixedAsset = (id) =>
+  axios.get(`/master/fixed-asset/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const assignFixedAsset = (id, data) =>
+  axios.post(`/master/fixed-asset/${id}/assign`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const returnFixedAsset = (id, data) =>
+  axios.post(`/master/fixed-asset/${id}/return`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getAssetsByEmployee = (employeeId) =>
+  axios.get(`/master/fixed-asset/by-employee/${employeeId}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const searchEmployeesForAsset = (q) =>
+  axios.get("/master/fixed-asset/employee-search", {
+    params: { q },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 export const createMaintenanceRequest = (data) =>
   axios.post("/master/maintenance-request", data, {
     headers: { "X-No-Cookie-Token": "true" },
