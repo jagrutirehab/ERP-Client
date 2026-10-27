@@ -93,8 +93,6 @@ const FixedAssetRegister = () => {
   const [savingEdit, runSaveEdit] = useBusy();
 
   // Extra fields on the Add Asset form
-  const EMPTY_EXTRA = { assetCode: "", epcCode: "", barcode: "", accumulatedDepreciation: "", currentYearDepreciation: "" };
-  const [addExtra, setAddExtra] = useState(EMPTY_EXTRA);
   const [addCategory, setAddCategory] = useState(EMPTY_CATEGORY);
   const [addSettings, setAddSettings] = useState({ canAssign: true, identifierLabel: "" });
 
@@ -108,9 +106,6 @@ const FixedAssetRegister = () => {
     assetName: "",
     category: "",
     serialNumber: "",
-    purchaseCost: "",
-    purchaseDate: "",
-    quantity: "1",
     remarks: "",
   };
   const [disposeFor, setDisposeFor] = useState(null); // the asset being discarded / sold
@@ -167,34 +162,25 @@ const FixedAssetRegister = () => {
   const handleCreate = () =>
     runCreate(async () => {
       const f = addForm;
-      if (!f.assetName.trim() || !addCategory.categoryL1 || !f.centerId || f.purchaseCost === "" || !f.purchaseDate) {
-        toast.error("Name, category, site, cost and purchase date are required");
+      if (!addCategory.categoryL1 || !f.assetName.trim() || !f.centerId) {
+        toast.error("Category, asset name and site are required");
         return;
       }
-      const extra = {};
-      ["assetCode", "epcCode", "barcode"].forEach((k) => {
-        if (addExtra[k].trim()) extra[k] = addExtra[k].trim();
+      const levels = {};
+      ["categoryL1", "categoryL2"].forEach((k) => {
+        if (addCategory[k]) levels[k] = addCategory[k];
       });
-      ["accumulatedDepreciation", "currentYearDepreciation"].forEach((k) => {
-        if (addExtra[k] !== "") extra[k] = Number(addExtra[k]); // left out when empty: never saved as 0
-      });
-      if (addCategory.categoryL1) {
-        ["categoryL1", "categoryL2", "categoryL3", "categoryL4"].forEach((k) => {
-          if (addCategory[k]) extra[k] = addCategory[k];
-        });
-      }
-      const qty = Math.max(1, Math.min(100, Math.floor(Number(f.quantity)) || 1));
       try {
         await createFixedAsset({
-          ...f,
-          ...extra,
-          purchaseCost: Number(f.purchaseCost),
-          quantity: qty,
+          assetName: f.assetName.trim(),
+          serialNumber: f.serialNumber.trim(),
+          centerId: f.centerId,
+          remarks: f.remarks.trim(),
+          ...levels,
         });
-        toast.success(qty > 1 ? `${qty} assets added` : "Asset added");
+        toast.success("Asset added");
         setAddModal(false);
         setAddForm(EMPTY_FORM);
-        setAddExtra(EMPTY_EXTRA);
         setAddCategory(EMPTY_CATEGORY);
         setRefreshFlag((n) => n + 1);
       } catch (error) {
@@ -1122,9 +1108,9 @@ const FixedAssetRegister = () => {
                 >
                   <div className="flex-grow-1">
                     <h5 className="mb-0">Add Asset</h5>
-                    <div className="text-muted" style={{ fontSize: 13 }}>
-                      Pick the category first. Types are managed in Asset Category master
-                    </div>
+                    {/* <div className="text-muted" style={{ fontSize: 13 }}>
+                      Types are managed in Asset Category master. Cost and other numbers can be added later from More details
+                    </div> */}
                   </div>
                   <button
                     type="button"
@@ -1135,10 +1121,16 @@ const FixedAssetRegister = () => {
                 </div>
 
                 <div className="p-4">
-                  <div style={label} className="mb-2">WHAT ARE YOU ADDING? (CATEGORY) <span className="text-danger">*</span></div>
-                  <CategoryLevelSelect value={addCategory} onChange={setAddCategory} onSettings={setAddSettings} required disabled={saving} />
+                  <CategoryLevelSelect
+                    value={addCategory}
+                    onChange={setAddCategory}
+                    onSettings={setAddSettings}
+                    required
+                    levels={2}
+                    md={6}
+                    disabled={saving}
+                  />
 
-                  {/* Fields */}
                   <div className="row g-3">
                     <div className="col-md-6">
                       <label className="mb-1" style={label}>
@@ -1162,49 +1154,6 @@ const FixedAssetRegister = () => {
                     </div>
                     <div className="col-md-6">
                       <label className="mb-1" style={label}>
-                        Cost <span className="text-danger">*</span>
-                      </label>
-                      <div className="input-group">
-                        <span className="input-group-text">₹</span>
-                        <Input
-                          type="number"
-                          min={0}
-                          placeholder="0"
-                          value={addForm.purchaseCost}
-                          onChange={set("purchaseCost")}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <label className="mb-1" style={label}>
-                        Purchase date <span className="text-danger">*</span>
-                      </label>
-                      <Input
-                        type="date"
-                        value={addForm.purchaseDate}
-                        onChange={set("purchaseDate")}
-                      />
-                    </div>
-                    {[
-                      ["assetCode", "Asset code", "text"],
-                      ["epcCode", "Chip number", "text"],
-                      ["barcode", "Barcode", "text"],
-                      ["accumulatedDepreciation", "Accumulated depreciation", "number"],
-                      ["currentYearDepreciation", "Current-year depreciation", "number"],
-                    ].map(([key, text, type]) => (
-                      <div className="col-md-6" key={key}>
-                        <label className="mb-1" style={label}>{text}</label>
-                        <Input
-                          type={type}
-                          min={type === "number" ? 0 : undefined}
-                          placeholder="Optional"
-                          value={addExtra[key]}
-                          onChange={(e) => setAddExtra((x) => ({ ...x, [key]: e.target.value }))}
-                        />
-                      </div>
-                    ))}
-                    <div className="col-md-6">
-                      <label className="mb-1" style={label}>
                         Site <span className="text-danger">*</span>
                       </label>
                       <Input type="select" value={addForm.centerId} onChange={set("centerId")}>
@@ -1213,29 +1162,11 @@ const FixedAssetRegister = () => {
                           <option key={c._id} value={c._id}>{c.title}</option>
                         ))}
                       </Input>
-                      <div className="text-muted" style={{ fontSize: 11.5 }}>
-                        The branch this asset belongs to
-                      </div>
                     </div>
                     <div className="col-md-6">
-                      <label className="mb-1" style={label}>How many pieces?</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={addForm.quantity}
-                        onChange={set("quantity")}
-                      />
-                      <div className="text-muted" style={{ fontSize: 11.5 }}>
-                        Each piece becomes its own asset with its own tag (for example 10 uniforms)
-                      </div>
-                    </div>
-                    <div className="col-12">
                       <label className="mb-1" style={label}>Remarks</label>
                       <Input
-                        type="textarea"
-                        rows={2}
-                        placeholder="Anything worth noting (optional)"
+                        placeholder="Optional"
                         value={addForm.remarks}
                         onChange={set("remarks")}
                       />
