@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { useFormik } from 'formik';
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { connect, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import * as Yup from "yup";
@@ -23,8 +23,9 @@ import { categoryOptions, tallyBankAccounts } from '../../../Components/constant
 import Select from "react-select";
 import { getExitEmployeesBySearch } from '../../../store/features/HR/hrSlice';
 import AsyncSelect from "react-select/async";
+import CreatableSelect from "react-select/creatable";
 import { formatCurrency } from '../../../utils/formatCurrency';
-import { getSearchPatients, getEmployeesBySearch } from '../../../helpers/backend_helper';
+import { getSearchPatients, getEmployeesBySearch, getVendors } from '../../../helpers/backend_helper';
 
 const transactionMethodOptions = [
     { value: "UPI", label: "UPI" },
@@ -405,6 +406,47 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const handlePaymentModeChange = (mode) => {
         if (form.values.initialPaymentStatus === mode) return;
         form.setFieldValue("initialPaymentStatus", mode, true);
+    };
+
+    // Vendors created as "Central Payment Vendor" in Master Data. Typing a new name still works.
+    const [centralVendors, setCentralVendors] = useState([]);
+    useEffect(() => {
+        let cancelled = false;
+        getVendors({ vendorCategory: "central_payment", limit: 1000 })
+            .then((res) => { if (!cancelled) setCentralVendors(res?.data || []); })
+            .catch(() => { });
+        return () => { cancelled = true; };
+    }, []);
+
+    // Commas break the Tally payment line, so they are removed from anything copied from the vendor
+    const clean = (t) => String(t || "").replace(/,/g, " ").replace(/\s+/g, " ").trim();
+    const vendorOptions = centralVendors.map((v) => ({
+        value: v._id,
+        label: clean(v.tradeName),
+        vendor: v,
+    }));
+
+    const handleVendorSelect = (opt) => {
+        if (!opt) {
+            form.setFieldValue("vendor", "");
+            return;
+        }
+        if (opt.vendor) {
+            const bank = opt.vendor.bankDetails || {};
+            form.setFieldValue("vendor", clean(opt.vendor.tradeName));
+            form.setFieldValue("IFSCCode", clean(bank.ifsc).toUpperCase());
+            form.setFieldValue("accountHolderName", clean(bank.accountHolderName));
+            form.setFieldValue("accountNo", clean(bank.accountNo));
+            return;
+        }
+        // typed a name that is not in the vendor master: keep the old rules
+        const text = String(opt.label || "");
+        if (!/^[a-zA-Z0-9 ]*$/.test(text)) {
+            form.setFieldTouched("vendor", true, false);
+            form.setFieldError("vendor", "No special characters allowed");
+            return;
+        }
+        form.setFieldValue("vendor", text);
     };
 
     const normalizeTextInput = (e) => {
@@ -844,17 +886,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 <Label for="vendor" className="fw-medium">
                     Vendor <span className="text-danger">*</span>
                 </Label>
-                <Input
-                    type="text"
-                    id="vendor"
-                    name="vendor"
-                    value={form.values.vendor}
-                    onChange={(e) => normalizeTextInput(e)}
-                    onBlur={form.handleBlur}
-                    className={`form-control ${form.touched.vendor && form.errors.vendor
-                        ? "is-invalid"
-                        : ""
-                        }`}
+                <CreatableSelect
+                    inputId="vendor"
+                    isClearable
+                    placeholder="Select a Central Payment vendor or type a name"
+                    options={vendorOptions}
+                    value={form.values.vendor ? { value: form.values.vendor, label: form.values.vendor } : null}
+                    onChange={handleVendorSelect}
+                    onBlur={() => form.setFieldTouched("vendor", true)}
+                    formatCreateLabel={(text) => `Use "${text}" (not in vendor master)`}
+                    classNamePrefix="react-select"
+                    styles={form.touched.vendor && form.errors.vendor ? { control: (b) => ({ ...b, borderColor: "#dc3545" }) } : undefined}
                 />
                 {form.touched.vendor && form.errors.vendor && (
                     <div className="invalid-feedback d-block">
@@ -1228,17 +1270,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 <Label for="vendor" className="fw-medium">
                     Vendor <span className="text-danger">*</span>
                 </Label>
-                <Input
-                    type="text"
-                    id="vendor"
-                    name="vendor"
-                    value={form.values.vendor}
-                    onChange={(e) => normalizeTextInput(e)}
-                    onBlur={form.handleBlur}
-                    className={`form-control ${form.touched.vendor && form.errors.vendor
-                        ? "is-invalid"
-                        : ""
-                        }`}
+                <CreatableSelect
+                    inputId="vendor"
+                    isClearable
+                    placeholder="Select a Central Payment vendor or type a name"
+                    options={vendorOptions}
+                    value={form.values.vendor ? { value: form.values.vendor, label: form.values.vendor } : null}
+                    onChange={handleVendorSelect}
+                    onBlur={() => form.setFieldTouched("vendor", true)}
+                    formatCreateLabel={(text) => `Use "${text}" (not in vendor master)`}
+                    classNamePrefix="react-select"
+                    styles={form.touched.vendor && form.errors.vendor ? { control: (b) => ({ ...b, borderColor: "#dc3545" }) } : undefined}
                 />
                 {form.touched.vendor && form.errors.vendor && (
                     <div className="invalid-feedback d-block">
