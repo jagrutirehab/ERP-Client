@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody, Label, Row, Col } from "reactstrap";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -83,8 +84,8 @@ const ScanIntake = () => {
   const navigate = useNavigate();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canAdd = hasPermission("MASTERDATA", "ASSET_SCAN", "WRITE");
-  const canReview = hasPermission("MASTERDATA", "ASSET_SCAN", "DELETE");
+  const canAdd = hasPermission("MASTERDATA", "VERIFICATION_JOB", "WRITE");
+  const canReview = hasPermission("MASTERDATA", "VERIFICATION_JOB", "DELETE");
 
   const { items: centers } = useReferenceList("centers");
   const [jobs, setJobs] = useState([]);
@@ -96,8 +97,11 @@ const ScanIntake = () => {
   const debouncedSearch = useDebounce(search, 400);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
-  const goFirstPage = () => setPage(1);
-  const [showFilters, setShowFilters] = useState(false);
+  const [resetPage, setResetPage] = useState(false);
+  const goFirstPage = () => {
+    setPage(1);
+    setResetPage((r) => !r);
+  };
 
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
@@ -106,7 +110,8 @@ const ScanIntake = () => {
   const [loadError, setLoadError] = useState("");
   const [refreshFlag, setRefreshFlag] = useState(0);
 
-  const [selected, setSelected] = useState([]); // the cards that are ticked (kept while moving between pages)
+  const [selected, setSelected] = useState([]);
+  const [clearToggle, setClearToggle] = useState(false);
 
   // one request at a time for every action on this screen
   const [acting, runAction] = useBusy();
@@ -174,17 +179,17 @@ const ScanIntake = () => {
     setFilters((f) => ({ ...f, [key]: e.target.value }));
     goFirstPage();
   };
-  const clearSelection = () => setSelected([]);
-  const toggleSelect = (row) =>
-    setSelected((list) => (list.some((r) => r._id === row._id) ? list.filter((r) => r._id !== row._id) : [...list, row]));
+  const clearSelection = () => {
+    setSelected([]);
+    setClearToggle((t) => !t);
+  };
   const clearFilters = () => {
     setFilters({ jobId: "", centerId: "", category: "", tagStatus: "", photo: "" });
     setSearch("");
     setTab("");
     goFirstPage();
   };
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
-  const filtersOn = tab || search || activeFilterCount > 0;
+  const filtersOn = tab || search || Object.values(filters).some(Boolean);
 
   const loadDetail = (id) => {
     setDetail((d) => ({ ...(d && d.id === id ? d : {}), id, loading: true, error: "" }));
@@ -337,82 +342,102 @@ const ScanIntake = () => {
     return runOne(row, m.action, reason.trim());
   };
 
-  // ----- one verification as a card -----
-  const ACCENT = { pending: "#f79009", verified: "#12b76a", rejected: "#f04438", halted: "#98a2b3" };
-  const renderCard = (row) => {
-    const photos = photosOf(row);
-    const title = deepestCategory(row);
-    const path = categoryPath(row);
-    const ticked = selected.some((r) => r._id === row._id);
-    const place = [row.roomNo && `Room ${row.roomNo}`, row.floorNo && `Floor ${row.floorNo}`].filter(Boolean).join(" · ");
-    return (
-      <div key={row._id} className="scan-card" style={{ borderLeft: `4px solid ${ACCENT[row.status] || "#e5e7eb"}`, background: ticked ? "#f5f7ff" : "#fff" }}>
-        {canReview && (
-          <input type="checkbox" className="form-check-input scan-card-check" checked={ticked} onChange={() => toggleSelect(row)} aria-label={`Select ${row.scanCode}`} />
-        )}
-        <div className="scan-card-thumb" onClick={() => loadDetail(row._id)} role="button" aria-label="Open details">
-          {photos[0] ? <img src={photos[0].url} alt="First photo" /> : <i className="bx bx-image-alt"></i>}
+  const columns = [
+    {
+      name: "Verification",
+      sortable: false,
+      width: "150px",
+      cell: (row) => (
+        <div style={{ lineHeight: 1.25 }}>
+          <div className="fw-semibold" style={{ fontFamily: "monospace", fontSize: 13 }}>{row.scanCode}</div>
+          <div className="text-muted" style={{ fontSize: 11 }}>{row.jobId?.jobCode || DASH}</div>
         </div>
-        <div className="scan-card-body">
-          <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-            <div style={{ minWidth: 0 }}>
-              <div className="scan-card-title" onClick={() => loadDetail(row._id)} role="button">
-                {title === DASH ? <span className="text-danger">No category</span> : title}
-              </div>
-              {title !== DASH && path !== title && <div className="text-muted small">{path}</div>}
-            </div>
-            <ScanStatusPill status={row.status} />
+      ),
+    },
+    {
+      name: "Category",
+      minWidth: "200px",
+      cell: (row) => <span className="uom-cell-primary" style={{ fontSize: 13 }}>{categoryPath(row)}</span>,
+    },
+    { name: "Qty", width: "70px", right: true, cell: (row) => <span className="fw-semibold">{row.quantity}</span> },
+    {
+      name: "Tag",
+      minWidth: "150px",
+      cell: (row) => (
+        <div style={{ lineHeight: 1.25 }}>
+          <div style={{ fontFamily: "monospace", fontSize: 13 }}>{row.tagNumber || DASH}</div>
+          <div className="text-muted" style={{ fontSize: 11 }}>
+            {row.tagStatus ? TAG_STATUS_LABEL[row.tagStatus] : ""}
+            {row.oldTagNumber ? ` · old ${row.oldTagNumber}` : ""}
           </div>
-
-          <div className="scan-card-facts">
-            <span className="scan-chip"><b>{row.quantity}</b> {Number(row.quantity) === 1 ? "unit" : "units"}</span>
-            <span className="scan-chip" style={{ fontFamily: "monospace" }}>{row.tagNumber ? `Tag ${row.tagNumber}` : "No tag"}</span>
-            {place && <span className="scan-chip">{place}</span>}
-            <span className="scan-chip">{photos.length > 0 ? `${photos.length} photo(s)` : "No photo"}</span>
+        </div>
+      ),
+    },
+    {
+      name: "Found at",
+      minWidth: "150px",
+      cell: (row) => (
+        <div style={{ lineHeight: 1.25 }}>
+          <div className="uom-cell-muted">{row.centerId?.title || DASH}</div>
+          <div className="text-muted" style={{ fontSize: 11 }}>
+            {[row.roomNo && `Room ${row.roomNo}`, row.floorNo && `Floor ${row.floorNo}`].filter(Boolean).join(" · ")}
           </div>
-
-          <div className="text-muted small">
-            {row.jobId?.jobCode || DASH} · {row.centerId?.title || DASH} · {dateTimeFmt(row.scannedAt)}
-            {row.scannedBy?.name ? ` · ${row.scannedBy.name}` : ""} · <span style={{ fontFamily: "monospace" }}>{row.scanCode}</span>
+        </div>
+      ),
+    },
+    {
+      name: "Photos",
+      width: "80px",
+      center: true,
+      cell: (row) => <span className="fw-semibold">{photosOf(row).length}</span>,
+    },
+    {
+      name: "Status",
+      minWidth: "190px",
+      cell: (row) => (
+        <div className="d-flex flex-column align-items-start gap-1 py-1">
+          <ScanStatusPill status={row.status} />
+          <div className="d-flex flex-wrap gap-1">
+            {row.inRegister && <Badge bg="#ecfdf3" color="#027a48">In register</Badge>}
+            {photosOf(row).length === 0 && <Badge bg="#f2f4f7" color="#475467">No photo</Badge>}
+            {row.source === "external_import" && row.externalImageCount > 0 && (
+              <Badge bg="#eff8ff" color="#175cd3">{row.externalImageCount} in HiSYNC</Badge>
+            )}
           </div>
-
-          {(row.inRegister || (row.source === "external_import" && row.externalImageCount > 0)) && (
-            <div className="d-flex flex-wrap gap-1 mt-1">
-              {row.inRegister && <Badge bg="#ecfdf3" color="#027a48">In register</Badge>}
-              {row.source === "external_import" && row.externalImageCount > 0 && (
-                <Badge bg="#eff8ff" color="#175cd3">{row.externalImageCount} photo(s) in HiSYNC</Badge>
-              )}
-            </div>
+        </div>
+      ),
+    },
+    {
+      name: "Recorded",
+      minWidth: "150px",
+      cell: (row) => (
+        <div style={{ lineHeight: 1.25 }}>
+          <div className="uom-cell-muted small">{dateTimeFmt(row.scannedAt)}</div>
+          <div className="text-muted" style={{ fontSize: 11 }}>{row.scannedBy?.name || DASH}</div>
+        </div>
+      ),
+    },
+    {
+      name: "",
+      right: true,
+      minWidth: "300px",
+      cell: (row) => (
+        <div className="d-flex flex-wrap justify-content-end gap-1">
+          {canReview && canVerify(row) && (
+            <>
+              <Button size="sm" color="success" disabled={acting} onClick={() => startAction(row, "verify")}>Approve</Button>
+              <Button size="sm" color="danger" outline disabled={acting} onClick={() => startAction(row, "reject")}>Reject</Button>
+              <Button size="sm" color="secondary" outline disabled={acting} onClick={() => startAction(row, "halt")}>Halt</Button>
+            </>
           )}
-
-          <div className="scan-card-actions">
-            {canReview && canVerify(row) && (
-              <>
-                <Button size="sm" color="success" disabled={acting} onClick={() => startAction(row, "verify")}>Approve</Button>
-                <Button size="sm" color="danger" outline disabled={acting} onClick={() => startAction(row, "reject")}>Reject</Button>
-                <Button size="sm" color="secondary" outline disabled={acting} onClick={() => startAction(row, "halt")}>Halt</Button>
-              </>
-            )}
-            {canAdd && canEditRow(row) && (
-              <Button size="sm" color="light" disabled={acting} onClick={() => openEdit(row)}>Edit</Button>
-            )}
-            <Button size="sm" color="light" onClick={() => loadDetail(row._id)}>View</Button>
-          </div>
+          {canAdd && canEditRow(row) && (
+            <Button size="sm" color="light" disabled={acting} onClick={() => openEdit(row)}>Edit</Button>
+          )}
+          <Button size="sm" color="light" onClick={() => loadDetail(row._id)}>View</Button>
         </div>
-      </div>
-    );
-  };
-
-  const allOnPageTicked = rows.length > 0 && rows.every((r) => selected.some((s) => s._id === r._id));
-  const toggleWholePage = () =>
-    setSelected((list) =>
-      allOnPageTicked
-        ? list.filter((s) => !rows.some((r) => r._id === s._id))
-        : [...list, ...rows.filter((r) => !list.some((s) => s._id === r._id))],
-    );
-  const lastPage = Math.max(1, Math.ceil(total / perPage));
-  const shownFrom = total === 0 ? 0 : (page - 1) * perPage + 1;
-  const shownTo = Math.min(page * perPage, total);
+      ),
+    },
+  ];
 
   const tabCount = (key) =>
     key === "" ? statusCounts.pending + statusCounts.verified + statusCounts.rejected + statusCounts.halted : statusCounts[key] || 0;
@@ -433,27 +458,8 @@ const ScanIntake = () => {
         )}
       </div>
 
-      <style>{`
-        .scan-card { display: flex; gap: 12px; align-items: flex-start; border: 1px solid #eef0f3; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-        .scan-card-check { width: 18px; height: 18px; margin-top: 4px; flex: none; }
-        .scan-card-thumb { width: 76px; height: 76px; border-radius: 10px; background: #f2f4f7; flex: none; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; color: #98a2b3; font-size: 30px; }
-        .scan-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .scan-card-body { flex: 1; min-width: 0; }
-        .scan-card-title { font-weight: 700; font-size: 16px; word-break: break-word; cursor: pointer; }
-        .scan-card-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-        .scan-chip { background: #f2f4f7; border-radius: 8px; padding: 2px 10px; font-size: 13px; }
-        .scan-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-        .scan-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-        .scan-tabs button { flex: none; }
-        @media (max-width: 575px) {
-          .scan-card { padding: 12px; }
-          .scan-card-thumb { width: 60px; height: 60px; font-size: 24px; }
-          .scan-card-actions .btn { flex: 0 0 auto; }
-        }
-      `}</style>
-
       {/* Status tabs, with the counts from the server */}
-      <div className="scan-tabs mb-3">
+      <div className="d-flex flex-wrap gap-2 mb-3">
         {TABS.map((t) => {
           const on = tab === t.key;
           return (
@@ -470,8 +476,8 @@ const ScanIntake = () => {
                 background: on ? "#eef2ff" : "#fff",
                 color: on ? "#4f46e5" : "#495057",
                 borderRadius: 999,
-                padding: "6px 16px",
-                fontSize: 14,
+                padding: "5px 14px",
+                fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",
               }}
@@ -482,12 +488,12 @@ const ScanIntake = () => {
         })}
       </div>
 
-      {/* Search and filters */}
-      <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <div className="uom-search-wrap" style={{ flex: "1 1 240px", maxWidth: 420 }}>
+      {/* Filters */}
+      <div className="d-flex flex-wrap align-items-end gap-2 mb-3">
+        <div className="uom-search-wrap" style={{ maxWidth: 260 }}>
           <i className="bx bx-search"></i>
           <Input
-            placeholder="Search code, tag, room..."
+            placeholder="Search job code, scan code, tag, room..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -495,70 +501,41 @@ const ScanIntake = () => {
             }}
           />
         </div>
-        <Button color={showFilters || activeFilterCount > 0 ? "primary" : "light"} outline={activeFilterCount > 0 && !showFilters} onClick={() => setShowFilters((v) => !v)}>
-          <i className="bx bx-filter-alt me-1"></i> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-        </Button>
-        {filtersOn && <Button color="light" onClick={clearFilters}>Clear all</Button>}
+        <Input type="select" style={{ width: 190, maxWidth: "100%", textOverflow: "ellipsis" }} value={filters.jobId} onChange={setFilter("jobId")}>
+          <option value="">All jobs</option>
+          {jobs.map((j) => (
+            <option key={j._id} value={j._id} title={`${j.jobCode} - ${j.jobName}`}>{j.jobCode} - {j.jobName}</option>
+          ))}
+        </Input>
+        <Input type="select" style={{ width: 170 }} value={filters.centerId} onChange={setFilter("centerId")}>
+          <option value="">All centers</option>
+          {centers.map((c) => (
+            <option key={c._id} value={c._id}>{c.title}</option>
+          ))}
+        </Input>
+        <Input type="select" style={{ width: 170 }} value={filters.category} onChange={setFilter("category")}>
+          <option value="">All categories</option>
+          <option value="none">No category</option>
+          {categories.map((c) => (
+            <option key={c._id} value={c._id}>{c.name}</option>
+          ))}
+        </Input>
+        <Input type="select" style={{ width: 150 }} value={filters.tagStatus} onChange={setFilter("tagStatus")}>
+          <option value="">Any tag status</option>
+          {Object.entries(TAG_STATUS_LABEL).map(([v, l]) => (
+            <option key={v} value={v}>{l}</option>
+          ))}
+        </Input>
+        <Input type="select" style={{ width: 150 }} value={filters.photo} onChange={setFilter("photo")}>
+          <option value="">Any photo</option>
+          <option value="none">No photo</option>
+        </Input>
+        {filtersOn && (
+          <Button color="light" onClick={clearFilters}>Clear</Button>
+        )}
       </div>
 
-      {showFilters && (
-        <div className="p-3 mb-3" style={{ background: "#f8f9fa", border: "1px solid #eef0f3", borderRadius: 12 }}>
-          <Row>
-            <Col xs={12} md={4} className="mb-2">
-              <Label className="small mb-1">Job</Label>
-              <Input type="select" value={filters.jobId} onChange={setFilter("jobId")}>
-                <option value="">All jobs</option>
-                {jobs.map((j) => (
-                  <option key={j._id} value={j._id}>{j.jobCode} - {j.jobName}</option>
-                ))}
-              </Input>
-            </Col>
-            <Col xs={12} md={4} className="mb-2">
-              <Label className="small mb-1">Site</Label>
-              <Input type="select" value={filters.centerId} onChange={setFilter("centerId")}>
-                <option value="">All sites</option>
-                {centers.map((c) => (
-                  <option key={c._id} value={c._id}>{c.title}</option>
-                ))}
-              </Input>
-            </Col>
-            <Col xs={12} md={4} className="mb-2">
-              <Label className="small mb-1">Category</Label>
-              <Input type="select" value={filters.category} onChange={setFilter("category")}>
-                <option value="">All categories</option>
-                <option value="none">No category</option>
-                {categories.map((c) => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
-                ))}
-              </Input>
-            </Col>
-            <Col xs={12} md={4} className="mb-2">
-              <Label className="small mb-1">Tag status</Label>
-              <Input type="select" value={filters.tagStatus} onChange={setFilter("tagStatus")}>
-                <option value="">Any tag status</option>
-                {Object.entries(TAG_STATUS_LABEL).map(([v, l]) => (
-                  <option key={v} value={v}>{l}</option>
-                ))}
-              </Input>
-            </Col>
-            <Col xs={12} md={4} className="mb-2">
-              <Label className="small mb-1">Photos</Label>
-              <Input type="select" value={filters.photo} onChange={setFilter("photo")}>
-                <option value="">Any photo</option>
-                <option value="none">No photo</option>
-              </Input>
-            </Col>
-          </Row>
-        </div>
-      )}
-
-      {/* Select all on this page, and the bulk actions */}
-      {canReview && rows.length > 0 && (
-        <div className="d-flex align-items-center gap-2 mb-2">
-          <input type="checkbox" className="form-check-input" style={{ width: 20, height: 20 }} id="selectPage" checked={allOnPageTicked} onChange={toggleWholePage} />
-          <label htmlFor="selectPage" className="small mb-0">Select all on this page</label>
-        </div>
-      )}
+      {/* Bulk actions */}
       {canReview && selected.length > 0 && (
         <div
           className="d-flex flex-wrap align-items-center gap-2 mb-3 p-2 px-3"
@@ -579,39 +556,42 @@ const ScanIntake = () => {
         </div>
       )}
 
-      {/* The verifications, one card each */}
-      <div style={{ opacity: loading && rows.length > 0 ? 0.6 : 1 }}>
-        {loading && rows.length === 0 ? (
-          <div className="uom-table-card p-4 text-center text-muted">Loading...</div>
-        ) : rows.length === 0 ? (
-          <div className="uom-table-card">
+      <div className="uom-table-card">
+        <DataTable
+          columns={columns}
+          data={rows}
+          progressPending={loading}
+          pagination
+          paginationServer
+          paginationResetDefaultPage={resetPage}
+          paginationTotalRows={total}
+          paginationPerPage={perPage}
+          paginationRowsPerPageOptions={[25, 50, 100]}
+          onChangePage={(p) => setPage(p)}
+          onChangeRowsPerPage={(n, p) => {
+            setPerPage(n);
+            setPage(p);
+          }}
+          selectableRows={canReview}
+          onSelectedRowsChange={({ selectedRows }) => setSelected(selectedRows)}
+          clearSelectedRows={clearToggle}
+          highlightOnHover
+          customStyles={{
+            headCells: {
+              style: { backgroundColor: "#f8f9fa", fontWeight: 600, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.3, color: "#6c757d" },
+            },
+            rows: { style: { minHeight: 62 } },
+          }}
+          noDataComponent={
             <div className="uom-empty-state">
               <p className="uom-empty-title">{filtersOn ? "No verifications match these filters" : "No verifications yet"}</p>
               <p className="uom-empty-sub">
                 {filtersOn ? "Try a different tab or clear the filters." : "Use Add Verification to record what was found in a verification job."}
               </p>
             </div>
-          </div>
-        ) : (
-          rows.map(renderCard)
-        )}
+          }
+        />
       </div>
-
-      {total > 0 && (
-        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 mb-4">
-          <span className="text-muted small">Showing {shownFrom}–{shownTo} of {total}</span>
-          <div className="d-flex align-items-center gap-2">
-            <Input type="select" style={{ width: 90 }} value={perPage} onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}>
-              {[25, 50, 100].map((n) => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </Input>
-            <Button size="sm" color="light" disabled={page <= 1 || loading} onClick={() => setPage((p) => p - 1)}>‹ Previous</Button>
-            <span className="small">Page {page} of {lastPage}</span>
-            <Button size="sm" color="light" disabled={page >= lastPage || loading} onClick={() => setPage((p) => p + 1)}>Next ›</Button>
-          </div>
-        </div>
-      )}
 
       <PhotoLightbox
         photos={lightbox.photos}

@@ -175,8 +175,8 @@ const ROUTES = [
     element: <PhysicalVerification />,
   },
   { path: "asset-tag/*", perm: "ASSET_TAG", element: <AssetTag /> },
-  { path: "asset-scan/*", perm: "ASSET_SCAN", element: <ScanIntake /> },
-  { path: "asset-scan-add/*", perm: "ASSET_SCAN", element: <AddScan /> },
+  { path: "asset-scan/*", perm: "VERIFICATION_JOB", element: <ScanIntake /> },
+  { path: "asset-scan-add/*", perm: "VERIFICATION_JOB", element: <AddScan /> },
 ];
 
 const MasterData = () => {
