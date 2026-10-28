@@ -556,18 +556,6 @@ const FixedAssetRegister = () => {
       ),
     },
     {
-      name: "Cost",
-      selector: (row) => row.purchaseCost,
-      sortable: true,
-      right: true,
-      width: "120px",
-      cell: (row) => (
-        <span className="uom-cell-primary">
-          {moneyOrDash(row.purchaseCost)}
-        </span>
-      ),
-    },
-    {
       name: "Status",
       width: "175px",
       cell: (row) => (
@@ -821,14 +809,16 @@ const FixedAssetRegister = () => {
                         <StatusPill status={d.status} />
                       </div>
                     </div>
-                    <div className="text-end">
-                      <div className="text-muted" style={{ fontSize: 12 }}>
-                        Purchase Cost
+                    {d.purchaseCost !== null && d.purchaseCost !== undefined && d.purchaseCost !== "" && (
+                      <div className="text-end">
+                        <div className="text-muted" style={{ fontSize: 12 }}>
+                          Purchase Cost
+                        </div>
+                        <div className="fs-4 fw-bold text-primary">
+                          {moneyOrDash(d.purchaseCost)}
+                        </div>
                       </div>
-                      <div className="fs-4 fw-bold text-primary">
-                        {moneyOrDash(d.purchaseCost)}
-                      </div>
-                    </div>
+                    )}
                     <button
                       type="button"
                       className="btn-close ms-2"
