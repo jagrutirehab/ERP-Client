@@ -85,7 +85,8 @@ const ScanIntake = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canAdd = hasPermission("MASTERDATA", "VERIFICATION_JOB", "WRITE");
-  const canReview = hasPermission("MASTERDATA", "VERIFICATION_JOB", "DELETE");
+  // Approve, Reject and Halt need the same level as adding and editing (Write)
+  const canReview = hasPermission("MASTERDATA", "VERIFICATION_JOB", "WRITE");
 
   const { items: centers } = useReferenceList("centers");
   const [jobs, setJobs] = useState([]);

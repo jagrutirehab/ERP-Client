@@ -23,7 +23,6 @@ import CategoryLevelSelect, {
 } from "../shared/CategoryLevelSelect";
 import {
   DASH,
-  chipText,
   categoryPath,
   moneyOrDash,
   errText,
@@ -349,7 +348,8 @@ const FixedAssetRegister = () => {
       centerId: df.centerId || undefined,
       categoryL1: df.categoryL1 || undefined,
       assignedTo: holder?._id || undefined,
-      assignment: viewMode === "byEmployee" ? "assigned" : undefined,
+      // a chosen employee already means "assigned", and must not be widened to "anyone assigned"
+      assignment: viewMode === "byEmployee" && !holder ? "assigned" : undefined,
       // "Active" and "Under maintenance" are asset statuses, "Retired" and "Sold" are how it ended
       status: ["active", "under_maintenance"].includes(df.status)
         ? df.status
@@ -1552,46 +1552,18 @@ const FixedAssetRegister = () => {
                       <>
                         <div className="row g-3 mb-4">
                           <Field label="Tag" value={d.tag?.tagCode || DASH} />
-                          <Field
-                            label="Asset code"
-                            value={d.assetCode || DASH}
-                          />
-                          <Field
-                            label="Chip number"
-                            value={chipText(d.epcCode || d.tag?.epcCode)}
-                          />
-                          <Field label="Barcode" value={d.barcode || DASH} />
+                          {d.source && d.source !== "manual" && (
+                            <Field
+                              label="Where it came from"
+                              value={SOURCE_LABEL[d.source] || DASH}
+                            />
+                          )}
                           <div className="col-12">
                             <Field
                               label="Category (levels)"
                               value={categoryPath(d)}
                             />
                           </div>
-                          <Field
-                            label="Accumulated depreciation"
-                            value={moneyOrDash(d.accumulatedDepreciation)}
-                          />
-                          <Field
-                            label="Current-year depreciation"
-                            value={moneyOrDash(d.currentYearDepreciation)}
-                          />
-                          <Field
-                            label="Net book value"
-                            value={moneyOrDash(d.netBookValue)}
-                          />
-                          <Field
-                            label="Lifecycle status"
-                            value={
-                              d.lifecycleStatus
-                                ? d.lifecycleStatus[0].toUpperCase() +
-                                  d.lifecycleStatus.slice(1)
-                                : DASH
-                            }
-                          />
-                          <Field
-                            label="Where it came from"
-                            value={SOURCE_LABEL[d.source] || "Manual"}
-                          />
                           {d.storageLocationId && (
                             <Field
                               label="Location"
@@ -1603,7 +1575,7 @@ const FixedAssetRegister = () => {
                         {canEdit && d.status !== "written_off" && editForm && (
                           <div className="mb-4">
                             <div style={sectionTitle} className="mb-2">
-                              EDIT NUMBERS, COST AND DEPRECIATION
+                              EDIT DETAILS
                             </div>
                             <div
                               className="p-3"
@@ -1696,21 +1668,8 @@ const FixedAssetRegister = () => {
                                   />
                                 </div>
                                 {[
-                                  ["assetCode", "Asset code", "text"],
-                                  ["epcCode", "Chip number", "text"],
-                                  ["barcode", "Barcode", "text"],
                                   ["purchaseCost", "Cost", "number"],
                                   ["purchaseDate", "Purchase date", "date"],
-                                  [
-                                    "accumulatedDepreciation",
-                                    "Accumulated depreciation",
-                                    "number",
-                                  ],
-                                  [
-                                    "currentYearDepreciation",
-                                    "Current-year depreciation",
-                                    "number",
-                                  ],
                                 ].map(([key, label, type]) => (
                                   <div className="col-md-4" key={key}>
                                     <label
@@ -1734,13 +1693,20 @@ const FixedAssetRegister = () => {
                                 ))}
                               </div>
                               <div className="text-muted small mb-2">
-                                Leave a number empty to remove it. An empty cost
-                                or depreciation stays empty, it is never saved
-                                as 0.
+                                Cost and purchase date are optional. If you do
+                                not know them, leave them empty (an empty cost
+                                is never saved as 0).
                               </div>
                               <CategoryLevelSelect
                                 value={editCategory}
                                 onChange={setEditCategory}
+                                // two levels, or as deep as the asset already goes
+                                levels={
+                                  [4, 3].find(
+                                    (n) => editCategory[`categoryL${n}`],
+                                  ) || 2
+                                }
+                                md={6}
                                 disabled={savingEdit}
                               />
                               <div className="d-flex justify-content-end">
