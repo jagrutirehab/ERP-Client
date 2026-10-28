@@ -69,6 +69,7 @@ const CategoryLevelSelect = ({ value, onChange, onSettings, required = false, di
       .reverse();
     onSettings({
       hasCategory: chosen.length > 0,
+      names: [...chosen].reverse().map((c) => c.name), // level 1 first
       canAssign: chosen.length === 0 ? true : chosen.some((c) => c.assignableToEmployee),
       identifierLabel: chosen.map((c) => c.identifierLabel).find(Boolean) || "",
     });
