@@ -6792,7 +6792,7 @@ export const updateAssetScan = (id, data) =>
   axios.put(`/master/asset-scan/${id}`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
-// action: verify | reject | halt | reconcile (data: { reason })
+// action: verify | reject | halt (data: { reason }). "verify" is shown to the user as Approve
 export const actOnAssetScan = (id, action, data = {}) =>
   axios.patch(`/master/asset-scan/${id}/${action}`, data, {
     headers: { "X-No-Cookie-Token": "true" },
@@ -6812,6 +6812,20 @@ export const uploadAssetScans = (formData) =>
       "X-No-Cookie-Token": "true",
       "Content-Type": "multipart/form-data",
     },
+  });
+
+// Photos on a verification. imageType: asset | tag. The file is sent in the form field "file".
+export const uploadAssetScanImage = (id, imageType, formData) =>
+  axios.post(`/master/asset-scan/${id}/image?imageType=${imageType}`, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+export const deleteAssetScanImage = (id, path) =>
+  axios.delete(`/master/asset-scan/${id}/image`, {
+    data: { path },
+    headers: { "X-No-Cookie-Token": "true" },
   });
 
 export const createSingleAssetTag = (data) =>
