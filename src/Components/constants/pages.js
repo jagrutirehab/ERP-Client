@@ -2043,7 +2043,7 @@ export const MASTER_DATA = [
         id: "asset-scan-intake",
         label: "Verifications",
         link: "/vendor-management/asset-scan",
-        permissionModule: "ASSET_SCAN",
+        permissionModule: "VERIFICATION_JOB",
       },
       {
         id: "asset-physical-verification",
