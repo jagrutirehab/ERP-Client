@@ -713,3 +713,27 @@
     padding: 12px;
   }
 }
+
+// Line-item tables on the PR and PO forms: the numbers (qty, rate, tax, amount) must never be cut off
+.uom-form-panel .uom-line-inputs {
+  td { padding: 8px 6px; vertical-align: middle; }
+  th { padding: 10px 6px; }
+  .form-control,
+  .form-select,
+  select.form-control {
+    padding: 7px 8px;
+    font-size: 13.5px;
+    min-width: 0;
+  }
+  select.form-control,
+  .form-select {
+    padding-right: 26px;
+  }
+  input[type="number"] {
+    text-align: right;
+  }
+  td.fw-semibold,
+  td.align-middle {
+    white-space: nowrap;
+  }
+}

@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Input, Label, Row, Col } from "reactstrap";
 import { getAssetCategories } from "../../../../helpers/backend_helper";
+import SearchSelect from "./SearchSelect";
+
+// a list longer than this gets a box you can type into, so a long list is quick to search
+const SEARCH_FROM = 12;
 
 export const EMPTY_CATEGORY = { categoryL1: "", categoryL2: "", categoryL3: "", categoryL4: "" };
 
@@ -93,21 +97,37 @@ const CategoryLevelSelect = ({ value, onChange, onSettings, required = false, di
               <Label className="small">
                 Category level {n} {n === 1 && required && <span className="text-danger">*</span>}
               </Label>
-              <Input
-                type="select"
-                value={ids[n - 1] || ""}
-                disabled={disabled || loading || !parentChosen || (parentChosen && list.length === 0 && n > 1)}
-                onChange={(e) => choose(n, e.target.value)}
-              >
-                <option value="">
-                  {loading ? "Loading..." : !parentChosen ? `Pick level ${n - 1} first` : list.length === 0 && n > 1 ? "No sub-categories" : n === 1 ? "Select category" : "Select (optional)"}
-                </option>
-                {list.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name}
-                  </option>
-                ))}
-              </Input>
+              {(() => {
+                const off = disabled || loading || !parentChosen || (parentChosen && list.length === 0 && n > 1);
+                const emptyText = loading
+                  ? "Loading..."
+                  : !parentChosen
+                    ? `Pick level ${n - 1} first`
+                    : list.length === 0 && n > 1
+                      ? "No sub-categories"
+                      : n === 1
+                        ? "Select category"
+                        : "Select (optional)";
+                return list.length > SEARCH_FROM ? (
+                  <SearchSelect
+                    options={list.map((c) => ({ value: c._id, label: c.name }))}
+                    value={ids[n - 1] || ""}
+                    onChange={(id) => choose(n, id)}
+                    placeholder={emptyText}
+                    clearLabel={n > 1 ? "Clear (no sub-category)" : ""}
+                    disabled={off}
+                  />
+                ) : (
+                  <Input type="select" value={ids[n - 1] || ""} disabled={off} onChange={(e) => choose(n, e.target.value)}>
+                    <option value="">{emptyText}</option>
+                    {list.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </Input>
+                );
+              })()}
             </Col>
           );
         })}

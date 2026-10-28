@@ -105,8 +105,44 @@ const FixedAssetRegister = () => {
   const [loadError, setLoadError] = useState("");
   const { items: centers } = useReferenceList("centers");
   const [level1, setLevel1] = useState([]);
+
+  // The list can be shown as one row per asset, or grouped by employee ("who has what")
+  const [viewMode, setViewMode] = useState("list"); // list | byEmployee
+  const [groupSearch, setGroupSearch] = useState("");
+
+  // "Held by": pick an employee to see everything that is assigned to them
+  const [holder, setHolder] = useState(null); // { _id, name, eCode }
+  const [holderQuery, setHolderQuery] = useState("");
+  const [holderResults, setHolderResults] = useState([]);
+  const [holderOpen, setHolderOpen] = useState(false);
+  const [holderSearching, setHolderSearching] = useState(false);
+  useEffect(() => {
+    const q = holderQuery.trim();
+    if (q.length < 2) {
+      setHolderResults([]);
+      setHolderSearching(false);
+      return undefined;
+    }
+    setHolderSearching(true);
+    const t = setTimeout(() => {
+      searchEmployeesForAsset(q)
+        .then((res) => setHolderResults(res?.data || []))
+        .catch(() => setHolderResults([]))
+        .finally(() => setHolderSearching(false));
+    }, 350);
+    return () => clearTimeout(t);
+  }, [holderQuery]);
+  const pickHolder = (emp) => {
+    setHolder({ _id: emp._id, name: emp.name, eCode: emp.eCode });
+    setHolderQuery("");
+    setHolderResults([]);
+    setHolderOpen(false);
+  };
+
   const filtersOn =
-    Object.values(filters).some(Boolean) || assignFilter !== "ALL";
+    Object.values(filters).some(Boolean) ||
+    assignFilter !== "ALL" ||
+    !!holder;
   const setFilter = (key) => (e) =>
     setFilters((f) => ({ ...f, [key]: e.target.value }));
 
@@ -312,6 +348,8 @@ const FixedAssetRegister = () => {
       search: debouncedSearch,
       centerId: df.centerId || undefined,
       categoryL1: df.categoryL1 || undefined,
+      assignedTo: holder?._id || undefined,
+      assignment: viewMode === "byEmployee" ? "assigned" : undefined,
       // "Active" and "Under maintenance" are asset statuses, "Retired" and "Sold" are how it ended
       status: ["active", "under_maintenance"].includes(df.status)
         ? df.status
@@ -341,7 +379,7 @@ const FixedAssetRegister = () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, refreshFlag, debouncedFilters]);
+  }, [debouncedSearch, refreshFlag, debouncedFilters, holder?._id, viewMode]);
 
   useEffect(() => {
     getAssetCategories({ level: 1, status: "active" })
@@ -454,6 +492,27 @@ const FixedAssetRegister = () => {
       setUpdatingStatus(false);
     }
   };
+
+  // Grouped by employee: one card per employee with everything they hold
+  const groups = (() => {
+    const map = new Map();
+    assets
+      .filter((a) => a.assignedTo)
+      .forEach((a) => {
+        const id = a.assignedTo._id;
+        if (!map.has(id)) map.set(id, { emp: a.assignedTo, items: [] });
+        map.get(id).items.push(a);
+      });
+    const q = groupSearch.trim().toLowerCase();
+    return [...map.values()]
+      .filter(
+        (g) =>
+          !q ||
+          String(g.emp.name || "").toLowerCase().includes(q) ||
+          String(g.emp.eCode || "").toLowerCase().includes(q),
+      )
+      .sort((x, y) => String(x.emp.name || "").localeCompare(String(y.emp.name || "")));
+  })();
 
   const visible = assets.filter(
     (a) =>
@@ -625,6 +684,45 @@ const FixedAssetRegister = () => {
         ))}
       </div>
 
+      {/* How to look at the register */}
+      <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+        {[
+          ["list", "All assets"],
+          ["byEmployee", "Who has what"],
+        ].map(([key, text]) => {
+          const on = viewMode === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setViewMode(key)}
+              style={{
+                border: `1px solid ${on ? "#4f46e5" : "#e5e7eb"}`,
+                background: on ? "#eef2ff" : "#fff",
+                color: on ? "#4f46e5" : "#495057",
+                borderRadius: 999,
+                padding: "6px 16px",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              {text}
+            </button>
+          );
+        })}
+        {viewMode === "byEmployee" && (
+          <div className="uom-search-wrap" style={{ maxWidth: 260 }}>
+            <i className="bx bx-search"></i>
+            <Input
+              placeholder="Find employee by name or code..."
+              value={groupSearch}
+              onChange={(e) => setGroupSearch(e.target.value)}
+            />
+          </div>
+        )}
+      </div>
+
       {/* Filters: the ones used most */}
       <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
         <div className="uom-search-wrap" style={{ maxWidth: 280 }}>
@@ -661,6 +759,86 @@ const FixedAssetRegister = () => {
             </option>
           ))}
         </Input>
+        <div style={{ position: "relative", width: 230 }}>
+          {holder ? (
+            <div
+              className="d-flex align-items-center justify-content-between px-2"
+              style={{
+                height: 38,
+                border: "1px solid #c7d2fe",
+                background: "#eef2ff",
+                borderRadius: 6,
+              }}
+            >
+              <span className="text-truncate" style={{ fontSize: 13 }}>
+                Held by: <b>{holder.name}</b>
+                {holder.eCode ? ` (${holder.eCode})` : ""}
+              </span>
+              <button
+                type="button"
+                aria-label="Remove employee filter"
+                onClick={() => setHolder(null)}
+                style={{
+                  border: "none",
+                  background: "none",
+                  fontSize: 20,
+                  lineHeight: 1,
+                  color: "#4f46e5",
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <>
+              <Input
+                placeholder="Held by employee..."
+                value={holderQuery}
+                onChange={(e) => {
+                  setHolderQuery(e.target.value);
+                  setHolderOpen(true);
+                }}
+                onFocus={() => setHolderOpen(true)}
+                onBlur={() => setTimeout(() => setHolderOpen(false), 150)}
+              />
+              {holderOpen && holderQuery.trim().length >= 2 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    zIndex: 20,
+                    background: "#fff",
+                    border: "1px solid #eee",
+                    borderRadius: 6,
+                    maxHeight: 220,
+                    overflowY: "auto",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  {holderSearching ? (
+                    <div className="p-2 text-muted small">Searching...</div>
+                  ) : holderResults.length === 0 ? (
+                    <div className="p-2 text-muted small">No employee found</div>
+                  ) : (
+                    holderResults.map((emp) => (
+                      <div
+                        key={emp._id}
+                        className="px-2 py-2"
+                        style={{ cursor: "pointer", fontSize: 13 }}
+                        onMouseDown={() => pickHolder(emp)}
+                      >
+                        {emp.name}{" "}
+                        <span className="text-muted">{emp.eCode}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
         <Input
           type="select"
           style={{ width: 150 }}
@@ -689,12 +867,22 @@ const FixedAssetRegister = () => {
             onClick={() => {
               setFilters(EMPTY_FILTERS);
               setAssignFilter("ALL");
+              setHolder(null);
+              setHolderQuery("");
             }}
           >
             Clear
           </Button>
         )}
       </div>
+
+      {holder && !loading && (
+        <div className="mb-3 text-muted" style={{ fontSize: 14 }}>
+          {assets.length === 0
+            ? `Nothing is assigned to ${holder.name} right now.`
+            : `${holder.name}${holder.eCode ? ` (${holder.eCode})` : ""} holds ${assets.length} asset${assets.length === 1 ? "" : "s"}.`}
+        </div>
+      )}
 
       {loadError && (
         <div
@@ -716,12 +904,88 @@ const FixedAssetRegister = () => {
         </div>
       )}
 
-      {!loading && (
+      {!loading && viewMode === "list" && (
         <div className="text-muted mb-2" style={{ fontSize: 13 }}>
           Showing {visible.length} of {assets.length} asset
           {assets.length === 1 ? "" : "s"}. Click a row to open it.
         </div>
       )}
+      {viewMode === "byEmployee" ? (
+        <div>
+          {loading ? (
+            <div className="uom-table-card p-4 text-center text-muted">Loading...</div>
+          ) : groups.length === 0 ? (
+            <div className="uom-table-card">
+              <div className="uom-empty-state">
+                <p className="uom-empty-title">
+                  {groupSearch.trim() ? "No employee matches this search" : "Nothing is assigned to anyone right now"}
+                </p>
+                <p className="uom-empty-sub">
+                  {groupSearch.trim()
+                    ? "Try another name or code."
+                    : "When an asset is given to an employee, it will show here under their name."}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="text-muted mb-2" style={{ fontSize: 13 }}>
+                {groups.length} employee{groups.length === 1 ? "" : "s"} holding{" "}
+                {groups.reduce((n, g) => n + g.items.length, 0)} asset
+                {groups.reduce((n, g) => n + g.items.length, 0) === 1 ? "" : "s"}.
+              </div>
+              {groups.map((g) => (
+                <div
+                  key={g.emp._id}
+                  className="mb-3"
+                  style={{ border: "1px solid #eef0f3", borderRadius: 12, background: "#fff", overflow: "hidden" }}
+                >
+                  <div
+                    className="d-flex align-items-center justify-content-between px-3 py-2"
+                    style={{ background: "#f8f9fa", borderBottom: "1px solid #eef0f3" }}
+                  >
+                    <div>
+                      <span className="fw-semibold">{g.emp.name}</span>
+                      <span className="text-muted ms-2" style={{ fontSize: 12 }}>{g.emp.eCode}</span>
+                    </div>
+                    <span
+                      style={{ background: "#eef2ff", color: "#4f46e5", fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 999 }}
+                    >
+                      {g.items.length} asset{g.items.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  {g.items.map((a) => (
+                    <div
+                      key={a._id}
+                      className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2"
+                      style={{ borderBottom: "1px solid #f8f9fa" }}
+                    >
+                      <div style={{ minWidth: 0, flex: "1 1 240px" }}>
+                        <div className="fw-semibold text-truncate" title={a.assetName}>{a.assetName}</div>
+                        <div className="text-muted" style={{ fontSize: 12 }}>
+                          <span style={{ fontFamily: "monospace" }}>{a.assetTag}</span>
+                          {a.serialNumber ? ` · ${a.serialNumber}` : ""}
+                          {` · since ${dateFmt(a.assignedAt)}`}
+                        </div>
+                      </div>
+                      <span
+                        title={a.category}
+                        style={{ background: "#f5f6fa", color: "#495057", fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 999 }}
+                      >
+                        {a.category}
+                      </span>
+                      <StatusPill status={a.status} />
+                      <Button size="sm" color="light" onClick={() => openDetail(a)}>
+                        View
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      ) : (
       <div className="uom-table-card">
         <DataTable
           columns={columns}
@@ -762,6 +1026,7 @@ const FixedAssetRegister = () => {
           }
         />
       </div>
+      )}
 
       {/* Detail Modal */}
       <Modal
@@ -952,10 +1217,7 @@ const FixedAssetRegister = () => {
                       <>
                         {/* Assign / return */}
                         {canEdit &&
-                          d.status !== "written_off" &&
-                          (d.assignedTo ||
-                            d.canAssign ||
-                            d.pendingWriteOff) && (
+                          d.status !== "written_off" && (
                             <div className="mb-4">
                               <div style={sectionTitle} className="mb-2">
                                 {d.assignedTo
@@ -1037,8 +1299,11 @@ const FixedAssetRegister = () => {
                                     className="text-muted"
                                     style={{ fontSize: 13 }}
                                   >
-                                    This is not an employee asset (it cannot be
-                                    given to a person).
+                                    This asset cannot be given to an employee,
+                                    because its category ({d.category}) is not
+                                    set as an employee asset. To allow it, open
+                                    Asset Category master, edit this category and
+                                    tick "Can be given to an employee".
                                   </span>
                                 ) : d.status === "active" ? (
                                   <>

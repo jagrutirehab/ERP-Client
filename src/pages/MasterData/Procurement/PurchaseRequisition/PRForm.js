@@ -506,19 +506,19 @@ const { items: uoms } = useReferenceList("uomsAll");
             <span className="text-danger">*</span>
           </h6>
           <div className="uom-table-card mb-3" style={{ overflowX: "auto" }}>
-            <table className="table mb-0" style={{ minWidth: 1100 }}>
+            <table className="table mb-0 uom-line-inputs" style={{ minWidth: 1300 }}>
               <thead>
                 <tr>
                   <th style={{ minWidth: 220 }}>Item (Code / Name)</th>
                   <th style={{ minWidth: 130 }}>Description</th>
                   <th style={{ minWidth: 110 }}>Category</th>
                   <th style={{ minWidth: 110 }}>Sub-Category</th>
-                  <th style={{ width: 90 }}>HSN</th>
-                  <th style={{ width: 80 }}>Qty</th>
-                  <th style={{ width: 110 }}>UOM</th>
-                  <th style={{ width: 120 }}>Rate</th>
-                  <th style={{ width: 90 }}>Tax %</th>
-                  <th style={{ width: 120 }}>Amount</th>
+                  <th style={{ width: 110 }}>HSN</th>
+                  <th style={{ width: 110 }}>Qty</th>
+                  <th style={{ width: 120 }}>UOM</th>
+                  <th style={{ width: 140 }}>Rate</th>
+                  <th style={{ width: 110 }}>Tax %</th>
+                  <th style={{ width: 140 }}>Amount</th>
                   <th style={{ width: 50 }}></th>
                 </tr>
               </thead>

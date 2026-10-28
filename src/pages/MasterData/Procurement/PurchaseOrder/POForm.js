@@ -754,17 +754,17 @@ const POForm = ({ onSaved, onCancel }) => {
                 style={{ overflowX: "auto" }}
               >
                 <table
-                  className="table uom-line-table"
-                  style={{ minWidth: 780 }}
+                  className="table uom-line-table uom-line-inputs"
+                  style={{ minWidth: 960 }}
                 >
                   <thead>
                     <tr>
                       <th>Item</th>
-                      <th style={{ width: 90 }}>Qty</th>
-                      <th style={{ width: 120 }}>UOM</th>
-                      <th style={{ width: 130 }}>Rate</th>
-                      <th style={{ width: 100 }}>Tax</th>
-                      <th style={{ width: 130 }} className="text-end">
+                      <th style={{ width: 110 }}>Qty</th>
+                      <th style={{ width: 130 }}>UOM</th>
+                      <th style={{ width: 150 }}>Rate</th>
+                      <th style={{ width: 110 }}>Tax</th>
+                      <th style={{ width: 150 }} className="text-end">
                         Amount
                       </th>
                       <th style={{ width: 56 }}></th>
