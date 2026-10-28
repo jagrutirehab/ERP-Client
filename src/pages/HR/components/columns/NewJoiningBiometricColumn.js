@@ -40,14 +40,18 @@ export const NewJoiningBiometricColumn = ({
     {
       name: "Name",
       selector: (row) => row?.employeeName?.toUpperCase() || "-",
-      sortable: true,
       minWidth: "160px",
       wrap: true,
     },
     {
       name: "Center",
       selector: (row) => row?.center?.title || "-",
-      sortable: true,
+      minWidth: "150px",
+      wrap: true,
+    },
+    {
+      name: "Department",
+      selector: (row) => row?.department || "-",
       minWidth: "150px",
       wrap: true,
     },
@@ -61,7 +65,8 @@ export const NewJoiningBiometricColumn = ({
     {
       name: "Shifts",
       selector: (row) => row?.shifts?.length || 0,
-      minWidth: "200px",
+      minWidth: "220px",
+      wrap: true,
       cell: (row) =>
         row?.shifts?.length ? (
           <div
@@ -70,10 +75,8 @@ export const NewJoiningBiometricColumn = ({
               gridTemplateColumns: "max-content 1fr",
               columnGap: "16px",
               rowGap: "4px",
-              maxHeight: "120px",
-              overflowY: "auto",
               width: "100%",
-              padding: "4px 0",
+              padding: "8px 0",
               fontSize: "13px",
             }}
           >
@@ -93,7 +96,6 @@ export const NewJoiningBiometricColumn = ({
     {
       name: "Status",
       selector: (row) => row?.status || "-",
-      sortable: true,
       minWidth: "130px",
       cell: (row) =>
         renderStatusBadge(
@@ -104,7 +106,6 @@ export const NewJoiningBiometricColumn = ({
       name: "Requested By",
       selector: (row) => row?.author?.name || "-",
       cell: (row) => <PersonCell person={row?.author} />,
-      sortable: true,
       minWidth: "200px",
       wrap: true,
     },
