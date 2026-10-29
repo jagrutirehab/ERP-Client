@@ -17,6 +17,7 @@ import {
   fetchInventoryHealthDetailed,
 } from "../../../store/features/pharmacy/pharmacySlice";
 import { getInventoryHealthReport as getInventoryHealthReportApi } from "../../../helpers/backend_helper";
+import { roundTo2Decimals } from "../../../utils/numberFormat";
 import {
   getInventoryHealthSummaryGridColumns,
   getInventoryHealthDetailedGridColumns,
@@ -277,25 +278,28 @@ const InventoryHealthReport = () => {
           <div className="d-flex flex-wrap gap-3 mb-2">
               <SummaryStat
                 label="Transit Loss"
-                value={summary?.totalLoss || 0}
+                value={roundTo2Decimals(summary?.totalLoss || 0)}
                 tone="text-danger"
               />
               <SummaryStat
                 label="In Transit"
-                value={summary?.inTransitQty || 0}
+                value={roundTo2Decimals(summary?.inTransitQty || 0)}
                 tone="text-warning"
               />
               <SummaryStat
                 label="Net Variance"
-                value={summary?.totalVariance > 0 ? `+${summary.totalVariance}` : summary?.totalVariance || 0}
+                value={(() => {
+                  const variance = roundTo2Decimals(summary?.totalVariance || 0);
+                  return variance > 0 ? `+${variance}` : variance;
+                })()}
                 tone={summary?.totalVariance < 0 ? "text-danger" : summary?.totalVariance > 0 ? "text-success" : ""}
               />
               <SummaryStat
                 label="Expired"
-                value={summary?.pendingExpiredQty || 0}
+                value={roundTo2Decimals(summary?.pendingExpiredQty || 0)}
                 tone="text-danger"
               />
-              <SummaryStat label="Discarded" value={summary?.totalDiscarded || 0} />
+              <SummaryStat label="Discarded" value={roundTo2Decimals(summary?.totalDiscarded || 0)} />
           </div>
 
           <Card className="mb-2 shadow-sm border-0">

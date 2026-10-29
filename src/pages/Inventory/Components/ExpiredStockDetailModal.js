@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
 import { fetchExpiredStockDetails } from "../../../store/features/pharmacy/pharmacySlice";
+import { formatDualUnitStock } from "../../../utils/pharmacyStockDisplay";
 
 const DataRow = ({ label, value }) => (
   <div className="d-flex justify-content-between py-2 border-bottom border-light">
@@ -112,7 +113,9 @@ const ExpiredStockDetailModal = ({
                 <Col md={6} className="text-md-end mt-2 mt-md-0">
                   <div className="text-muted small mb-1">Stock at this center</div>
                   <div className={`fw-bold fs-5 ${data.centerStock > 0 ? "text-danger" : "text-muted"}`}>
-                    {data.centerStock > 0 ? `${data.centerStock} ${med?.baseUnit || ""}` : "Empty"}
+                    {data.centerStock > 0
+                      ? formatDualUnitStock(data.centerStock, med) ?? `${data.centerStock} ${med?.baseUnit || ""}`
+                      : "Empty"}
                   </div>
                 </Col>
               </Row>
@@ -178,7 +181,7 @@ const ExpiredStockDetailModal = ({
                   <DataRow
                     key={oc.center?._id || oc.center}
                     label={capitalizeWords(oc.center?.title || "Unknown center")}
-                    value={`${oc.stock} ${med?.baseUnit || ""}`}
+                    value={formatDualUnitStock(oc.stock, med) ?? `${oc.stock} ${med?.baseUnit || ""}`}
                   />
                 ))}
                 <div className="text-muted mt-2" style={{ fontSize: 11 }}>

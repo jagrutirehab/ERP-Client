@@ -45,6 +45,7 @@ import { downloadInventoryTemplate } from "../../../utils/downloadInventoryTempl
 import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import { formatCurrency } from "../../../utils/formatCurrency";
+import { formatDualUnitStock } from "../../../utils/pharmacyStockDisplay";
 import FailedMedicines from "../Components/FailedMedicines";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
@@ -437,6 +438,9 @@ const InventoryManagement = () => {
       ? `${conversion.purchaseQuantity} ${normalizeUnderscores(purchaseUnit)} = ${conversion.baseQuantity} ${normalizeUnderscores(baseUnit)}`
       : "-";
 
+  const stockDisplay = (stock, medicine) =>
+    formatDualUnitStock(stock, medicine) ?? display(stock);
+
   // Columns for the Master Medicine List grid (CompactDataGrid shape —
   // key/header/align/minWidth/render — not the old custom Table component).
   const centralMedicineColumns = [
@@ -518,7 +522,7 @@ const InventoryManagement = () => {
                   }}
                 >
                   <span style={{ fontWeight: 600, color: "#007bff" }}>{display(item?.centerId?.title)}</span>
-                  <span style={{ fontWeight: 500, marginLeft: "10px" }}>{display(item?.stock)}</span>
+                  <span style={{ fontWeight: 500, marginLeft: "10px" }}>{stockDisplay(item?.stock, med?.medicineId)}</span>
                 </li>
               );
             })}
@@ -588,7 +592,7 @@ const InventoryManagement = () => {
     { key: "scheduleType", header: "Schedule Type", minWidth: 110, render: (m) => normalizeUnderscores(m?.medicineId?.scheduleType) },
     { key: "type", header: "Type", minWidth: 90, render: (m) => normalizeUnderscores(m?.medicineId?.type) },
     { key: "strength", header: "Strength", minWidth: 90, render: (m) => display(m?.Strength) },
-    { key: "centerStock", header: "Centre / Available stock", minWidth: 190, render: centerStockCell },
+    { key: "centerStock", header: "Centre / Available stock", minWidth: 260, render: centerStockCell },
     { key: "unit", header: "Unit", minWidth: 80, render: (m) => display(m?.unitType || m?.unit) },
     { key: "mrp", header: "M.R.P", align: "right", minWidth: 90, render: (m) => display(m?.mrp) },
     { key: "purchasePrice", header: "Purchase Price", align: "right", minWidth: 110, render: (m) => display(m?.purchasePrice) },

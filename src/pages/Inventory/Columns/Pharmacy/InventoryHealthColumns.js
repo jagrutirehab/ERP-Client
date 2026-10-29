@@ -2,6 +2,9 @@ import React from "react";
 import moment from "moment";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { formatCurrency } from "../../../../utils/formatCurrency";
+import { roundTo2Decimals } from "../../../../utils/numberFormat";
+
+const r = roundTo2Decimals;
 
 const pill = (bg, color) => ({
   borderRadius: 20,
@@ -63,7 +66,7 @@ const inTransitCell = (row) => {
   return (
     <div className="d-flex flex-column py-1 text-center" style={{ gap: 3, alignItems: "center" }}>
       <span className="fw-bold text-warning" style={{ whiteSpace: "nowrap" }}>
-        {row.inTransitQty} {unitLabel(row.baseUnit)}
+        {r(row.inTransitQty)} {unitLabel(row.baseUnit)}
       </span>
       <span
         style={pill("#fff3cd", "#856404")}
@@ -84,7 +87,7 @@ const transitLossCell = (row) => {
   return (
     <div className="d-flex flex-column py-1 text-center" style={{ gap: 3, alignItems: "center" }}>
       <span className="fw-bold text-danger">
-        -{row.transitLoss} {unitLabel(row.baseUnit)}
+        -{r(row.transitLoss)} {unitLabel(row.baseUnit)}
       </span>
       <span style={pill("#f8d7da", "#721c24")}>
         {row.transferCount} transfer{row.transferCount === 1 ? "" : "s"}
@@ -105,7 +108,7 @@ const varianceCell = (row) => {
         className={`fw-bold ${isShrinkage ? "text-danger" : isOverage ? "text-success" : "text-muted"
           }`}
       >
-        {row.variance > 0 ? `+${row.variance}` : row.variance} {unitLabel(row.baseUnit)}
+        {row.variance > 0 ? `+${r(row.variance)}` : r(row.variance)} {unitLabel(row.baseUnit)}
       </span>
       <span style={pill(isShrinkage ? "#f8d7da" : "#d4edda", isShrinkage ? "#721c24" : "#155724")}>
         {row.auditCount} audit{row.auditCount === 1 ? "" : "s"}
@@ -119,7 +122,7 @@ const varianceCell = (row) => {
 // this batch actually waste, on balance." Pending expiry is deliberately
 // excluded: it isn't wasted yet, it's still in stock and still usable if
 // caught before it's discarded.
-const netValue = (row) => (row.variance || 0) - (row.transitLoss || 0) - (row.discardedQty || 0);
+const netValue = (row) => r((row.variance || 0) - (row.transitLoss || 0) - (row.discardedQty || 0));
 
 const netCell = (row) => {
   const hasAnyInput = row.transitLoss > 0 || row.auditCount > 0 || row.discardCount > 0;
@@ -157,7 +160,7 @@ const pendingExpiryCell = (row) => {
       {hasPending && (
         <>
           <span className="fw-bold text-danger" style={{ whiteSpace: "nowrap" }}>
-            {row.expiredQty} {unitLabel(row.baseUnit)}
+            {r(row.expiredQty)} {unitLabel(row.baseUnit)}
           </span>
           <span style={pill("#ffe3cc", "#8a4b08")}>
             {days} day{days === 1 ? "" : "s"} ago
@@ -183,7 +186,7 @@ const discardedExpiryCell = (row) => {
   return (
     <div className="d-flex flex-column py-1 text-center" style={{ gap: 3, alignItems: "center" }}>
       <span className="fw-bold text-dark" style={{ whiteSpace: "nowrap" }}>
-        {row.discardedQty} {unitLabel(row.baseUnit)}
+        {r(row.discardedQty)} {unitLabel(row.baseUnit)}
       </span>
       <span style={pill("#e2e3e5", "#41464b")}>
         {row.discardCount} removal{row.discardCount === 1 ? "" : "s"}
@@ -290,13 +293,13 @@ const transferDetailCell = (entry, baseUnit) => {
   if (entry.status === "DISPATCHED") {
     return (
       <span title={title}>
-        <span className="fw-bold text-warning">→{entry.dispatchedQty}</span>
+        <span className="fw-bold text-warning">→{r(entry.dispatchedQty)}</span>
         {compactSub(unitLabel(baseUnit))}
       </span>
     );
   }
 
-  const delta = -(entry.loss || 0);
+  const delta = r(-(entry.loss || 0));
   return (
     <span title={title}>
       <span className={`fw-bold ${delta < 0 ? "text-danger" : "text-muted"}`}>
@@ -313,14 +316,15 @@ const auditDetailCell = (entry, baseUnit) => {
   const isOverage = entry.variance > 0;
   const title = [
     entry.auditDate ? moment(entry.auditDate).format("DD MMM YYYY") : null,
-    `${entry.oldStock} → ${entry.newStock} ${unitLabel(baseUnit)}`,
+    `${r(entry.oldStock)} → ${r(entry.newStock)} ${unitLabel(baseUnit)}`,
   ]
     .filter(Boolean)
     .join(" · ");
+  const variance = r(entry.variance);
   return (
     <span title={title}>
       <span className={`fw-bold ${isShrinkage ? "text-danger" : isOverage ? "text-success" : "text-muted"}`}>
-        {entry.variance > 0 ? `+${entry.variance}` : entry.variance}
+        {variance > 0 ? `+${variance}` : variance}
       </span>
       {compactSub(unitLabel(baseUnit))}
     </span>
@@ -337,7 +341,7 @@ const discardDetailCell = (entry, baseUnit) => {
     .join(" · ");
   return (
     <span title={title}>
-      <span className="fw-bold text-danger">-{entry.removedQty}</span>
+      <span className="fw-bold text-danger">-{r(entry.removedQty)}</span>
       {compactSub(unitLabel(baseUnit))}
     </span>
   );
@@ -396,7 +400,7 @@ const compactInTransitCell = (row) => {
   if (!row.inTransitCount) return <span className="text-muted">—</span>;
   return (
     <span>
-      <span className="fw-bold text-warning">{row.inTransitQty}</span>
+      <span className="fw-bold text-warning">{r(row.inTransitQty)}</span>
       {compactSub(unitLabel(row.baseUnit))}
       {compactSub(`${row.inTransitCount} transfer${row.inTransitCount === 1 ? "" : "s"}`)}
     </span>
@@ -407,7 +411,7 @@ const compactTransitLossCell = (row) => {
   if (!row.transitLoss) return <span className="text-muted">—</span>;
   return (
     <span>
-      <span className="fw-bold text-danger">-{row.transitLoss}</span>
+      <span className="fw-bold text-danger">-{r(row.transitLoss)}</span>
       {compactSub(unitLabel(row.baseUnit))}
       {compactSub(`${row.transferCount} transfer${row.transferCount === 1 ? "" : "s"}`)}
     </span>
@@ -421,7 +425,7 @@ const compactVarianceCell = (row) => {
   return (
     <span>
       <span className={`fw-bold ${isShrinkage ? "text-danger" : isOverage ? "text-success" : "text-muted"}`}>
-        {row.variance > 0 ? `+${row.variance}` : row.variance}
+        {row.variance > 0 ? `+${r(row.variance)}` : r(row.variance)}
       </span>
       {compactSub(unitLabel(row.baseUnit))}
       {compactSub(`${row.auditCount} audit${row.auditCount === 1 ? "" : "s"}`)}
@@ -437,7 +441,7 @@ const compactPendingExpiryCell = (row) => {
     const days = moment.utc().startOf("day").diff(moment.utc(row.expiryDate), "days");
     return (
       <span>
-        <span className="fw-bold text-danger">{row.expiredQty}</span>
+        <span className="fw-bold text-danger">{r(row.expiredQty)}</span>
         {compactSub(unitLabel(row.baseUnit))}
         {compactSub(`${days} day${days === 1 ? "" : "s"} ago`)}
       </span>
@@ -454,7 +458,7 @@ const compactDiscardedExpiryCell = (row) => {
   if (!row.discardCount) return <span className="text-muted">—</span>;
   return (
     <span>
-      <span className="fw-bold text-dark">{row.discardedQty}</span>
+      <span className="fw-bold text-dark">{r(row.discardedQty)}</span>
       {compactSub(`${unitLabel(row.baseUnit)} removed`)}
     </span>
   );

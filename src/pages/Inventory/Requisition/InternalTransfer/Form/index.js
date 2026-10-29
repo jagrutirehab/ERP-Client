@@ -28,6 +28,7 @@ import {
     searchPharmacyInventory,
 } from "../../../../../store/features/pharmacy/pharmacySlice";
 import { pluralizeUnit } from "../../../../../utils/pluralizeUnit";
+import { roundTo2Decimals } from "../../../../../utils/numberFormat";
 
 const str = (v) => {
     if (!v) return "";
@@ -292,7 +293,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                 baseUnit: str(med.medicineId?.baseUnit),
                 purchaseUnit: str(med.medicineId?.purchaseUnit),
                 conversion: med.medicineId?.conversion || { purchaseQuantity: 1, baseQuantity: 1 },
-                availableStock: centerEntry?.stock ?? 0,
+                availableStock: roundTo2Decimals(centerEntry?.stock ?? 0),
                 requestedQty: 1,
                 itemRemarks: "",
             },
@@ -372,7 +373,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
         const centerEntry = (med.centers || []).find(
             (c) => (c.centerId?._id || c.centerId) === fulfillingCenter?.value
         );
-        const centerStock = centerEntry?.stock ?? 0;
+        const centerStock = roundTo2Decimals(centerEntry?.stock ?? 0);
         const primaryLabel = [
             med.medicineId?.type,
             med.medicineName,
@@ -800,7 +801,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                                 <td className="py-3 px-3 text-center">
                                                     {hasStock ? (
                                                         <span style={stockPill(item.availableStock)}>
-                                                            {item.availableStock} {pluralizeUnit(item.baseUnit || "Unit")}
+                                                            {roundTo2Decimals(item.availableStock)} {pluralizeUnit(item.baseUnit || "Unit")}
                                                         </span>
                                                     ) : (
                                                         <span
