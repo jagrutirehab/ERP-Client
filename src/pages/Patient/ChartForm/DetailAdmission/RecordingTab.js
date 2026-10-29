@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import {
   uploadDetailAdmissionAudio,
   uploadDetailAdmissionAudioChunk,
+  getDetailAdmissionAudioUploadStatus,
 } from "../../../../helpers/backend_helper";
 import { DetailHistoryClearContext } from "./DetailHistoryClearContext";
 
@@ -144,26 +145,51 @@ const RecordingTab = ({
         }
 
         setUploadStatusText("Assembling chunks on server and uploading to S3...");
-        const payload = finalResponse?.payload || finalResponse?.data || finalResponse;
+        const initialPayload =
+          finalResponse?.payload || finalResponse?.data || finalResponse;
+        const uploadId = initialPayload?.uploadId;
 
-        if (payload?.url) {
-          setUploadedAudio({
-            url: payload.url,
-            path: payload.path,
-            name: payload.name || file.name,
-            originalName: file.name,
-            size: payload.size || file.size,
-            type: payload.type || file.type,
-            mimetype: payload.type || file.type,
-            duration: payload.duration || payload.audioDetails?.duration || 0,
-            sourceType:
-              payload.audioDetails?.sourceType || payload.sourceType || sourceType,
-            uploadedAt: payload.audioDetails?.uploadedAt || new Date(),
-          });
-          toast.success("Large audio file uploaded and assembled successfully!");
-        } else {
-          throw new Error(finalResponse?.message || "Failed to assemble audio chunks on server");
+        if (!uploadId) {
+          throw new Error(finalResponse?.message || "Failed to start audio processing on server");
         }
+
+        const POLL_INTERVAL_MS = 8000;
+        const MAX_POLL_ATTEMPTS = 45;
+        let finalStatus = null;
+
+        for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+          await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+          const statusResponse = await getDetailAdmissionAudioUploadStatus(uploadId);
+          const statusPayload =
+            statusResponse?.payload || statusResponse?.data || statusResponse;
+
+          if (statusPayload?.status === "done") {
+            finalStatus = statusPayload;
+            break;
+          }
+          if (statusPayload?.status === "failed") {
+            throw new Error(statusPayload?.error || "Failed to assemble and upload audio chunks");
+          }
+          setUploadStatusText("Still assembling and uploading to S3, please wait...");
+        }
+
+        if (!finalStatus) {
+          throw new Error("Upload is taking longer than expected. Please try again.");
+        }
+
+        setUploadedAudio({
+          url: finalStatus.url,
+          path: finalStatus.path,
+          name: finalStatus.name || file.name,
+          originalName: finalStatus.originalName || file.name,
+          size: finalStatus.size || file.size,
+          type: finalStatus.type || file.type,
+          mimetype: finalStatus.type || file.type,
+          duration: finalStatus.duration || 0,
+          sourceType: finalStatus.sourceType || sourceType,
+          uploadedAt: new Date(),
+        });
+        toast.success("Large audio file uploaded and assembled successfully!");
       } else {
         // Standard upload for audio files <= 30 MB
         setUploadStatusText("Uploading audio to S3...");

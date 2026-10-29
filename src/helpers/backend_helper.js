@@ -717,6 +717,8 @@ export const uploadDetailAdmissionAudioChunk = (data, config = {}) =>
     timeout: 600000,
     ...config,
   });
+export const getDetailAdmissionAudioUploadStatus = (uploadId) =>
+  api.get(`${url.GET_DETAIL_ADMISSION_AUDIO_UPLOAD_STATUS}/${uploadId}`);
 export const uploadDetailAdmissionAudio = (data, config = {}) =>
   api.create(url.POST_DETAIL_ADMISSION_AUDIO_UPLOAD, data, {
     headers: { "Content-Type": "multipart/form-data" },
