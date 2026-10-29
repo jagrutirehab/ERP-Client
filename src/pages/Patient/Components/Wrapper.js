@@ -225,6 +225,10 @@ const Wrapper = ({
   const isDetailAdmissionValidated =
     chart === DETAIL_ADMISSION && !!item.doctorValidatorId;
 
+  const isDetailAdmissionAi =
+    chart === DETAIL_ADMISSION &&
+    Boolean(item?.detailAdmission?.aiGenerated || item?.aiGenerated);
+
   const carryForwardSourceId = item?.carryForwardedFrom?.id
     ? `${item.carryForwardedFrom.id.prefix}${item.carryForwardedFrom.id.patientId}-${item.carryForwardedFrom.id.value}`
     : null;
@@ -280,7 +284,7 @@ const Wrapper = ({
                     ? "Nurse Procedure"
                     : chartName}
 
-              {geminiResponseGeneratedBy && (
+              {(geminiResponseGeneratedBy || isDetailAdmissionAi) && (
                 <span
                   className="rounded-circle d-inline-flex align-items-center justify-content-center bg-success text-white"
                   style={{
@@ -288,6 +292,7 @@ const Wrapper = ({
                     height: "18px",
                     fontSize: "10px",
                   }}
+                  title="AI Generated"
                 >
                   AI
                 </span>

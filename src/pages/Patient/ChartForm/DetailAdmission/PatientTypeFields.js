@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Row, Col, FormGroup, Label, Button } from "reactstrap";
 import { getIn } from "formik";
 import psychiatricConfig from "./Helpers/psychiatricConfig";
@@ -7,6 +7,7 @@ import addictionConfig from "./Helpers/addictionConfig";
 import SectionRenderer from "../Components/SectionRenderer";
 import { setInPath, validateSections } from "./Helpers/Fields";
 import Select from "react-select";
+import { DetailHistoryClearContext } from "./DetailHistoryClearContext";
 
 // Shared with the IPD admission card's Patient Type dropdown. Re-exported so
 // existing imports from this file keep working.
@@ -53,7 +54,12 @@ const PatientTypeFields = ({
   setFormStep,
   step,
   forceShowErrors,
+  onClearForm: propOnClearForm,
 }) => {
+  const context = useContext(DetailHistoryClearContext);
+  const onClear = propOnClearForm || context?.onClearForm;
+  const isGenerating = context?.isGenerating || false;
+
   const patientType = validation.values.patientType || "";
   const activeConfig = CONFIG_BY_TYPE[patientType];
   const activeKey = patientType ? fieldKeyFor(patientType) : null;
@@ -176,12 +182,25 @@ const PatientTypeFields = ({
         </p>
       )}
 
-      <div className="text-end">
+      <div className="d-flex justify-content-end align-items-center gap-2 mt-3">
+        {onClear && (
+          <Button
+            type="button"
+            color="outline-danger"
+            size="sm"
+            onClick={onClear}
+            disabled={isGenerating}
+            title="Clear all form fields and saved draft"
+          >
+            <i className="ri-delete-bin-line me-1"></i> Clear Form
+          </Button>
+        )}
         <Button
           className="text-white"
           onClick={handleNextClick}
           size="sm"
           color="success"
+          disabled={isGenerating}
         >
           Next
         </Button>

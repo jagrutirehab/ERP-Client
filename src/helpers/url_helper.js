@@ -196,6 +196,12 @@ export const EDIT_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const DELETE_DETAIL_ADMISSION_FILE = "/chart/detail-admission";
 export const POST_CARRY_FORWARD_DETAIL_ADMISSION =
   "/chart/detail-admission/carry-forward";
+export const POST_DETAIL_ADMISSION_AUDIO_UPLOAD =
+  "/chart/detail-admission/audio/upload";
+export const POST_DETAIL_ADMISSION_AUDIO_GENERATE =
+  "/chart/detail-admission/audio/generate";
+export const POST_DETAIL_ADMISSION_AUDIO_ABORT =
+  "/chart/detail-admission/audio/abort";
 export const POST_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const POST_GENERAL_MENTAL_EXAMINATION =
   "/chart/mental-examination/general";
