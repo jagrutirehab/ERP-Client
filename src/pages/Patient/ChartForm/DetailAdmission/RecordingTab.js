@@ -264,9 +264,13 @@ const RecordingTab = ({
         }
       }
 
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
+      const recorderOptions = {
+        audioBitsPerSecond: 64000,
+      };
+      if (mimeType) {
+        recorderOptions.mimeType = mimeType;
+      }
+      const recorder = new MediaRecorder(stream, recorderOptions);
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
 
