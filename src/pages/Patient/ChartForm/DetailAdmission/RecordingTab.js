@@ -11,7 +11,10 @@ import {
   Badge,
 } from "reactstrap";
 import { toast } from "react-toastify";
-import { uploadDetailAdmissionAudio } from "../../../../helpers/backend_helper";
+import {
+  uploadDetailAdmissionAudio,
+  uploadDetailAdmissionAudioChunk,
+} from "../../../../helpers/backend_helper";
 import { DetailHistoryClearContext } from "./DetailHistoryClearContext";
 
 const RecordingTab = ({
@@ -38,6 +41,8 @@ const RecordingTab = ({
   // File Upload State
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatusText, setUploadStatusText] = useState("");
   const [audioPreviewUrl, setAudioPreviewUrl] = useState(null);
 
   // Browser Live Recording State
@@ -94,36 +99,111 @@ const RecordingTab = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Shared Upload to S3 Helper
+  // Shared Upload to S3 Helper (Supports 30 MB server-side chunked upload for large files)
   const uploadAudioFile = async (file, sourceType = "uploaded") => {
     try {
       setIsUploading(true);
-      const formData = new FormData();
-      formData.append("audio", file);
-      formData.append("sourceType", sourceType);
-      if (patient?._id) formData.append("patient", patient._id);
-      if (center) formData.append("center", center);
+      setUploadProgress(0);
+      setUploadStatusText("");
 
-      const response = await uploadDetailAdmissionAudio(formData);
-      const payload = response?.payload || response?.data || response;
+      const CHUNK_SIZE = 30 * 1024 * 1024; // 30 MB chunks
 
-      if (payload?.url) {
-        setUploadedAudio({
-          url: payload.url,
-          path: payload.path,
-          name: payload.name || file.name,
-          originalName: file.originalname || file.name,
-          size: payload.size || file.size,
-          type: payload.type || file.type,
-          mimetype: payload.type || file.type,
-          duration: payload.duration || payload.audioDetails?.duration || 0,
-          sourceType:
-            payload.audioDetails?.sourceType || payload.sourceType || sourceType,
-          uploadedAt: payload.audioDetails?.uploadedAt || new Date(),
-        });
-        toast.success("Audio uploaded to S3 successfully!");
+      // Large audio files (> 30 MB): Split into 30 MB chunks and upload to backend chunk-upload endpoint
+      if (file.size > CHUNK_SIZE) {
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+        const uploadSessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        let finalResponse = null;
+
+        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+          const start = chunkIndex * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, file.size);
+          const chunkBlob = file.slice(start, end);
+
+          const currentPercent = Math.round((chunkIndex / totalChunks) * 100);
+          setUploadProgress(currentPercent);
+          setUploadStatusText(
+            `Uploading chunk ${chunkIndex + 1} of ${totalChunks} (${currentPercent}%)...`
+          );
+
+          const chunkFormData = new FormData();
+          chunkFormData.append("chunk", chunkBlob, file.name);
+          chunkFormData.append("uploadSessionId", uploadSessionId);
+          chunkFormData.append("chunkIndex", String(chunkIndex));
+          chunkFormData.append("totalChunks", String(totalChunks));
+          chunkFormData.append("fileName", file.name);
+          chunkFormData.append("fileSize", String(file.size));
+          chunkFormData.append("sourceType", sourceType);
+          if (patient?._id) chunkFormData.append("patient", patient._id);
+          if (center) chunkFormData.append("center", center);
+
+          const response = await uploadDetailAdmissionAudioChunk(chunkFormData);
+          finalResponse = response;
+
+          const progressPercent = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+          setUploadProgress(progressPercent);
+        }
+
+        setUploadStatusText("Assembling chunks on server and uploading to S3...");
+        const payload = finalResponse?.payload || finalResponse?.data || finalResponse;
+
+        if (payload?.url) {
+          setUploadedAudio({
+            url: payload.url,
+            path: payload.path,
+            name: payload.name || file.name,
+            originalName: file.name,
+            size: payload.size || file.size,
+            type: payload.type || file.type,
+            mimetype: payload.type || file.type,
+            duration: payload.duration || payload.audioDetails?.duration || 0,
+            sourceType:
+              payload.audioDetails?.sourceType || payload.sourceType || sourceType,
+            uploadedAt: payload.audioDetails?.uploadedAt || new Date(),
+          });
+          toast.success("Large audio file uploaded and assembled successfully!");
+        } else {
+          throw new Error(finalResponse?.message || "Failed to assemble audio chunks on server");
+        }
       } else {
-        throw new Error(response?.message || "Failed to upload audio to S3");
+        // Standard upload for audio files <= 30 MB
+        setUploadStatusText("Uploading audio to S3...");
+        const formData = new FormData();
+        formData.append("audio", file);
+        formData.append("sourceType", sourceType);
+        if (patient?._id) formData.append("patient", patient._id);
+        if (center) formData.append("center", center);
+
+        const response = await uploadDetailAdmissionAudio(formData, {
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setUploadProgress(percent);
+              setUploadStatusText(`Uploading to S3 (${percent}%)...`);
+            }
+          },
+        });
+        const payload = response?.payload || response?.data || response;
+
+        if (payload?.url) {
+          setUploadedAudio({
+            url: payload.url,
+            path: payload.path,
+            name: payload.name || file.name,
+            originalName: payload.originalName || file.name,
+            size: payload.size || file.size,
+            type: payload.type || file.type,
+            mimetype: payload.type || file.type,
+            duration: payload.duration || payload.audioDetails?.duration || 0,
+            sourceType:
+              payload.audioDetails?.sourceType || payload.sourceType || sourceType,
+            uploadedAt: payload.audioDetails?.uploadedAt || new Date(),
+          });
+          toast.success("Audio uploaded to S3 successfully!");
+        } else {
+          throw new Error(response?.message || "Failed to upload audio to S3");
+        }
       }
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -134,6 +214,8 @@ const RecordingTab = ({
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
+      setUploadStatusText("");
     }
   };
 
@@ -432,9 +514,26 @@ const RecordingTab = ({
                 />
 
                 {isUploading && (
-                  <div className="d-flex align-items-center gap-2 text-primary">
-                    <Spinner size="sm" color="primary" />
-                    <span className="small">Uploading to S3...</span>
+                  <div className="d-flex flex-column gap-1 text-primary mt-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <Spinner size="sm" color="primary" />
+                      <span className="small fw-semibold">
+                        {uploadStatusText ||
+                          `Uploading to S3... ${uploadProgress > 0 ? `${uploadProgress}%` : ""}`}
+                      </span>
+                    </div>
+                    {uploadProgress > 0 && (
+                      <div
+                        className="progress"
+                        style={{ height: "6px", width: "100%", maxWidth: "350px" }}
+                      >
+                        <div
+                          className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                          role="progressbar"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -512,9 +611,26 @@ const RecordingTab = ({
               )}
 
               {isUploading && (
-                <div className="d-flex align-items-center gap-2 text-primary mt-2">
-                  <Spinner size="sm" color="primary" />
-                  <span className="small">Finalizing and uploading recording to S3...</span>
+                <div className="d-flex flex-column align-items-center gap-1 text-primary my-3">
+                  <div className="d-flex align-items-center gap-2">
+                    <Spinner size="sm" color="primary" />
+                    <span className="small fw-semibold">
+                      {uploadStatusText ||
+                        `Finalizing and uploading recording... ${uploadProgress > 0 ? `${uploadProgress}%` : ""}`}
+                    </span>
+                  </div>
+                  {uploadProgress > 0 && (
+                    <div
+                      className="progress"
+                      style={{ height: "6px", width: "100%", maxWidth: "250px" }}
+                    >
+                      <div
+                        className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                        role="progressbar"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  )}
                 </div>
               )}
 
