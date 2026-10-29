@@ -711,6 +711,15 @@ export const validateChart = (chartId) =>
   api.update(`/chart/${chartId}/validate`);
 export const carryForwardDetailAdmission = (data) =>
   api.create(url.POST_CARRY_FORWARD_DETAIL_ADMISSION, data);
+export const uploadDetailAdmissionAudio = (data, config = {}) =>
+  api.create(url.POST_DETAIL_ADMISSION_AUDIO_UPLOAD, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+    ...config,
+  });
+export const generateDetailAdmissionAudio = (data, config = {}) =>
+  api.create(url.POST_DETAIL_ADMISSION_AUDIO_GENERATE, data, config);
+export const abortDetailAdmissionAudio = (data, config = {}) =>
+  api.create(url.POST_DETAIL_ADMISSION_AUDIO_ABORT, data, config);
 export const postGeneralDetailAdmission = (data) =>
   api.create(url.POST_GENERAL_DETAIL_ADMISSION, data, {
     headers: { "Content-Type": "multipart/form-data" },

@@ -1,5 +1,21 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Button, Form, Row } from "reactstrap";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Button,
+  Form,
+  Row,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "reactstrap";
+import { io } from "socket.io-client";
+import { toast } from "react-toastify";
+import { api } from "../../../../config";
+import {
+  generateDetailAdmissionAudio,
+  abortDetailAdmissionAudio,
+} from "../../../../helpers/backend_helper";
+import { DetailHistoryClearContext } from "./DetailHistoryClearContext";
 
 // Formik Validation
 import * as Yup from "yup";
@@ -25,8 +41,10 @@ import PatientTypeFields, {
 } from "./PatientTypeFields";
 import ElderlyChecklistForm from "./ElderlyChecklistForm";
 import { validateElderlyChecklist } from "../../../../utils/elderlyChecklistValidation";
+import RecordingTab from "./RecordingTab";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
+const RECORDING = "RECORDING";
 // const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
@@ -52,12 +70,39 @@ const DetailAdmission = ({
   // data,
 }) => {
   const dispatch = useDispatch();
+  const isEdit = Boolean(editChartData?._id);
   const [consentFiles, setConsentFiles] = useState();
-  const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
+  const [formStep, setFormStep] = useState(
+    !isEdit && type === "IPD" ? RECORDING : CHIEF_COMPLAINTS,
+  );
   const [patientTypeSubmitAttempted, setPatientTypeSubmitAttempted] =
     useState(false);
   const [elderlyChecklistSubmitAttempted, setElderlyChecklistSubmitAttempted] =
     useState(false);
+
+  // When switching into edit mode, ensure formStep is not stuck on RECORDING
+  useEffect(() => {
+    if (isEdit && formStep === RECORDING) {
+      setFormStep(CHIEF_COMPLAINTS);
+    }
+  }, [isEdit, formStep]);
+
+  // AI-Powered Audio Recording state
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(null);
+  const [uploadedAudio, setUploadedAudio] = useState(null);
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [draftCleared, setDraftCleared] = useState(false);
+  const isClearingRef = useRef(false);
+
+  const sessionIdRef = useRef(null);
+  const isGeneratingRef = useRef(false);
+  isGeneratingRef.current = isGenerating;
+  const uploadedAudioRef = useRef(null);
+  uploadedAudioRef.current = uploadedAudio;
+  const socketRef = useRef(null);
+  const validationValuesRef = useRef(null);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
   const isOldMentalExamination = Boolean(
@@ -67,18 +112,17 @@ const DetailAdmission = ({
   // bridge stored Boolean (true/false/undefined) <-> Yes/No radio value
   const triToYesNo = (v) => (v === true ? "yes" : v === false ? "no" : "");
 
-  const isEdit = Boolean(editChartData?._id);
   const draftKey = `detailAdmissionDraft_${patient?._id || "new"}`;
 
   const savedDraft = useMemo(() => {
-    if (isEdit) return null;
+    if (isEdit || draftCleared) return null;
     try {
       const d = localStorage.getItem(draftKey);
       return d ? JSON.parse(d) : null;
     } catch {
       return null;
     }
-  }, [draftKey, isEdit]);
+  }, [draftKey, isEdit, draftCleared]);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -559,6 +603,13 @@ const DetailAdmission = ({
       chart: DETAIL_ADMISSION,
       date: chartDate,
       type,
+      aiGenerated: detailAdmissionForm?.aiGenerated || false,
+      aiReviewed: false,
+      audioDetails: detailAdmissionForm?.audioDetails
+        ? (typeof detailAdmissionForm.audioDetails === "string"
+            ? detailAdmissionForm.audioDetails
+            : JSON.stringify(detailAdmissionForm.audioDetails))
+        : "",
       ...(!isEdit && savedDraft ? savedDraft : {}),
       // A NEW chart starts from the Patient Type already on the admission card
       // (unless the draft has one). Editing keeps the chart's own value.
@@ -674,6 +725,18 @@ const DetailAdmission = ({
       // ),
     }),
     onSubmit: (values) => {
+      /* AI Validation Checkguard - only enforce for brand new records */
+      const isEditRecord =
+        isEdit ||
+        Boolean(values._id || values.id || values.chartId || editChartData?._id);
+      if (!isEditRecord && values.aiGenerated && !values.aiReviewed) {
+        toast.error(
+          "Please confirm that you have reviewed and validated the AI-generated data on the Special Requirements tab before saving."
+        );
+        setFormStep(SPECIAL_REQUIREMENTS);
+        return;
+      }
+
       /* appending */
       const { isValid } = validatePatientTypeFields(values);
       if (!isValid) {
@@ -762,6 +825,32 @@ const DetailAdmission = ({
       if (values.delusions === "none") {
         values.delusionNotes = "";
       }
+
+      // Ensure audioDetails is serialized for multipart formData
+      let audioMeta = values.audioDetails;
+      if (!audioMeta && uploadedAudioRef.current?.url) {
+        audioMeta = {
+          url: uploadedAudioRef.current.url,
+          originalName: uploadedAudioRef.current.originalName || uploadedAudioRef.current.name,
+          size: uploadedAudioRef.current.size,
+          mimetype: uploadedAudioRef.current.mimetype || uploadedAudioRef.current.type,
+          duration: uploadedAudioRef.current.duration || 0,
+          sourceType:
+            uploadedAudioRef.current.sourceType === "recorded"
+              ? "recorded"
+              : "uploaded",
+          uploadedAt: uploadedAudioRef.current.uploadedAt || new Date(),
+        };
+      }
+      if (audioMeta && typeof audioMeta === "object") {
+        if (!audioMeta.sourceType && uploadedAudioRef.current?.sourceType) {
+          audioMeta.sourceType = uploadedAudioRef.current.sourceType;
+        }
+        values.audioDetails = JSON.stringify(audioMeta);
+      } else if (typeof audioMeta === "string" && audioMeta.trim() !== "") {
+        values.audioDetails = audioMeta;
+      }
+
       const formData = convertToFormData(values);
       consentFiles?.forEach((file) => formData.append("file", file.file));
       /* appending */
@@ -882,6 +971,332 @@ const DetailAdmission = ({
   // AUTOFILL
 
 
+  // Smart Merge Strategy: Preserve existing user inputs, populate empty fields
+  const smartMergeAiData = (currentValues, aiData) => {
+    if (!aiData || typeof aiData !== "object") return currentValues;
+
+    const merged = { ...currentValues };
+
+    const isEmptyVal = (val) => {
+      if (val === undefined || val === null) return true;
+      if (typeof val === "string") return val.trim() === "";
+      if (Array.isArray(val)) return val.length === 0;
+      if (typeof val === "object") return Object.keys(val).length === 0;
+      return false;
+    };
+
+    const isCellEmpty = (c) => c === undefined || c === null || String(c).trim() === "";
+
+    const mergeRowArrays = (targetArr, sourceArr) => {
+      if (!Array.isArray(sourceArr) || sourceArr.length === 0) return targetArr || [];
+      if (!Array.isArray(targetArr) || targetArr.length === 0) {
+        return sourceArr.map((row) => {
+          if (!row || typeof row !== "object") return row;
+          const r = { ...row };
+          if (r.quantity && !r.quantityDose) r.quantityDose = r.quantity;
+          if (r.quantityDose && !r.quantity) r.quantity = r.quantityDose;
+          return r;
+        });
+      }
+
+      // Check if target is a grid table (has substance, activity, parameter, or label)
+      const isGridArray =
+        targetArr.some((r) => r && (r.substance !== undefined || r.activity !== undefined || r.parameter !== undefined)) ||
+        sourceArr.some((r) => r && (r.substance !== undefined || r.activity !== undefined || r.parameter !== undefined));
+
+      if (!isGridArray) {
+        return targetArr.length > 0 ? targetArr : sourceArr;
+      }
+
+      return targetArr.map((targetRow) => {
+        if (!targetRow || typeof targetRow !== "object") return targetRow;
+        const targetLabel = targetRow.substance || targetRow.activity || targetRow.parameter || targetRow.label;
+
+        const matchedSource = sourceArr.find((s) => {
+          if (!s || typeof s !== "object") return false;
+          const sourceLabel = s.substance || s.activity || s.parameter || s.label;
+          if (!sourceLabel || !targetLabel) return false;
+          const sLower = String(sourceLabel).toLowerCase().trim();
+          const tLower = String(targetLabel).toLowerCase().trim();
+          return (
+            sLower === tLower ||
+            tLower.includes(sLower) ||
+            sLower.includes(tLower) ||
+            (sLower.startsWith("cannabis") && tLower.startsWith("cannabis")) ||
+            (sLower.startsWith("tobacco") && tLower.startsWith("tobacco")) ||
+            (sLower.startsWith("opioid") && tLower.startsWith("opioid"))
+          );
+        });
+
+        if (!matchedSource) return targetRow;
+
+        const mergedRow = { ...targetRow };
+        for (const [k, v] of Object.entries(matchedSource)) {
+          if (isCellEmpty(mergedRow[k]) && !isCellEmpty(v)) {
+            mergedRow[k] = v;
+          }
+        }
+        if (isCellEmpty(mergedRow.quantityDose) && !isCellEmpty(mergedRow.quantity)) {
+          mergedRow.quantityDose = mergedRow.quantity;
+        }
+        if (isCellEmpty(mergedRow.quantity) && !isCellEmpty(mergedRow.quantityDose)) {
+          mergedRow.quantity = mergedRow.quantityDose;
+        }
+        return mergedRow;
+      });
+    };
+
+    const parseObj = (raw) => {
+      if (!raw) return {};
+      if (typeof raw === "object") return { ...raw };
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch {
+        return {};
+      }
+    };
+
+    // Normalize incoming aiData substance profile into addictionFields and psychiatricFields
+    const effectiveAiData = { ...aiData };
+    const rawSubstanceProfile =
+      effectiveAiData.substanceProfile ||
+      parseObj(effectiveAiData.addictionFields)?.substanceProfile ||
+      parseObj(effectiveAiData.psychiatricFields)?.pastIllness?.substanceUseTable;
+
+    if (Array.isArray(rawSubstanceProfile) && rawSubstanceProfile.length > 0) {
+      const parsedAddiction = parseObj(effectiveAiData.addictionFields);
+      if (!parsedAddiction.substanceProfile || parsedAddiction.substanceProfile.length === 0) {
+        parsedAddiction.substanceProfile = rawSubstanceProfile;
+      }
+      const hasSubstanceUse = rawSubstanceProfile.some(
+        (r) => r.ageOfFirstUse || r.currentUse || r.frequency || r.quantityDose || r.quantity || r.lastUse
+      );
+      if (parsedAddiction.noSubstanceUseReported === undefined) {
+        parsedAddiction.noSubstanceUseReported = !hasSubstanceUse;
+      }
+      effectiveAiData.addictionFields = parsedAddiction;
+
+      const parsedPsych = parseObj(effectiveAiData.psychiatricFields);
+      parsedPsych.pastIllness = parsedPsych.pastIllness || {};
+      if (!parsedPsych.pastIllness.substanceUseTable || parsedPsych.pastIllness.substanceUseTable.length === 0) {
+        parsedPsych.pastIllness.substanceUseTable = rawSubstanceProfile;
+      }
+      if (!parsedPsych.pastIllness.substanceUseHistory) {
+        parsedPsych.pastIllness.substanceUseHistory = hasSubstanceUse ? "Yes" : "No";
+      }
+      effectiveAiData.psychiatricFields = parsedPsych;
+
+      // Auto-set patientType to addiction if primary concern is substance use and not already chosen
+      if (hasSubstanceUse && (!merged.patientType || merged.patientType === "general")) {
+        merged.patientType = "addiction";
+      }
+    }
+
+    const mergeNested = (currentRaw, aiRaw) => {
+      const curr = parseObj(currentRaw);
+      const ai = parseObj(aiRaw);
+
+      const deepMerge = (target, source) => {
+        const result = { ...target };
+        for (const [key, val] of Object.entries(source || {})) {
+          if (Array.isArray(val)) {
+            if (Array.isArray(target[key]) && target[key].length > 0 && typeof target[key][0] === "object") {
+              result[key] = mergeRowArrays(target[key], val);
+            } else if (isEmptyVal(target[key]) && !isEmptyVal(val)) {
+              result[key] = val;
+            }
+          } else if (val && typeof val === "object") {
+            result[key] = deepMerge(target[key] || {}, val);
+          } else {
+            if (isEmptyVal(target[key]) && !isEmptyVal(val)) {
+              result[key] = val;
+            }
+          }
+        }
+        return result;
+      };
+
+      return JSON.stringify(deepMerge(curr, ai));
+    };
+
+    Object.keys(effectiveAiData).forEach((key) => {
+      if (
+        key === "psychiatricFields" ||
+        key === "addictionFields" ||
+        key === "geriatricFields" ||
+        key === "elderlyChecklistFields"
+      ) {
+        merged[key] = mergeNested(currentValues[key], effectiveAiData[key]);
+      } else {
+        if (isEmptyVal(currentValues[key]) && !isEmptyVal(effectiveAiData[key])) {
+          merged[key] = effectiveAiData[key];
+        }
+      }
+    });
+
+    if (effectiveAiData.audioDetails) {
+      merged.audioDetails =
+        typeof effectiveAiData.audioDetails === "string"
+          ? effectiveAiData.audioDetails
+          : JSON.stringify(effectiveAiData.audioDetails);
+    }
+
+    merged.aiGenerated = true;
+    merged.aiReviewed = Boolean(currentValues.aiReviewed);
+
+    return merged;
+  };
+
+  validationValuesRef.current = validation.values;
+
+  // Socket.io Integration mirroring Counseling Notes
+  useEffect(() => {
+    const SOCKET_BASE_URL = api.API_URL.replace("/api/v1", "");
+    const socket = io(SOCKET_BASE_URL, {
+      path: "/socket/search",
+      withCredentials: true,
+      transports: ["websocket"],
+    });
+    socketRef.current = socket;
+
+    socket.on("detailHistoryAiProgress", (data) => {
+      if (data?.sessionId === sessionIdRef.current) {
+        setGenerationProgress({
+          status: data.status,
+          message: data.message,
+          percent: data.percent,
+        });
+      }
+    });
+
+    socket.on("detailHistoryAiDone", (data) => {
+      console.log("detailHistoryAiDone received", {
+        incomingSessionId: data?.sessionId,
+        currentSessionIdRef: sessionIdRef.current,
+        match: data?.sessionId === sessionIdRef.current,
+      });
+      if (data?.sessionId !== sessionIdRef.current) return;
+      try {
+        if (data.data) {
+          const currentVals = validationValuesRef.current || validation.values;
+          const merged = smartMergeAiData(currentVals, data.data);
+          validation.setValues(merged);
+        }
+        toast.success(
+          "Detail History successfully auto-filled! Please review across tabs before saving."
+        );
+      } catch (err) {
+        console.error("detailHistoryAiDone handler failed:", err);
+        toast.error(
+          "AI auto-fill completed but applying the results failed. Please check the browser console and try again."
+        );
+      } finally {
+        setIsGenerating(false);
+        setHasGenerated(true);
+      }
+    });
+
+    socket.on("detailHistoryAiError", (data) => {
+      if (data?.sessionId === sessionIdRef.current) {
+        setIsGenerating(false);
+        toast.error(data.error || "Failed to process audio recording");
+      }
+    });
+
+    return () => {
+      if (isGeneratingRef.current && sessionIdRef.current) {
+        abortDetailAdmissionAudio({
+          sessionId: sessionIdRef.current,
+          audioPath: uploadedAudioRef.current?.path,
+        }).catch(() => {});
+      }
+      socket.off("detailHistoryAiProgress");
+      socket.off("detailHistoryAiDone");
+      socket.off("detailHistoryAiError");
+      socket.disconnect();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleStartGeneration = async () => {
+    if (!uploadedAudio?.url) {
+      toast.error("Please upload an audio file first");
+      return;
+    }
+
+    const sessionId = `dh-ai-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    sessionIdRef.current = sessionId;
+    setIsGenerating(true);
+    setGenerationProgress({
+      status: "starting",
+      message: "Initiating background AI analysis...",
+      percent: 5,
+    });
+
+    try {
+      await generateDetailAdmissionAudio({
+        audioUrl: uploadedAudio.url,
+        audioPath: uploadedAudio.path,
+        sessionId,
+        patientId: patient?._id,
+        centerId: center,
+        audioDetails: uploadedAudio,
+      });
+    } catch (err) {
+      setIsGenerating(false);
+      toast.error(err.message || "Failed to start AI generation");
+    }
+  };
+
+  const handleAbortGeneration = async (shouldToast = true) => {
+    if (sessionIdRef.current) {
+      try {
+        await abortDetailAdmissionAudio({
+          sessionId: sessionIdRef.current,
+          audioPath: uploadedAudio?.path,
+        });
+        if (shouldToast) toast.info("AI generation aborted and audio cleaned up.");
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn("Abort error:", err);
+      }
+    }
+    setIsGenerating(false);
+    sessionIdRef.current = null;
+  };
+
+  const handleModalClose = async () => {
+    if (isGeneratingRef.current && sessionIdRef.current) {
+      await handleAbortGeneration(false);
+    }
+    closeForm();
+  };
+
+  const handleOpenClearModal = () => {
+    setIsClearModalOpen(true);
+  };
+
+  const clearFormHandler = isEdit ? undefined : handleOpenClearModal;
+
+  const handleConfirmClearForm = () => {
+    isClearingRef.current = true;
+    try {
+      localStorage.removeItem(draftKey);
+    } catch {
+      // ignore
+    }
+    setDraftCleared(true);
+    setUploadedAudio(null);
+    setHasGenerated(false);
+    validation.resetForm();
+    validation.setFieldValue("aiGenerated", false);
+    validation.setFieldValue("aiReviewed", false);
+    setIsClearModalOpen(false);
+    setFormStep(isEdit ? CHIEF_COMPLAINTS : RECORDING);
+    toast.success("All form fields and draft cleared.");
+  };
+
   const isGeriatric =
     validation.values.patientType?.toLowerCase() === "geriatric";
 
@@ -893,6 +1308,15 @@ const DetailAdmission = ({
 
   useEffect(() => {
     if (isEdit) return; // don't overwrite real data with a draft
+    if (isClearingRef.current) {
+      isClearingRef.current = false;
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {
+        // ignore
+      }
+      return;
+    }
     localStorage.setItem(draftKey, JSON.stringify(validation.values));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validation.values]);
@@ -903,40 +1327,33 @@ const DetailAdmission = ({
       <div>
         <Row className="mt-3">
           <div className="arrow-buttons d-flex gap-3">
-            {/* <Button
-              className=""
-              outline={formStep !== CONSET_FILES}
-              onClick={() => setFormStep(CONSET_FILES)}
-            >
-              Consent Files
-            </Button>{" "} */}
+            {!isEdit && type === "IPD" && (
+              <Button
+                outline={formStep !== RECORDING}
+                onClick={() => setFormStep(RECORDING)}
+                disabled={isGenerating}
+              >
+                Recording
+              </Button>
+            )}
             <Button
               outline={formStep !== CHIEF_COMPLAINTS}
               onClick={() => setFormStep(CHIEF_COMPLAINTS)}
+              disabled={isGenerating}
             >
               Chief Complaints
             </Button>
             <Button
               outline={formStep !== PATIENT_TYPE_FIELDS}
               onClick={() => setFormStep(PATIENT_TYPE_FIELDS)}
+              disabled={isGenerating}
             >
               Patient Type Assessment
             </Button>
-            {/* <Button
-              outline={formStep !== PROVISIONAL_DIAGNOSIS}
-              onClick={() => setFormStep(PROVISIONAL_DIAGNOSIS)}
-            >
-              Provisional Diagnosis
-            </Button> */}
-            {/* <Button
-              outline={formStep !== DETAIL_ADMISSION}
-              onClick={() => setFormStep(DETAIL_ADMISSION)}
-            >
-              Detail Admission
-            </Button> */}
             <Button
               outline={formStep !== DETAIL_HISTORY}
               onClick={() => setFormStep(DETAIL_HISTORY)}
+              disabled={isGenerating}
             >
               Other History
             </Button>
@@ -944,6 +1361,7 @@ const DetailAdmission = ({
               <Button
                 outline={formStep !== ELDERLY_CHECKLIST}
                 onClick={() => setFormStep(ELDERLY_CHECKLIST)}
+                disabled={isGenerating}
               >
                 Elderly Functional and Daily Living Checklist
               </Button>
@@ -951,148 +1369,196 @@ const DetailAdmission = ({
             <Button
               outline={formStep !== MENTAL_EXAMINATION}
               onClick={() => setFormStep(MENTAL_EXAMINATION)}
+              disabled={isGenerating}
             >
               Mental Status Examination
             </Button>
-            {/* <Button
-              outline={formStep !== PHYSICAL_EXAMINATION}
-              onClick={() => setFormStep(PHYSICAL_EXAMINATION)}
-            >
-              Physical Status Examination
-            </Button> */}
             <Button
               outline={formStep !== DOCTOR_SIGNATURE}
               onClick={() => setFormStep(DOCTOR_SIGNATURE)}
+              disabled={isGenerating}
             >
               Diagnosis & Plan
             </Button>
             <Button
               outline={formStep !== SPECIAL_REQUIREMENTS}
               onClick={() => setFormStep(SPECIAL_REQUIREMENTS)}
+              disabled={isGenerating}
             >
               Special Requirements
             </Button>
           </div>
           <div className="mt-4">
-            <Form
-              // key={detailAdmissionForm?._id || "new"}
-              key="detail-admission-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                validation.handleSubmit();
-                // toggle();
-                return false;
-              }}
-              className="needs-validation"
-              action="#"
+            <DetailHistoryClearContext.Provider
+              value={{ onClearForm: clearFormHandler, isGenerating }}
             >
-              {/* {formStep === CONSET_FILES && (
-                <>
-                  {consentUploadedFiles}
-                  <ConsentFiles
-                    consentFiles={consentFiles}
-                    setConsentFiles={setConsentFiles}
+              <Form
+                // key={detailAdmissionForm?._id || "new"}
+                key="detail-admission-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  validation.handleSubmit();
+                  // toggle();
+                  return false;
+                }}
+                className="needs-validation"
+                action="#"
+              >
+                {/* {formStep === CONSET_FILES && (
+                  <>
+                    {consentUploadedFiles}
+                    <ConsentFiles
+                      consentFiles={consentFiles}
+                      setConsentFiles={setConsentFiles}
+                      setFormStep={setFormStep}
+                      step={CHIEF_COMPLAINTS}
+                    />
+                  </>
+                )} */}
+
+                {!isEdit && type === "IPD" && formStep === RECORDING && (
+                  <RecordingTab
+                    patient={patient}
+                    center={center}
+                    isGenerating={isGenerating}
+                    generationProgress={generationProgress}
+                    onStartGeneration={handleStartGeneration}
+                    onAbortGeneration={handleAbortGeneration}
                     setFormStep={setFormStep}
-                    step={CHIEF_COMPLAINTS}
+                    nextStep={CHIEF_COMPLAINTS}
+                    uploadedAudio={uploadedAudio}
+                    setUploadedAudio={setUploadedAudio}
+                    hasGenerated={hasGenerated}
+                    onClearForm={clearFormHandler}
                   />
-                </>
-              )} */}
+                )}
 
-              {formStep === CHIEF_COMPLAINTS && (
-                <ChiefComplaintsForm
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={PATIENT_TYPE_FIELDS}
-                />
-              )}
+                {formStep === CHIEF_COMPLAINTS && (
+                  <ChiefComplaintsForm
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={PATIENT_TYPE_FIELDS}
+                  />
+                )}
 
-              {/* {formStep === PROVISIONAL_DIAGNOSIS && (
-                <ProvisionalDiagnosisForm
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={DETAIL_HISTORY}
-                />
-              )} */}
+                {/* {formStep === PROVISIONAL_DIAGNOSIS && (
+                  <ProvisionalDiagnosisForm
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={DETAIL_HISTORY}
+                  />
+                )} */}
 
-              {/* {formStep === DETAIL_ADMISSION && (
-                <DetailAdmissionForm
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={DETAIL_HISTORY}
-                />
-              )} */}
+                {/* {formStep === DETAIL_ADMISSION && (
+                  <DetailAdmissionForm
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={DETAIL_HISTORY}
+                  />
+                )} */}
 
-              {formStep === PATIENT_TYPE_FIELDS && (
-                <PatientTypeFields
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={DETAIL_HISTORY}
-                  forceShowErrors={patientTypeSubmitAttempted}
-                />
-              )}
+                {formStep === PATIENT_TYPE_FIELDS && (
+                  <PatientTypeFields
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={DETAIL_HISTORY}
+                    forceShowErrors={patientTypeSubmitAttempted}
+                    onClearForm={clearFormHandler}
+                  />
+                )}
 
-              {formStep === DETAIL_HISTORY && (
-                <DetailHistoryForm
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={isGeriatric ? ELDERLY_CHECKLIST : MENTAL_EXAMINATION}
-                />
-              )}
+                {formStep === DETAIL_HISTORY && (
+                  <DetailHistoryForm
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={isGeriatric ? ELDERLY_CHECKLIST : MENTAL_EXAMINATION}
+                  />
+                )}
 
-              {formStep === ELDERLY_CHECKLIST && (
-                <ElderlyChecklistForm
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={MENTAL_EXAMINATION}
-                  forceShowErrors={elderlyChecklistSubmitAttempted}
-                  patient={patient}
-                />
-              )}
+                {formStep === ELDERLY_CHECKLIST && (
+                  <ElderlyChecklistForm
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={MENTAL_EXAMINATION}
+                    forceShowErrors={elderlyChecklistSubmitAttempted}
+                    patient={patient}
+                  />
+                )}
 
-              {formStep === MENTAL_EXAMINATION &&
-                (isOldMentalExamination ? (
-                  <MentalExamination
+                {formStep === MENTAL_EXAMINATION &&
+                  (isOldMentalExamination ? (
+                    <MentalExamination
+                      validation={validation}
+                      setFormStep={setFormStep}
+                      step={DOCTOR_SIGNATURE}
+                      mode="old"
+                    />
+                  ) : (
+                    <MentalExaminationV2
+                      validation={validation}
+                      setFormStep={setFormStep}
+                      step={DOCTOR_SIGNATURE}
+                      mode="new"
+                    />
+                  ))}
+
+                {/* {formStep === PHYSICAL_EXAMINATION && (
+                  <PhysicalExamination
                     validation={validation}
                     setFormStep={setFormStep}
                     step={DOCTOR_SIGNATURE}
-                    mode="old"
                   />
-                ) : (
-                  <MentalExaminationV2
+                )} */}
+
+                {formStep === DOCTOR_SIGNATURE && (
+                  <DoctorSignature
                     validation={validation}
                     setFormStep={setFormStep}
-                    step={DOCTOR_SIGNATURE}
-                    mode="new"
+                    step={SPECIAL_REQUIREMENTS}
                   />
-                ))}
+                )}
 
-              {/* {formStep === PHYSICAL_EXAMINATION && (
-                <PhysicalExamination
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={DOCTOR_SIGNATURE}
-                />
-              )} */}
-
-              {formStep === DOCTOR_SIGNATURE && (
-                <DoctorSignature
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={SPECIAL_REQUIREMENTS}
-                />
-              )}
-
-              {formStep === SPECIAL_REQUIREMENTS && (
-                <SpecialRequirementsForm
-                  validation={validation}
-                  closeForm={closeForm}
-                  editChartData={editChartData}
-                  author={author}
-                />
-              )}
-            </Form>
+                {formStep === SPECIAL_REQUIREMENTS && (
+                  <SpecialRequirementsForm
+                    validation={validation}
+                    closeForm={handleModalClose}
+                    editChartData={editChartData}
+                    author={author}
+                    onClearForm={clearFormHandler}
+                    isEdit={isEdit}
+                  />
+                )}
+              </Form>
+            </DetailHistoryClearContext.Provider>
           </div>
         </Row>
+
+        {/* Clear Form Confirmation Modal */}
+        <Modal
+          isOpen={isClearModalOpen}
+          toggle={() => setIsClearModalOpen(false)}
+          centered
+        >
+          <ModalHeader toggle={() => setIsClearModalOpen(false)}>
+            <i className="ri-alert-line text-warning me-2"></i> Confirm Clear Form
+          </ModalHeader>
+          <ModalBody>
+            <p className="mb-0 fs-6">
+              Are you sure you want to clear all form fields and local storage draft?
+            </p>
+            <small className="text-muted d-block mt-2">
+              This will reset all entered data across every tab, remove the saved draft, and reset the AI validation status. This action cannot be undone.
+            </small>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="light" onClick={() => setIsClearModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button color="danger" onClick={handleConfirmClearForm}>
+              <i className="ri-delete-bin-line me-1"></i> Yes, Clear Form
+            </Button>
+          </ModalFooter>
+        </Modal>
       </div>
     </React.Fragment>
   );

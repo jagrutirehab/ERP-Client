@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import PropTypes from "prop-types";
-import { Col, Row } from "reactstrap";
+import { Col, Row, Card, CardBody } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
@@ -151,9 +151,108 @@ const DetailAdmission = ({ data }) => {
     geriatric: "Geriatric / Dementia / Palliative Assessment",
   };
 
+  const audioDetails = useMemo(() => {
+    if (!data?.audioDetails) return null;
+    if (typeof data.audioDetails === "string") {
+      try {
+        return JSON.parse(data.audioDetails);
+      } catch {
+        return null;
+      }
+    }
+    return data.audioDetails;
+  }, [data?.audioDetails]);
+
+  const formatFileSize = (bytes) => {
+    if (!bytes || Number(bytes) === 0) return "0 MB";
+    const num = Number(bytes);
+    if (num < 1024 * 1024) {
+      return `${(num / 1024).toFixed(1)} KB`;
+    }
+    const mb = num / (1024 * 1024);
+    return `${mb.toFixed(2)} MB`;
+  };
+
+  const formatDuration = (seconds) => {
+    if (!seconds || Number(seconds) === 0) return "0:00";
+    const total = Math.round(Number(seconds));
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
   return (
     <React.Fragment>
       <Row>
+        {audioDetails?.url && (
+          <Col xs={12} className="mb-3">
+            <Card
+              className="border shadow-none"
+              style={{ backgroundColor: "#f8fafc", borderColor: "#e2e8f0" }}
+            >
+              <CardBody className="p-3">
+                <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                  <div className="d-flex align-items-center gap-2">
+                    <div
+                      className="rounded-circle d-flex align-items-center justify-content-center bg-primary-subtle text-primary"
+                      style={{ width: "36px", height: "36px", flexShrink: 0 }}
+                    >
+                      <i
+                        className={
+                          audioDetails.sourceType === "recorded"
+                            ? "ri-mic-line fs-5"
+                            : "ri-file-music-line fs-5"
+                        }
+                      ></i>
+                    </div>
+                    <div>
+                      <h6 className="fs-13 fw-semibold mb-0 text-dark">
+                        {audioDetails.originalName || "Audio Recording"}
+                      </h6>
+                      <div className="d-flex flex-wrap align-items-center gap-3 text-muted fs-11 mt-1">
+                        {audioDetails.size ? (
+                          <span>
+                            <i className="ri-hard-drive-2-line me-1"></i>
+                            {formatFileSize(audioDetails.size)}
+                          </span>
+                        ) : null}
+                        {audioDetails.duration ? (
+                          <span>
+                            <i className="ri-time-line me-1"></i>
+                            {formatDuration(audioDetails.duration)}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    {audioDetails.sourceType === "recorded" ? (
+                      <span className="badge badge-soft-primary text-primary d-inline-flex align-items-center py-1 px-2 fs-11">
+                        <i className="ri-mic-line me-1"></i> Browser Recording
+                      </span>
+                    ) : (
+                      <span className="badge badge-soft-info text-info d-inline-flex align-items-center py-1 px-2 fs-11">
+                        <i className="ri-upload-cloud-2-line me-1"></i> Uploaded File
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-2">
+                  <audio
+                    controls
+                    className="w-100"
+                    src={audioDetails.url}
+                    preload="metadata"
+                    style={{ height: "40px" }}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        )}
         {/* {data?.detailAdmission && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Detail Admission</h6>
         )}

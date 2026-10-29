@@ -22,10 +22,19 @@ const FixedGridField = ({ field, values, onChange, error }) => {
         (acc, col) => ({ ...acc, [col.key]: "" }),
         {},
       );
-      onChange(
-        path,
-        rowLabels.map((label) => ({ [rowLabelKey]: label, ...emptyRowShape })),
-      );
+      const existingRows = Array.isArray(currentValue) ? currentValue : [];
+      const seeded = rowLabels.map((label) => {
+        const existing = existingRows.find(
+          (r) =>
+            r &&
+            (r[rowLabelKey] === label ||
+              String(r[rowLabelKey]).toLowerCase().trim() === String(label).toLowerCase().trim())
+        );
+        return existing
+          ? { ...emptyRowShape, ...existing }
+          : { [rowLabelKey]: label, ...emptyRowShape };
+      });
+      onChange(path, seeded);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path]);
@@ -33,9 +42,13 @@ const FixedGridField = ({ field, values, onChange, error }) => {
   const rows = Array.isArray(currentValue) ? currentValue : [];
 
   const setCell = (rowIndex, key, value) => {
-    const next = rows.map((row, i) =>
-      i === rowIndex ? { ...row, [key]: value } : row,
-    );
+    const next = rows.map((row, i) => {
+      if (i !== rowIndex) return row;
+      const updated = { ...row, [key]: value };
+      if (key === "quantityDose") updated.quantity = value;
+      if (key === "quantity") updated.quantityDose = value;
+      return updated;
+    });
     onChange(path, next);
   };
 
@@ -63,7 +76,15 @@ const FixedGridField = ({ field, values, onChange, error }) => {
               <tr key={rowLabel}>
                 <td className="fw-semibold">{rowLabel}</td>
                 {columns.map((col) => {
-                  const cellValue = rows[rowIndex]?.[col.key];
+                  const rawCellValue = rows[rowIndex]?.[col.key];
+                  const cellValue =
+                    rawCellValue !== undefined && rawCellValue !== null && rawCellValue !== ""
+                      ? rawCellValue
+                      : col.key === "quantityDose"
+                      ? rows[rowIndex]?.quantity
+                      : col.key === "quantity"
+                      ? rows[rowIndex]?.quantityDose
+                      : "";
                   const cellName = `${path}.${rowIndex}.${col.key}`;
 
                   if (col.type === "select") {
@@ -71,6 +92,13 @@ const FixedGridField = ({ field, values, onChange, error }) => {
                       value: opt,
                       label: opt,
                     }));
+                    const matchedOption = cellValue
+                      ? cellOptions.find(
+                          (o) =>
+                            o.value.toLowerCase().trim() ===
+                            String(cellValue).toLowerCase().trim()
+                        ) || { value: cellValue, label: cellValue }
+                      : null;
                     return (
                       <td key={col.key} style={{ minWidth: 160 }}>
                         <Select
@@ -86,11 +114,7 @@ const FixedGridField = ({ field, values, onChange, error }) => {
                             control: (base) => ({ ...base, minHeight: 31 }),
                           }}
                           options={cellOptions}
-                          value={
-                            cellValue
-                              ? { value: cellValue, label: cellValue }
-                              : null
-                          }
+                          value={matchedOption}
                           onChange={(selected) =>
                             setCell(
                               rowIndex,
