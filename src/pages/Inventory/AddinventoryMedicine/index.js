@@ -289,6 +289,7 @@ const AddinventoryMedicine = ({
       const res = await axios.get("/medicine/", {
         params: {
           search: query,
+          excludePending: true,
         },
       });
       const payload = res?.payload || [];
