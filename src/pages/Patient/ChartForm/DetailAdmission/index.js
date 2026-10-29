@@ -761,13 +761,6 @@ const DetailAdmission = ({
             : JSON.stringify(detailAdmissionForm.audioDetails))
         : "",
       ...(!isEdit && savedDraft ? savedDraft : {}),
-      // A NEW chart starts from the Patient Type already on the admission card
-      // (unless the draft has one). Editing keeps the chart's own value.
-      ...(!isEdit &&
-        !savedDraft?.patientType &&
-        patient?.addmission?.patientAdmissionType && {
-          patientType: patient.addmission.patientAdmissionType,
-        }),
     },
 
     validationSchema: Yup.object({
@@ -1210,20 +1203,22 @@ const DetailAdmission = ({
 
     // Normalize incoming aiData substance profile into addictionFields and psychiatricFields
     const effectiveAiData = { ...aiData };
-    const currentSelectedType = (
-      currentValues.patientType ||
-      patient?.addmission?.patientAdmissionType ||
-      ""
-    ).toLowerCase().trim();
+    const currentSelectedType = (currentValues.patientType || "").toLowerCase().trim();
+    const aiPatientType = (effectiveAiData.patientType || "").toLowerCase().trim();
 
-    // The active patient type: strictly lock to pre-selected if available, else AI-inferred
-    const resolvedType = currentSelectedType || (effectiveAiData.patientType || "").toLowerCase().trim();
-
-    if (currentSelectedType) {
-      merged.patientType = currentSelectedType;
-    } else if (resolvedType) {
-      merged.patientType = resolvedType;
+    // Dynamic AI Patient Type Switching:
+    // If AI detects geriatric (cognitive decline/memory loss), dynamically switch/set to geriatric (even if previous was addiction).
+    // If form patientType was unselected/empty, use AI-inferred type (or fallback to psychiatric).
+    let resolvedType = currentSelectedType;
+    if (aiPatientType === "geriatric") {
+      resolvedType = "geriatric";
+    } else if (!resolvedType) {
+      resolvedType = aiPatientType || "psychiatric";
+    } else if (aiPatientType) {
+      resolvedType = aiPatientType;
     }
+
+    merged.patientType = resolvedType;
 
     const rawSubstanceProfile =
       effectiveAiData.substanceProfile ||
@@ -1334,10 +1329,8 @@ const DetailAdmission = ({
           merged.substanceProfile = mergeRowArrays(currentValues.substanceProfile, effectiveAiData.substanceProfile);
         }
       } else if (key === "patientType") {
-        // NEVER allow incoming AI key to overwrite pre-selected patientType
-        if (!currentSelectedType && effectiveAiData.patientType) {
-          merged.patientType = String(effectiveAiData.patientType).toLowerCase().trim();
-        }
+        // Keep the dynamically resolved patientType
+        merged.patientType = resolvedType;
       } else {
         if (isEmptyVal(currentValues[key]) && !isEmptyVal(effectiveAiData[key])) {
           merged[key] = effectiveAiData[key];
@@ -1452,7 +1445,7 @@ const DetailAdmission = ({
         patientId: patient?._id,
         centerId: center,
         audioDetails: uploadedAudio,
-        patientType: (validation.values.patientType || patient?.addmission?.patientAdmissionType || "").toLowerCase().trim(),
+        patientType: (validation.values.patientType || "").toLowerCase().trim(),
       });
     } catch (err) {
       setIsGenerating(false);
