@@ -57,6 +57,150 @@ const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
 const PATIENT_TYPE_FIELDS = "PATIENT_TYPE_FIELDS";
 
+const IGNORED_KEYS = new Set([
+  "author",
+  "patient",
+  "center",
+  "addmission",
+  "chart",
+  "date",
+  "type",
+  "patientType",
+  "audioDetails",
+  "aiGenerated",
+  "aiReviewed",
+  "needsValidation",
+  // Pre-loaded patient demographic and admission DB fields
+  "age",
+  "gender",
+  "patientName",
+  "doctorConsultant",
+  "religion",
+  "maritalStatus",
+  "bloodGroup",
+  "occupation",
+  "education",
+  "address",
+  "referral",
+  "counsellor",
+  "ipdNo",
+  "opdNo",
+  "mrNo",
+  "bedNo",
+  "ward",
+  "patientAdmissionType",
+]);
+
+export const getDetailAdmissionDraftKey = (patientId) =>
+  `detail_admission_draft_${patientId || "new"}`;
+
+export const checkExistingDraft = (draftKey, legacyKey) => {
+  try {
+    const raw =
+      localStorage.getItem(draftKey) ||
+      (legacyKey ? localStorage.getItem(legacyKey) : null);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    return hasDraftContent(parsed);
+  } catch {
+    return false;
+  }
+};
+
+export const hasDraftContent = (data) => {
+  if (!data) return false;
+
+  // Support checking dedicated localStorage key directly if patientId or draft key is passed
+  if (typeof data === "string") {
+    const key =
+      data.startsWith("detail_admission_draft_") ||
+      data.startsWith("detailAdmissionDraft_")
+        ? data
+        : getDetailAdmissionDraftKey(data);
+    return checkExistingDraft(key, `detailAdmissionDraft_${data}`);
+  }
+
+  if (typeof data !== "object") return false;
+
+  const isMeaningful = (key, val) => {
+    if (val === undefined || val === null) return false;
+    if (IGNORED_KEYS.has(key)) return false;
+
+    // Standard initial defaults that are NOT user edits
+    if (key === "reliable" && (val === "Reliable" || val === "")) return false;
+    if (key === "adequate" && (val === "Adequate" || val === "")) return false;
+    if (key === "delusions" && (val === "none" || val === "")) return false;
+    if (key === "delusionNotes" && String(val).trim() === "") return false;
+
+    // Handle substanceProfile array
+    if (key === "substanceProfile") {
+      if (!Array.isArray(val) || val.length === 0) return false;
+      return val.some(
+        (row) =>
+          row &&
+          ((row.ageOfFirstUse && String(row.ageOfFirstUse).trim()) ||
+            (row.currentUse && String(row.currentUse).trim()) ||
+            (row.frequency && String(row.frequency).trim()) ||
+            (row.quantity && String(row.quantity).trim()) ||
+            (row.quantityDose && String(row.quantityDose).trim()) ||
+            (row.lastUse && String(row.lastUse).trim()) ||
+            (row.route && String(row.route).trim()))
+      );
+    }
+
+    // Handle serialized JSON strings for patient type fields
+    if (
+      key === "psychiatricFields" ||
+      key === "addictionFields" ||
+      key === "geriatricFields" ||
+      key === "elderlyChecklistFields"
+    ) {
+      if (typeof val === "string") {
+        try {
+          const parsed = JSON.parse(val);
+          return hasDraftContent(parsed);
+        } catch {
+          return false;
+        }
+      }
+      if (typeof val === "object") {
+        return hasDraftContent(val);
+      }
+      return false;
+    }
+
+    if (typeof val === "string") return val.trim().length > 0;
+    if (typeof val === "number") return !isNaN(val);
+    if (typeof val === "boolean") return val === true;
+
+    if (Array.isArray(val)) {
+      if (val.length === 0) return false;
+      return val.some((item) => {
+        if (item === null || item === undefined) return false;
+        if (typeof item === "string") {
+          const trimmed = item.trim();
+          return trimmed.length > 0 && trimmed !== "None" && trimmed !== "None identified";
+        }
+        if (typeof item === "object") return hasDraftContent(item);
+        return Boolean(item);
+      });
+    }
+
+    if (typeof val === "object") {
+      return hasDraftContent(val);
+    }
+
+    return false;
+  };
+
+  for (const [key, val] of Object.entries(data)) {
+    if (isMeaningful(key, val)) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 const DetailAdmission = ({
   author,
@@ -93,8 +237,9 @@ const DetailAdmission = ({
   const [uploadedAudio, setUploadedAudio] = useState(null);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isDraftConflictModalOpen, setIsDraftConflictModalOpen] = useState(false);
   const [draftCleared, setDraftCleared] = useState(false);
-  const isClearingRef = useRef(false);
+  const isDraftClearedRef = useRef(false);
 
   const sessionIdRef = useRef(null);
   const isGeneratingRef = useRef(false);
@@ -112,17 +257,22 @@ const DetailAdmission = ({
   // bridge stored Boolean (true/false/undefined) <-> Yes/No radio value
   const triToYesNo = (v) => (v === true ? "yes" : v === false ? "no" : "");
 
-  const draftKey = `detailAdmissionDraft_${patient?._id || "new"}`;
+  const draftKey = getDetailAdmissionDraftKey(patient?._id);
+  const legacyDraftKey = `detailAdmissionDraft_${patient?._id || "new"}`;
 
   const savedDraft = useMemo(() => {
-    if (isEdit || draftCleared) return null;
+    if (isEdit || draftCleared || isDraftClearedRef.current) return null;
     try {
-      const d = localStorage.getItem(draftKey);
-      return d ? JSON.parse(d) : null;
+      const d =
+        localStorage.getItem(draftKey) ||
+        localStorage.getItem(legacyDraftKey);
+      if (!d) return null;
+      const parsed = JSON.parse(d);
+      return hasDraftContent(parsed) ? parsed : null;
     } catch {
       return null;
     }
-  }, [draftKey, isEdit, draftCleared]);
+  }, [draftKey, legacyDraftKey, isEdit, draftCleared]);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -973,6 +1123,7 @@ const DetailAdmission = ({
 
   // Smart Merge Strategy: Preserve existing user inputs, populate empty fields
   const smartMergeAiData = (currentValues, aiData) => {
+
     if (!aiData || typeof aiData !== "object") return currentValues;
 
     const merged = { ...currentValues };
@@ -1059,38 +1210,74 @@ const DetailAdmission = ({
 
     // Normalize incoming aiData substance profile into addictionFields and psychiatricFields
     const effectiveAiData = { ...aiData };
+    const currentSelectedType = (
+      currentValues.patientType ||
+      patient?.addmission?.patientAdmissionType ||
+      ""
+    ).toLowerCase().trim();
+
+    // The active patient type: strictly lock to pre-selected if available, else AI-inferred
+    const resolvedType = currentSelectedType || (effectiveAiData.patientType || "").toLowerCase().trim();
+
+    if (currentSelectedType) {
+      merged.patientType = currentSelectedType;
+    } else if (resolvedType) {
+      merged.patientType = resolvedType;
+    }
+
     const rawSubstanceProfile =
       effectiveAiData.substanceProfile ||
       parseObj(effectiveAiData.addictionFields)?.substanceProfile ||
       parseObj(effectiveAiData.psychiatricFields)?.pastIllness?.substanceUseTable;
 
-    if (Array.isArray(rawSubstanceProfile) && rawSubstanceProfile.length > 0) {
+    const hasSubstanceUse = Array.isArray(rawSubstanceProfile) && rawSubstanceProfile.some(
+      (r) => r.ageOfFirstUse || r.currentUse || r.frequency || r.quantityDose || r.quantity || r.lastUse
+    );
+
+    // Route substance profiles and prevent cross-contamination based on active patient type (100% HMIS Compliance)
+    if (resolvedType === "geriatric") {
+      // Clear psychiatric, addiction, and substance grids for geriatric patients to enforce 100% HMIS isolation
+      effectiveAiData.psychiatricFields = {};
+      effectiveAiData.addictionFields = {};
+      effectiveAiData.substanceProfile = [];
+      merged.substanceProfile = [];
+      merged.psychiatricFields = JSON.stringify({});
+      merged.addictionFields = JSON.stringify({});
+    } else if (resolvedType === "addiction") {
+      effectiveAiData.geriatricFields = {};
+      effectiveAiData.elderlyChecklistFields = {};
+      effectiveAiData.psychiatricFields = {};
+      merged.geriatricFields = JSON.stringify({});
+      merged.elderlyChecklistFields = JSON.stringify({});
+      merged.psychiatricFields = JSON.stringify({});
       const parsedAddiction = parseObj(effectiveAiData.addictionFields);
-      if (!parsedAddiction.substanceProfile || parsedAddiction.substanceProfile.length === 0) {
-        parsedAddiction.substanceProfile = rawSubstanceProfile;
+      if (Array.isArray(rawSubstanceProfile) && rawSubstanceProfile.length > 0) {
+        if (!parsedAddiction.substanceProfile || parsedAddiction.substanceProfile.length === 0) {
+          parsedAddiction.substanceProfile = rawSubstanceProfile;
+        }
       }
-      const hasSubstanceUse = rawSubstanceProfile.some(
-        (r) => r.ageOfFirstUse || r.currentUse || r.frequency || r.quantityDose || r.quantity || r.lastUse
-      );
       if (parsedAddiction.noSubstanceUseReported === undefined) {
         parsedAddiction.noSubstanceUseReported = !hasSubstanceUse;
       }
       effectiveAiData.addictionFields = parsedAddiction;
-
+    } else if (resolvedType === "psychiatric") {
+      effectiveAiData.geriatricFields = {};
+      effectiveAiData.elderlyChecklistFields = {};
+      effectiveAiData.addictionFields = {};
+      merged.geriatricFields = JSON.stringify({});
+      merged.elderlyChecklistFields = JSON.stringify({});
+      merged.addictionFields = JSON.stringify({});
       const parsedPsych = parseObj(effectiveAiData.psychiatricFields);
       parsedPsych.pastIllness = parsedPsych.pastIllness || {};
-      if (!parsedPsych.pastIllness.substanceUseTable || parsedPsych.pastIllness.substanceUseTable.length === 0) {
-        parsedPsych.pastIllness.substanceUseTable = rawSubstanceProfile;
+      if (Array.isArray(rawSubstanceProfile) && rawSubstanceProfile.length > 0) {
+        if (!parsedPsych.pastIllness.substanceUseTable || parsedPsych.pastIllness.substanceUseTable.length === 0) {
+          parsedPsych.pastIllness.substanceUseTable = rawSubstanceProfile;
+        }
       }
       if (!parsedPsych.pastIllness.substanceUseHistory) {
         parsedPsych.pastIllness.substanceUseHistory = hasSubstanceUse ? "Yes" : "No";
       }
       effectiveAiData.psychiatricFields = parsedPsych;
-
-      // Auto-set patientType to addiction if primary concern is substance use and not already chosen
-      if (hasSubstanceUse && (!merged.patientType || merged.patientType === "general")) {
-        merged.patientType = "addiction";
-      }
     }
 
     const mergeNested = (currentRaw, aiRaw) => {
@@ -1127,7 +1314,30 @@ const DetailAdmission = ({
         key === "geriatricFields" ||
         key === "elderlyChecklistFields"
       ) {
+        // Prevent cross-contamination: do not merge fields outside active patient type
+        if (resolvedType === "geriatric" && (key === "psychiatricFields" || key === "addictionFields")) {
+          return;
+        }
+        if (resolvedType === "psychiatric" && (key === "geriatricFields" || key === "elderlyChecklistFields" || key === "addictionFields")) {
+          return;
+        }
+        if (resolvedType === "addiction" && (key === "geriatricFields" || key === "elderlyChecklistFields" || key === "psychiatricFields")) {
+          return;
+        }
         merged[key] = mergeNested(currentValues[key], effectiveAiData[key]);
+      } else if (key === "substanceProfile") {
+        if (resolvedType === "geriatric") {
+          // Zero substance grid bleeding into geriatric charts
+          return;
+        }
+        if (Array.isArray(effectiveAiData.substanceProfile)) {
+          merged.substanceProfile = mergeRowArrays(currentValues.substanceProfile, effectiveAiData.substanceProfile);
+        }
+      } else if (key === "patientType") {
+        // NEVER allow incoming AI key to overwrite pre-selected patientType
+        if (!currentSelectedType && effectiveAiData.patientType) {
+          merged.patientType = String(effectiveAiData.patientType).toLowerCase().trim();
+        }
       } else {
         if (isEmptyVal(currentValues[key]) && !isEmptyVal(effectiveAiData[key])) {
           merged[key] = effectiveAiData[key];
@@ -1242,6 +1452,7 @@ const DetailAdmission = ({
         patientId: patient?._id,
         centerId: center,
         audioDetails: uploadedAudio,
+        patientType: (validation.values.patientType || patient?.addmission?.patientAdmissionType || "").toLowerCase().trim(),
       });
     } catch (err) {
       setIsGenerating(false);
@@ -1256,7 +1467,7 @@ const DetailAdmission = ({
           sessionId: sessionIdRef.current,
           audioPath: uploadedAudio?.path,
         });
-        if (shouldToast) toast.info("AI generation aborted and audio cleaned up.");
+        if (shouldToast) toast.info("AI generation aborted.");
       } catch (err) {
         // eslint-disable-next-line no-console
         console.warn("Abort error:", err);
@@ -1280,9 +1491,10 @@ const DetailAdmission = ({
   const clearFormHandler = isEdit ? undefined : handleOpenClearModal;
 
   const handleConfirmClearForm = () => {
-    isClearingRef.current = true;
+    isDraftClearedRef.current = true;
     try {
       localStorage.removeItem(draftKey);
+      localStorage.removeItem(legacyDraftKey);
     } catch {
       // ignore
     }
@@ -1295,6 +1507,44 @@ const DetailAdmission = ({
     setIsClearModalOpen(false);
     setFormStep(isEdit ? CHIEF_COMPLAINTS : RECORDING);
     toast.success("All form fields and draft cleared.");
+
+    setTimeout(() => {
+      isDraftClearedRef.current = false;
+    }, 500);
+  };
+
+  const handleCheckDraftConflict = () => {
+    if (isEdit || isDraftClearedRef.current) return false;
+    // Strictly check if a dedicated saved draft exists in localStorage with user-modified content
+    const draftExists = checkExistingDraft(draftKey, legacyDraftKey);
+    if (draftExists) {
+      setIsDraftConflictModalOpen(true);
+      return true;
+    }
+    return false;
+  };
+
+  const handleClearDraftAndUnlock = () => {
+    isDraftClearedRef.current = true;
+    try {
+      localStorage.removeItem(draftKey);
+      localStorage.removeItem(legacyDraftKey);
+    } catch {
+      // ignore
+    }
+    setDraftCleared(true);
+    setUploadedAudio(null);
+    setHasGenerated(false);
+    validation.resetForm();
+    validation.setFieldValue("aiGenerated", false);
+    validation.setFieldValue("aiReviewed", false);
+    setIsDraftConflictModalOpen(false);
+    toast.success("Existing draft cleared. You can now upload or record a new audio file.");
+
+    // Keep draft cleared flag active until after Formik's re-renders settle
+    setTimeout(() => {
+      isDraftClearedRef.current = false;
+    }, 500);
   };
 
   const isGeriatric =
@@ -1308,16 +1558,26 @@ const DetailAdmission = ({
 
   useEffect(() => {
     if (isEdit) return; // don't overwrite real data with a draft
-    if (isClearingRef.current) {
-      isClearingRef.current = false;
+    if (isDraftClearedRef.current) {
+      // Prevent race condition: do not write back to localStorage while in cleared state
       try {
         localStorage.removeItem(draftKey);
+        localStorage.removeItem(legacyDraftKey);
       } catch {
         // ignore
       }
       return;
     }
-    localStorage.setItem(draftKey, JSON.stringify(validation.values));
+    if (hasDraftContent(validation.values)) {
+      localStorage.setItem(draftKey, JSON.stringify(validation.values));
+    } else {
+      try {
+        localStorage.removeItem(draftKey);
+        localStorage.removeItem(legacyDraftKey);
+      } catch {
+        // ignore
+      }
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validation.values]);
 
@@ -1428,8 +1688,9 @@ const DetailAdmission = ({
                     nextStep={CHIEF_COMPLAINTS}
                     uploadedAudio={uploadedAudio}
                     setUploadedAudio={setUploadedAudio}
-                    hasGenerated={hasGenerated}
+                    hasGenerated={hasGenerated || Boolean(validation.values.aiGenerated)}
                     onClearForm={clearFormHandler}
+                    onCheckDraftConflict={handleCheckDraftConflict}
                   />
                 )}
 
@@ -1556,6 +1817,39 @@ const DetailAdmission = ({
             </Button>
             <Button color="danger" onClick={handleConfirmClearForm}>
               <i className="ri-delete-bin-line me-1"></i> Yes, Clear Form
+            </Button>
+          </ModalFooter>
+        </Modal>
+
+        {/* Mandatory Draft Clearance Modal on Upload/Recording */}
+        <Modal
+          isOpen={isDraftConflictModalOpen}
+          toggle={() => setIsDraftConflictModalOpen(false)}
+          centered
+          backdrop="static"
+        >
+          <ModalHeader toggle={() => setIsDraftConflictModalOpen(false)}>
+            <i className="ri-error-warning-fill text-warning me-2 fs-5"></i> Existing Draft Found
+          </ModalHeader>
+          <ModalBody>
+            <div className="alert alert-warning d-flex align-items-start gap-2 mb-3">
+              <i className="ri-alert-line fs-5 mt-1"></i>
+              <div>
+                <strong>You must clear your existing draft before uploading or recording a new audio file.</strong>
+              </div>
+            </div>
+            <p className="text-muted small mb-0">
+              An existing draft with filled form data was detected for this patient.
+              To ensure clean AI auto-filling without mixing old data, you must clear the existing draft first.
+              Clicking <strong>&quot;Clear Draft&quot;</strong> will remove the saved draft and reset all form fields so you can proceed with a fresh audio recording.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="light" onClick={() => setIsDraftConflictModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button color="danger" onClick={handleClearDraftAndUnlock}>
+              <i className="ri-delete-bin-line me-1"></i> Clear Draft
             </Button>
           </ModalFooter>
         </Modal>

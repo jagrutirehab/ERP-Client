@@ -27,6 +27,7 @@ const RecordingTab = ({
   setUploadedAudio,
   hasGenerated,
   onClearForm: propOnClearForm,
+  onCheckDraftConflict,
 }) => {
   const context = useContext(DetailHistoryClearContext);
   const onClear = propOnClearForm || context?.onClearForm;
@@ -138,6 +139,12 @@ const RecordingTab = ({
 
   // File Input Handler (Upload Mode)
   const handleFileChange = async (e) => {
+    if (onCheckDraftConflict && onCheckDraftConflict()) {
+      if (e.target) e.target.value = null;
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -213,6 +220,10 @@ const RecordingTab = ({
 
   // Start Live Browser Recording
   const handleStartRecording = async () => {
+    if (onCheckDraftConflict && onCheckDraftConflict()) {
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -410,6 +421,12 @@ const RecordingTab = ({
                   className="form-control"
                   style={{ maxWidth: "450px" }}
                   accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm,.mpeg"
+                  onClick={(e) => {
+                    if (onCheckDraftConflict && onCheckDraftConflict()) {
+                      e.preventDefault();
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }
+                  }}
                   onChange={handleFileChange}
                   disabled={isUploading || isGenerating}
                 />
@@ -559,8 +576,8 @@ const RecordingTab = ({
             </Card>
           )}
 
-          {/* Generate Button & Generation State */}
-          {uploadedAudio && !isGenerating && (
+          {/* Generate Button & Generation State (Hidden once AI generation completes successfully) */}
+          {uploadedAudio && !isGenerating && !hasGenerated && (
             <div className="mb-4 text-center p-3 bg-light rounded border">
               <p className="mb-2 text-muted small">
                 Audio is ready. Click below to begin background chunking, transcription, and Detail History auto-fill.
@@ -687,6 +704,7 @@ RecordingTab.propTypes = {
   setUploadedAudio: PropTypes.func.isRequired,
   hasGenerated: PropTypes.bool,
   onClearForm: PropTypes.func,
+  onCheckDraftConflict: PropTypes.func,
 };
 
 export default RecordingTab;
