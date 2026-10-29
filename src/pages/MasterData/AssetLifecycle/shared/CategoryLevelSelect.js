@@ -12,7 +12,9 @@ export const EMPTY_CATEGORY = { categoryL1: "", categoryL2: "", categoryL3: "", 
 // value: { categoryL1, categoryL2, categoryL3, categoryL4 } (ids, "" when not chosen)
 // Choosing a level clears the levels below it.
 // onSettings({ canAssign, identifierLabel }) is called with what the chosen category says (deepest level wins)
-const CategoryLevelSelect = ({ value, onChange, onSettings, required = false, disabled = false, levels = 4, md = 3 }) => {
+// levelLabels: optional names for the boxes, e.g. ["Category", "Sub-category"] (default: "Category level 1", ...)
+// A deeper box only appears once the one above it is chosen, and only if there is something to choose.
+const CategoryLevelSelect = ({ value, onChange, onSettings, required = false, disabled = false, levels = 4, md = 3, levelLabels = [] }) => {
   const cache = useRef({});
   const [options, setOptions] = useState([[], [], [], []]);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -92,10 +94,12 @@ const CategoryLevelSelect = ({ value, onChange, onSettings, required = false, di
         {Array.from({ length: levels }, (_, i) => i + 1).map((n) => {
           const parentChosen = n === 1 || !!ids[n - 2];
           const list = options[n - 1] || [];
+          // no sub-categories under the chosen one: nothing to show (no empty, disabled boxes)
+          if (n > 1 && !(parentChosen && (loading || list.length > 0))) return null;
           return (
             <Col md={md} key={n} className="mb-3">
               <Label className="small">
-                Category level {n} {n === 1 && required && <span className="text-danger">*</span>}
+                {levelLabels[n - 1] || `Category level ${n}`} {n === 1 && required && <span className="text-danger">*</span>}
               </Label>
               {(() => {
                 const off = disabled || loading || !parentChosen || (parentChosen && list.length === 0 && n > 1);

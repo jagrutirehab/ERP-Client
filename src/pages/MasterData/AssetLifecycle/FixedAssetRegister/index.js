@@ -28,6 +28,7 @@ import {
   errText,
   useBusy,
 } from "../shared/assetUi";
+import { registerRows, whoHasWhatRows, downloadExcel } from "./exportRegister";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
@@ -561,6 +562,31 @@ const FixedAssetRegister = () => {
     },
   ];
 
+  // Export what is on the screen to Excel (the search and the filters are applied)
+  const statusText = (a) =>
+    a.lifecycleStatus === "sold" ? "Sold" : STATUS_META[a.status]?.label || a.status || "";
+  const handleExport = () => {
+    const byEmployee = viewMode === "byEmployee";
+    const rows = byEmployee
+      ? whoHasWhatRows(groups, statusText)
+      : registerRows(visible, statusText);
+    if (rows.length === 0) {
+      toast.info("Nothing to export. Change the search or the filters and try again");
+      return;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      downloadExcel(
+        rows,
+        byEmployee ? "Who has what" : "Fixed assets",
+        `${byEmployee ? "who-has-what" : "fixed-assets-register"}_${today}.xlsx`,
+      );
+      toast.success(`Exported ${rows.length} row${rows.length === 1 ? "" : "s"} to Excel`);
+    } catch {
+      toast.error("The Excel file could not be made. Please try again");
+    }
+  };
+
   const columns = [
     {
       name: "Asset",
@@ -676,11 +702,22 @@ const FixedAssetRegister = () => {
             status
           </p>
         </div>
-        {canEdit && (
-          <Button color="primary" onClick={() => setAddModal(true)}>
-            Add Asset
+        <div className="d-flex flex-wrap gap-2">
+          <Button
+            color="light"
+            className="border"
+            onClick={handleExport}
+            disabled={loading}
+            title="Download what is on the screen as an Excel file"
+          >
+            <i className="bx bx-download me-1"></i> Export
           </Button>
-        )}
+          {canEdit && (
+            <Button color="primary" onClick={() => setAddModal(true)}>
+              Add Asset
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Summary */}

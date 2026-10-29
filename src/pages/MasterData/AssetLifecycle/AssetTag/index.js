@@ -414,7 +414,7 @@ const AssetTag = () => {
         </div>
       )}
 
-      {canCreate && (
+      {/* {canCreate && (
         <div className="uom-table-card p-4 mb-4">
           <div className="d-flex align-items-center justify-content-between">
             <div>
@@ -478,7 +478,7 @@ const AssetTag = () => {
             </div>
           )}
         </div>
-      )}
+      )} */}
 
       <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
         <div className="uom-search-wrap" style={{ maxWidth: 260 }}>
