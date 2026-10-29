@@ -12,6 +12,7 @@ import {
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
+import CategoryLevelSelect, { EMPTY_CATEGORY } from "../shared/CategoryLevelSelect";
 import { errText } from "../shared/assetUi";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -64,7 +65,8 @@ const CapitalizationRequest = () => {
   const [itemName, setItemName] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [unitCost, setUnitCost] = useState("");
-  const [category, setCategory] = useState("");
+  const [costFromPo, setCostFromPo] = useState(null);
+  const [category, setCategory] = useState(EMPTY_CATEGORY);
   const [justification, setJustification] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -104,7 +106,7 @@ const CapitalizationRequest = () => {
     setItemName("");
     setQuantity(1);
     setUnitCost("");
-    setCategory("");
+    setCategory(EMPTY_CATEGORY);
     setJustification("");
     setSiteId("");
     setModalOpen(true);
@@ -120,6 +122,7 @@ const CapitalizationRequest = () => {
     setItemName("");
     setQuantity(1);
     setUnitCost("");
+    setCostFromPo(null);
     setSiteId("");
     const grn = grns.find((g) => g._id === id);
     setGrnItems(grn?.lineItems || []);
@@ -129,12 +132,16 @@ const CapitalizationRequest = () => {
     setItemName(name);
     const line = grnItems.find((li) => li.itemName === name);
     if (line) setQuantity(line.receivedQty);
+    // the rate comes from the same item on the PO (before tax); it can still be changed
+    const poLine = (selectedGrn?.poId?.lineItems || []).find((li) => li.itemName === name);
+    setUnitCost(poLine?.unitPrice > 0 ? String(poLine.unitPrice) : "");
+    setCostFromPo(poLine?.unitPrice > 0 ? poLine : null);
   };
 
   const handleSubmit = async () => {
     if (!grnId) return toast.error("Select a GRN");
     if (!itemName.trim()) return toast.error("Select an item");
-    if (!category.trim()) return toast.error("Enter a category");
+    if (!category.categoryL1) return toast.error("Choose the category");
     const qtyNum = Number(quantity);
     if (!Number.isInteger(qtyNum) || qtyNum < 1)
       return toast.error("Quantity must be a whole number, at least 1");
@@ -154,7 +161,7 @@ const CapitalizationRequest = () => {
         itemName,
         quantity: Number(quantity),
         unitCost: Number(unitCost),
-        category,
+        categoryL1: category.categoryL1,
         justification,
         centerId: grnSiteId || siteId,
       });
@@ -388,17 +395,17 @@ const CapitalizationRequest = () => {
                 ))}
               </Input>
             </Col>
-            <Col md={6} className="mb-3">
-              <Label>
-                Category <span className="text-danger">*</span>
-              </Label>
-              <Input
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Furniture, Equipment, Machinery"
-              />
-            </Col>
+
           </Row>
+
+          <CategoryLevelSelect
+            value={category}
+            onChange={setCategory}
+            required
+            md={6}
+            levels={1}
+            levelLabels={["Category (Level 1)"]}
+          />
 
           {grnId && !grnSiteId && (
             <div className="mb-3">
@@ -436,6 +443,11 @@ const CapitalizationRequest = () => {
                 value={unitCost}
                 onChange={(e) => setUnitCost(e.target.value)}
               />
+              {costFromPo && (
+                <div className="text-muted small mt-1">
+                  Taken from the PO rate{costFromPo.taxPercent > 0 ? ` (before ${costFromPo.taxPercent}% tax)` : ""}. You can change it.
+                </div>
+              )}
             </Col>
             <Col md={4} className="mb-3">
               <Label>Total Cost</Label>
