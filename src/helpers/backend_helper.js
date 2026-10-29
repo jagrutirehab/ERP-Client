@@ -711,14 +711,6 @@ export const validateChart = (chartId) =>
   api.update(`/chart/${chartId}/validate`);
 export const carryForwardDetailAdmission = (data) =>
   api.create(url.POST_CARRY_FORWARD_DETAIL_ADMISSION, data);
-export const uploadDetailAdmissionAudioChunk = (data, config = {}) =>
-  api.create(url.POST_DETAIL_ADMISSION_AUDIO_CHUNK_UPLOAD, data, {
-    headers: { "Content-Type": "multipart/form-data" },
-    timeout: 600000,
-    ...config,
-  });
-export const getDetailAdmissionAudioUploadStatus = (uploadId) =>
-  api.get(`${url.GET_DETAIL_ADMISSION_AUDIO_UPLOAD_STATUS}/${uploadId}`);
 export const uploadDetailAdmissionAudio = (data, config = {}) =>
   api.create(url.POST_DETAIL_ADMISSION_AUDIO_UPLOAD, data, {
     headers: { "Content-Type": "multipart/form-data" },

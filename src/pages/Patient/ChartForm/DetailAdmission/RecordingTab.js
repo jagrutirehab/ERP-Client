@@ -11,11 +11,7 @@ import {
   Badge,
 } from "reactstrap";
 import { toast } from "react-toastify";
-import {
-  uploadDetailAdmissionAudio,
-  uploadDetailAdmissionAudioChunk,
-  getDetailAdmissionAudioUploadStatus,
-} from "../../../../helpers/backend_helper";
+import { uploadDetailAdmissionAudio } from "../../../../helpers/backend_helper";
 import { DetailHistoryClearContext } from "./DetailHistoryClearContext";
 
 const RecordingTab = ({
@@ -100,136 +96,49 @@ const RecordingTab = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Shared Upload to S3 Helper (Supports 30 MB server-side chunked upload for large files)
+  // Shared Upload to S3 Helper
   const uploadAudioFile = async (file, sourceType = "uploaded") => {
     try {
       setIsUploading(true);
       setUploadProgress(0);
-      setUploadStatusText("");
+      setUploadStatusText("Uploading audio to S3...");
 
-      const CHUNK_SIZE = 30 * 1024 * 1024; // 30 MB chunks
+      const formData = new FormData();
+      formData.append("audio", file);
+      formData.append("sourceType", sourceType);
+      if (patient?._id) formData.append("patient", patient._id);
+      if (center) formData.append("center", center);
 
-      // Large audio files (> 30 MB): Split into 30 MB chunks and upload to backend chunk-upload endpoint
-      if (file.size > CHUNK_SIZE) {
-        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-        const uploadSessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        let finalResponse = null;
-
-        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-          const start = chunkIndex * CHUNK_SIZE;
-          const end = Math.min(start + CHUNK_SIZE, file.size);
-          const chunkBlob = file.slice(start, end);
-
-          const currentPercent = Math.round((chunkIndex / totalChunks) * 100);
-          setUploadProgress(currentPercent);
-          setUploadStatusText(
-            `Uploading chunk ${chunkIndex + 1} of ${totalChunks} (${currentPercent}%)...`
-          );
-
-          const chunkFormData = new FormData();
-          chunkFormData.append("chunk", chunkBlob, file.name);
-          chunkFormData.append("uploadSessionId", uploadSessionId);
-          chunkFormData.append("chunkIndex", String(chunkIndex));
-          chunkFormData.append("totalChunks", String(totalChunks));
-          chunkFormData.append("fileName", file.name);
-          chunkFormData.append("fileSize", String(file.size));
-          chunkFormData.append("sourceType", sourceType);
-          if (patient?._id) chunkFormData.append("patient", patient._id);
-          if (center) chunkFormData.append("center", center);
-
-          const response = await uploadDetailAdmissionAudioChunk(chunkFormData);
-          finalResponse = response;
-
-          const progressPercent = Math.round(((chunkIndex + 1) / totalChunks) * 100);
-          setUploadProgress(progressPercent);
-        }
-
-        setUploadStatusText("Assembling chunks on server and uploading to S3...");
-        const initialPayload =
-          finalResponse?.payload || finalResponse?.data || finalResponse;
-        const uploadId = initialPayload?.uploadId;
-
-        if (!uploadId) {
-          throw new Error(finalResponse?.message || "Failed to start audio processing on server");
-        }
-
-        const POLL_INTERVAL_MS = 8000;
-        const MAX_POLL_ATTEMPTS = 45;
-        let finalStatus = null;
-
-        for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-          await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-          const statusResponse = await getDetailAdmissionAudioUploadStatus(uploadId);
-          const statusPayload =
-            statusResponse?.payload || statusResponse?.data || statusResponse;
-
-          if (statusPayload?.status === "done") {
-            finalStatus = statusPayload;
-            break;
+      const response = await uploadDetailAdmissionAudio(formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress(percent);
+            setUploadStatusText(`Uploading to S3 (${percent}%)...`);
           }
-          if (statusPayload?.status === "failed") {
-            throw new Error(statusPayload?.error || "Failed to assemble and upload audio chunks");
-          }
-          setUploadStatusText("Still assembling and uploading to S3, please wait...");
-        }
+        },
+      });
+      const payload = response?.payload || response?.data || response;
 
-        if (!finalStatus) {
-          throw new Error("Upload is taking longer than expected. Please try again.");
-        }
-
+      if (payload?.url) {
         setUploadedAudio({
-          url: finalStatus.url,
-          path: finalStatus.path,
-          name: finalStatus.name || file.name,
-          originalName: finalStatus.originalName || file.name,
-          size: finalStatus.size || file.size,
-          type: finalStatus.type || file.type,
-          mimetype: finalStatus.type || file.type,
-          duration: finalStatus.duration || 0,
-          sourceType: finalStatus.sourceType || sourceType,
-          uploadedAt: new Date(),
+          url: payload.url,
+          path: payload.path,
+          name: payload.name || file.name,
+          originalName: payload.originalName || file.name,
+          size: payload.size || file.size,
+          type: payload.type || file.type,
+          mimetype: payload.type || file.type,
+          duration: payload.duration || payload.audioDetails?.duration || 0,
+          sourceType:
+            payload.audioDetails?.sourceType || payload.sourceType || sourceType,
+          uploadedAt: payload.audioDetails?.uploadedAt || new Date(),
         });
-        toast.success("Large audio file uploaded and assembled successfully!");
+        toast.success("Audio uploaded to S3 successfully!");
       } else {
-        // Standard upload for audio files <= 30 MB
-        setUploadStatusText("Uploading audio to S3...");
-        const formData = new FormData();
-        formData.append("audio", file);
-        formData.append("sourceType", sourceType);
-        if (patient?._id) formData.append("patient", patient._id);
-        if (center) formData.append("center", center);
-
-        const response = await uploadDetailAdmissionAudio(formData, {
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const percent = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total
-              );
-              setUploadProgress(percent);
-              setUploadStatusText(`Uploading to S3 (${percent}%)...`);
-            }
-          },
-        });
-        const payload = response?.payload || response?.data || response;
-
-        if (payload?.url) {
-          setUploadedAudio({
-            url: payload.url,
-            path: payload.path,
-            name: payload.name || file.name,
-            originalName: payload.originalName || file.name,
-            size: payload.size || file.size,
-            type: payload.type || file.type,
-            mimetype: payload.type || file.type,
-            duration: payload.duration || payload.audioDetails?.duration || 0,
-            sourceType:
-              payload.audioDetails?.sourceType || payload.sourceType || sourceType,
-            uploadedAt: payload.audioDetails?.uploadedAt || new Date(),
-          });
-          toast.success("Audio uploaded to S3 successfully!");
-        } else {
-          throw new Error(response?.message || "Failed to upload audio to S3");
-        }
+        throw new Error(response?.message || "Failed to upload audio to S3");
       }
     } catch (err) {
       // eslint-disable-next-line no-console
