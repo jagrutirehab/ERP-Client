@@ -71,13 +71,14 @@ const AdmitPatient = ({
   counsellors,
   nurses,
   rmos,
+  msws,
   chartAdmissions,
   doctorLoading,
   referrals,
   referralsLoading,
 }) => {
   const dispatch = useDispatch();
-  // Nurse and RMO ride on the chart's admissions. "Edit Admission" is also
+  // Nurse, RMO and MSW ride on the chart's admissions. "Edit Admission" is also
   // opened from Billing, whose admission rows don't carry them, so fall back to
   // the chart's copy of the same admission rather than showing them blank.
   const chartAdmission = data?._id
@@ -85,6 +86,7 @@ const AdmitPatient = ({
     : null;
   const assignedNurse = data?.nurse || chartAdmission?.nurse;
   const assignedRmo = data?.rmo || chartAdmission?.rmo;
+  const assignedMsw = data?.msw || chartAdmission?.msw;
   const [step, setStep] = useState(1);
   const [isOtherReferral, setIsOtherReferral] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState(null);
@@ -142,6 +144,7 @@ const AdmitPatient = ({
       // Optional. Admissions that predate them have neither, so fall back to "".
       nurse: assignedNurse?._id || "",
       rmo: assignedRmo?._id || "",
+      msw: assignedMsw?._id || "",
       provisional_diagnosis: [],
       Ipdnum: data ? data.Ipdnum : "",
       ward: data ? data.ward || "" : "",
@@ -525,6 +528,13 @@ const AdmitPatient = ({
       name: "rmo",
       type: "select",
       options: rmos,
+      optional: true,
+    },
+    {
+      label: "MSW",
+      name: "msw",
+      type: "select",
+      options: msws,
       optional: true,
     },
   ];
@@ -1365,6 +1375,7 @@ const mapStateToProps = (state) => ({
   counsellors: state.User.counsellors,
   nurses: state.User.nurses,
   rmos: state.User.rmos,
+  msws: state.User.msws,
   chartAdmissions: state.Chart.data,
   referrals: state.Referral.data,
   referralsLoading: state.Referral.loading,
