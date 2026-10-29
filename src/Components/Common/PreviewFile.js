@@ -120,7 +120,7 @@ const PreviewFile = ({
       isOpen={isOpen}
       toggle={toggle}
     >
-      {isMobile ? (
+      {isMobile && !isImage ? (
         <div className="text-center p-4 border rounded bg-light">
           <p className="text-muted mb-3">
             Preview not available, please download.

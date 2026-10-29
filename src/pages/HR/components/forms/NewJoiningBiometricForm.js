@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
+import { biometricDepartmentOptions } from "../../../../Components/constants/HR";
 import { addNewJoiningBiometricData } from "../../../../helpers/backend_helper";
 
 const emptyShift = { shift: "", answers: "" };
@@ -12,6 +13,7 @@ const emptyShift = { shift: "", answers: "" };
 const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
   const [employeeName, setEmployeeName] = useState("");
   const [selectedCenter, setSelectedCenter] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [biometricId, setBiometricId] = useState("");
   const [loading, setLoading] = useState(false);
   const [shifts, setShifts] = useState([{ ...emptyShift }]);
@@ -30,6 +32,7 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
     const newErrors = {};
     if (!employeeName.trim()) newErrors.employeeName = "Employee name is required";
     if (!selectedCenter) newErrors.center = "Center is required";
+    if (!selectedDepartment) newErrors.department = "Department is required";
     if (!biometricId.trim()) newErrors.biometricId = "Biometric ID is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -38,6 +41,7 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
   const resetForm = () => {
     setEmployeeName("");
     setSelectedCenter(null);
+    setSelectedDepartment(null);
     setBiometricId("");
     setShifts([{ ...emptyShift }]);
     setErrors({});
@@ -50,6 +54,7 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
       await addNewJoiningBiometricData({
         employeeName: employeeName.trim(),
         center: selectedCenter.value,
+        department: selectedDepartment.value,
         biometricId: biometricId.trim(),
         shifts: shifts.filter((s) => s.shift.trim()),
       });
@@ -109,6 +114,29 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
         {errors.center && (
           <div className="text-danger mt-1" style={{ fontSize: "13px" }}>
             {errors.center}
+          </div>
+        )}
+      </FormGroup>
+
+      <FormGroup>
+        <Label>
+          Department <span className="text-danger">*</span>
+        </Label>
+        <Select
+          placeholder="Select Department"
+          isClearable
+          options={biometricDepartmentOptions}
+          value={selectedDepartment}
+          onChange={(option) => {
+            setSelectedDepartment(option || null);
+            if (errors.department)
+              setErrors((prev) => ({ ...prev, department: "" }));
+          }}
+          classNamePrefix="react-select"
+        />
+        {errors.department && (
+          <div className="text-danger mt-1" style={{ fontSize: "13px" }}>
+            {errors.department}
           </div>
         )}
       </FormGroup>

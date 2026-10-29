@@ -56,6 +56,9 @@ const MedicineRequisition = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("PENDING");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const [reviewMode, setReviewMode] = useState(null); // null | "approve" | "reject"
   const [reviewRemarks, setReviewRemarks] = useState("");
 
@@ -90,7 +93,7 @@ const MedicineRequisition = () => {
     centerOptions.find((opt) => opt.value === selectedCenter) ||
     centerOptions[0];
 
-  const loadRequisitions = async (page = 1, overrideStatus = null) => {
+  const loadRequisitions = async (page = currentPage, overrideStatus = null, limit = pageSize) => {
     const status = overrideStatus ?? statusFilter;
     if (status === "") return;
 
@@ -105,7 +108,7 @@ const MedicineRequisition = () => {
       await dispatch(
         fetchMedicineRequisitions({
           page,
-          limit: 10,
+          limit,
           status: status,
           centers: centers,
           search: searchQuery || undefined,
@@ -118,6 +121,11 @@ const MedicineRequisition = () => {
     }
   };
 
+  const reloadFromStart = () => {
+    setCurrentPage(1);
+    loadRequisitions(1);
+  };
+
   useEffect(() => {
     if (selectedCenter !== "ALL" && !user?.centerAccess?.includes(selectedCenter)) {
       setSelectedCenter("ALL");
@@ -125,7 +133,7 @@ const MedicineRequisition = () => {
   }, [user?.centerAccess, selectedCenter]);
 
   useEffect(() => {
-    loadRequisitions(1);
+    reloadFromStart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, selectedCenter, user?.centerAccess?.join(",")]);
 
@@ -138,7 +146,7 @@ const MedicineRequisition = () => {
       return;
     }
     const handler = setTimeout(() => {
-      loadRequisitions(1);
+      reloadFromStart();
     }, 500);
     return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,7 +159,14 @@ const MedicineRequisition = () => {
   };
 
   const handlePageChange = (page) => {
+    setCurrentPage(page);
     loadRequisitions(page);
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setPageSize(newLimit);
+    setCurrentPage(1);
+    loadRequisitions(1, null, newLimit);
   };
 
   // Opens the detail modal straight into review mode (used by the table's Approve/Reject
@@ -187,7 +202,7 @@ const MedicineRequisition = () => {
       const result = await dispatch(action({ id: row._id, ...data })).unwrap();
       if (result) {
         closeDetailModal();
-        loadRequisitions(1);
+        loadRequisitions();
       }
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -203,7 +218,7 @@ const MedicineRequisition = () => {
     try {
       await dispatch(removeMedicineRequisition(row._id)).unwrap();
       setDeleteModal({ open: false, row: null });
-      loadRequisitions(1);
+      loadRequisitions();
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(error?.message || "Failed to delete requisition");
@@ -335,7 +350,7 @@ const MedicineRequisition = () => {
                 </Col>
                 <Col md={3} lg={5} className="d-flex justify-content-end">
                   <RefreshButton
-                    onRefresh={() => loadRequisitions(1)}
+                    onRefresh={() => loadRequisitions()}
                     loading={loading}
                   />
                 </Col>
@@ -351,9 +366,11 @@ const MedicineRequisition = () => {
                   columns={columns}
                   data={requisitions || []}
                   loading={loading}
-                  totalRows={totalCount || 0}
-                  onPageChange={handlePageChange}
-                  pagination
+                  pagination={{ totalDocs: totalCount || 0 }}
+                  limit={pageSize}
+                  setLimit={handleLimitChange}
+                  page={currentPage}
+                  setPage={handlePageChange}
                 />
               </div>
             </CardBody>

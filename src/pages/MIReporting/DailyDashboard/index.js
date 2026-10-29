@@ -23,6 +23,8 @@ const METRICS = [
     { label: "Discharged MTD",                                  key: "discharged_mtd",     compliance: false },
     { label: "Audit Data Sod",                                  key: "audit_sod",          compliance: false },
     { label: "Audit Data Eod",                                  key: "audit_eod",          compliance: false },
+    { label: "Morning Yoga",                                    key: "morning_yoga",       compliance: false },
+    { label: "Evening Activity",                                key: "evening_activity",   compliance: false },
     { label: "Form-1 Nursing Staff Training (Monthly)",         key: "form_1",             compliance: true },
     { label: "Form-2 Patient Care Training (Monthly)",          key: "form_2",             compliance: true },
     { label: "Form-3 Psychologist Training Pointers (Monthly)", key: "form_3",             compliance: true },

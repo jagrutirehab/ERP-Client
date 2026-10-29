@@ -10,6 +10,11 @@ const AUDIT_FIELD_OPTIONS = [
   { value: "audit_eod", label: "EOD" },
 ];
 
+const ACTIVITY_FIELD_OPTIONS = [
+  { value: "morning_yoga", label: "Morning Yoga" },
+  { value: "evening_activity", label: "Evening Activity" },
+];
+
 const formatChecklistDate = (dateStr) => {
   if (!dateStr) return "";
   const [, month, day] = dateStr.split("-");
@@ -99,6 +104,7 @@ const AuditForms = () => {
   const [selectedCenter, setSelectedCenter] = useState("");
   const [selectedFormType, setSelectedFormType] = useState(FORM_ROWS[0].key);
   const [selectedAuditField, setSelectedAuditField] = useState("audit_eod");
+  const [selectedActivityField, setSelectedActivityField] = useState("morning_yoga");
   const [csvData, setCsvData] = useState([]);
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
@@ -255,6 +261,38 @@ const AuditForms = () => {
     });
     return totals;
   }, [checklistCenters, checklistDates, checklistPivot, selectedAuditField]);
+
+  const getActivityValue = (center, date) =>
+    checklistPivot[center]?.[date]?.[selectedActivityField] ?? "";
+
+  const activityTotals = React.useMemo(() => {
+    const totals = {};
+    checklistDates.forEach((date) => {
+      totals[date] = checklistCenters.reduce(
+        (sum, center) =>
+          sum + (checklistPivot[center]?.[date]?.[selectedActivityField] === "Yes" ? 1 : 0),
+        0
+      );
+    });
+    return totals;
+  }, [checklistCenters, checklistDates, checklistPivot, selectedActivityField]);
+
+  const combinedActivityTotals = React.useMemo(() => {
+    const totals = {};
+    checklistDates.forEach((date) => {
+      totals[date] = {
+        morning: checklistCenters.reduce(
+          (sum, center) => sum + (checklistPivot[center]?.[date]?.morning_yoga === "Yes" ? 1 : 0),
+          0
+        ),
+        evening: checklistCenters.reduce(
+          (sum, center) => sum + (checklistPivot[center]?.[date]?.evening_activity === "Yes" ? 1 : 0),
+          0
+        ),
+      };
+    });
+    return totals;
+  }, [checklistCenters, checklistDates, checklistPivot]);
 
   const csvHeaders = React.useMemo(() => {
     const headers = [{ label: "Form Type", key: "form" }];
@@ -720,6 +758,210 @@ const AuditForms = () => {
                             <td key={date} className="text-center px-1 py-1 fw-bold" style={totalCellStyle}>
                               {checklistTotals[date] ?? 0}
                             </td>
+                          ))}
+                        </tr>
+                      </>
+                    ) : (
+                      <tr>
+                        <td colSpan={1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
+                          No data available
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
+        <h6 className="mt-4 mb-0">Morning Yoga / Evening Activity</h6>
+        <Row className="g-2 align-items-center mb-3 mt-2">
+          <Col xs="auto" className="fw-semibold">
+            Select Data--&gt;
+          </Col>
+          <Col xs="auto">
+            <Select
+              value={ACTIVITY_FIELD_OPTIONS.find((o) => o.value === selectedActivityField) || ACTIVITY_FIELD_OPTIONS[0]}
+              onChange={(opt) => setSelectedActivityField(opt.value)}
+              options={ACTIVITY_FIELD_OPTIONS}
+              placeholder="Select data..."
+              styles={{ container: (b) => ({ ...b, minWidth: 160 }) }}
+            />
+          </Col>
+        </Row>
+
+        <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
+          <CardBody className="p-0">
+            {loading && (
+              <div className="text-center py-4">
+                <Spinner color="primary" />
+                <p className="mt-2 text-muted mb-0">Loading data...</p>
+              </div>
+            )}
+
+            {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
+
+            {!loading && !error && (
+              <div style={{ overflowX: "scroll", overflowY: "auto", maxHeight: "60vh", width: "100%" }}>
+                <Table
+                  className="mb-0"
+                  style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.68rem", width: "max-content" }}
+                >
+                  <thead>
+                    <tr>
+                      <th className="text-start fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 130, position: "sticky", left: 0, zIndex: 3 }}>
+                        Center Name
+                      </th>
+                      {checklistDates.map((date) => (
+                        <th key={date} className="text-center fw-bold px-1 py-1" style={headerStyle}>
+                          {formatChecklistDate(date)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {checklistCenters.length > 0 ? (
+                      <>
+                        {checklistCenters.map((center, idx) => (
+                          <tr key={center}>
+                            <td className="px-1 py-1 fw-semibold" style={{ ...cellStyle(idx), position: "sticky", left: 0, zIndex: 1 }}>
+                              {center}
+                            </td>
+                            {checklistDates.map((date) => {
+                              const value = getActivityValue(center, date);
+                              return (
+                                <td
+                                  key={date}
+                                  className="text-center px-1 py-1 fw-semibold"
+                                  style={{
+                                    ...cellStyle(idx),
+                                    color: value === "Yes" ? "green" : value === "No" ? "red" : "inherit",
+                                  }}
+                                >
+                                  {value}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                        <tr>
+                          <td className="px-1 py-1 fw-bold" style={{ ...totalCellStyle, color: "black", position: "sticky", left: 0, zIndex: 1 }}>
+                            Total
+                          </td>
+                          {checklistDates.map((date) => (
+                            <td key={date} className="text-center px-1 py-1 fw-bold" style={totalCellStyle}>
+                              {activityTotals[date] ?? 0}
+                            </td>
+                          ))}
+                        </tr>
+                      </>
+                    ) : (
+                      <tr>
+                        <td colSpan={1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
+                          No data available
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
+        <h6 className="mt-4 mb-0">Morning & Evening Activity (Combined)</h6>
+        <Card className="shadow-sm mt-2" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
+          <CardBody className="p-0">
+            {loading && (
+              <div className="text-center py-4">
+                <Spinner color="primary" />
+                <p className="mt-2 text-muted mb-0">Loading data...</p>
+              </div>
+            )}
+
+            {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
+
+            {!loading && !error && (
+              <div style={{ overflowX: "scroll", overflowY: "auto", maxHeight: "60vh", width: "100%" }}>
+                <Table
+                  className="mb-0"
+                  style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.68rem", width: "max-content" }}
+                >
+                  <thead>
+                    <tr>
+                      <th className="text-start fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 130, position: "sticky", left: 0, zIndex: 3 }}>
+                        Center Name
+                      </th>
+                      {checklistDates.map((date) => (
+                        <th key={date} colSpan={2} className="text-center fw-bold px-1 py-1" style={headerStyle}>
+                          {formatChecklistDate(date)}
+                        </th>
+                      ))}
+                    </tr>
+                    <tr>
+                      <th className="text-start fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 130, position: "sticky", left: 0, zIndex: 3 }}></th>
+                      {checklistDates.map((date) => (
+                        <React.Fragment key={date}>
+                          <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 60 }}>
+                            Morning
+                          </th>
+                          <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 60 }}>
+                            Evening
+                          </th>
+                        </React.Fragment>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {checklistCenters.length > 0 ? (
+                      <>
+                        {checklistCenters.map((center, idx) => (
+                          <tr key={center}>
+                            <td className="px-1 py-1 fw-semibold" style={{ ...cellStyle(idx), position: "sticky", left: 0, zIndex: 1 }}>
+                              {center}
+                            </td>
+                            {checklistDates.map((date) => {
+                              const morningValue = checklistPivot[center]?.[date]?.morning_yoga ?? "";
+                              const eveningValue = checklistPivot[center]?.[date]?.evening_activity ?? "";
+                              return (
+                                <React.Fragment key={date}>
+                                  <td
+                                    className="text-center px-1 py-1 fw-semibold"
+                                    style={{
+                                      ...cellStyle(idx),
+                                      color: morningValue === "Yes" ? "green" : morningValue === "No" ? "red" : "inherit",
+                                    }}
+                                  >
+                                    {morningValue}
+                                  </td>
+                                  <td
+                                    className="text-center px-1 py-1 fw-semibold"
+                                    style={{
+                                      ...cellStyle(idx),
+                                      color: eveningValue === "Yes" ? "green" : eveningValue === "No" ? "red" : "inherit",
+                                    }}
+                                  >
+                                    {eveningValue}
+                                  </td>
+                                </React.Fragment>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                        <tr>
+                          <td className="px-1 py-1 fw-bold" style={{ ...totalCellStyle, color: "black", position: "sticky", left: 0, zIndex: 1 }}>
+                            Total
+                          </td>
+                          {checklistDates.map((date) => (
+                            <React.Fragment key={date}>
+                              <td className="text-center px-1 py-1 fw-bold" style={totalCellStyle}>
+                                {combinedActivityTotals[date]?.morning ?? 0}
+                              </td>
+                              <td className="text-center px-1 py-1 fw-bold" style={totalCellStyle}>
+                                {combinedActivityTotals[date]?.evening ?? 0}
+                              </td>
+                            </React.Fragment>
                           ))}
                         </tr>
                       </>
