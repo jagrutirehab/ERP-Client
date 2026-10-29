@@ -108,6 +108,16 @@ const FixedAssetRegister = () => {
   // The list can be shown as one row per asset, or grouped by employee ("who has what")
   const [viewMode, setViewMode] = useState("list"); // list | byEmployee
   const [groupSearch, setGroupSearch] = useState("");
+  const [minAssets, setMinAssets] = useState(""); // "who has what": only employees holding at least this many
+  const [groupSort, setGroupSort] = useState("most"); // most | name
+  const [expandedEmps, setExpandedEmps] = useState(() => new Set()); // employees whose full list is open
+  const toggleEmp = (id) =>
+    setExpandedEmps((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   // "Held by": pick an employee to see everything that is assigned to them
   const [holder, setHolder] = useState(null); // { _id, name, eCode }
@@ -140,6 +150,8 @@ const FixedAssetRegister = () => {
 
   const filtersOn =
     Object.values(filters).some(Boolean) ||
+    !!minAssets ||
+    !!groupSearch.trim() ||
     assignFilter !== "ALL" ||
     !!holder;
   const setFilter = (key) => (e) =>
@@ -190,6 +202,7 @@ const FixedAssetRegister = () => {
   const [returnCondition, setReturnCondition] = useState("good");
   const [returnRemarks, setReturnRemarks] = useState("");
   const [assigning, setAssigning] = useState(false);
+  const assignLock = React.useRef(false); // checked at once, so a very fast double click sends one request
 
   useEffect(() => {
     if (empQuery.trim().length < 2) {
@@ -305,6 +318,8 @@ const FixedAssetRegister = () => {
     });
 
   const handleAssign = async (asset, employee) => {
+    if (assignLock.current) return;
+    assignLock.current = true;
     setAssigning(true);
     try {
       await assignFixedAsset(asset._id, {
@@ -317,23 +332,28 @@ const FixedAssetRegister = () => {
     } catch (error) {
       fail(error, "Couldn't assign.");
     } finally {
+      assignLock.current = false;
       setAssigning(false);
     }
   };
 
   const handleReturn = async (asset) => {
+    if (assignLock.current) return;
+    assignLock.current = true;
     setAssigning(true);
     try {
-      await returnFixedAsset(asset._id, {
+      const res = await returnFixedAsset(asset._id, {
         condition: returnCondition,
         remarks: returnRemarks,
       });
-      toast.success("Asset received back");
+      // the server says if a write-off request was raised (damaged or lost)
+      toast.success(res?.message || "Asset received back");
       setDetailModal(null);
       setRefreshFlag((n) => n + 1);
     } catch (error) {
       fail(error, "Couldn't mark as returned.");
     } finally {
+      assignLock.current = false;
       setAssigning(false);
     }
   };
@@ -511,7 +531,13 @@ const FixedAssetRegister = () => {
           String(g.emp.name || "").toLowerCase().includes(q) ||
           String(g.emp.eCode || "").toLowerCase().includes(q),
       )
-      .sort((x, y) => String(x.emp.name || "").localeCompare(String(y.emp.name || "")));
+      .filter((g) => !minAssets || g.items.length >= Number(minAssets))
+      .sort((x, y) =>
+        groupSort === "name"
+          ? String(x.emp.name || "").localeCompare(String(y.emp.name || ""))
+          : y.items.length - x.items.length ||
+            String(x.emp.name || "").localeCompare(String(y.emp.name || "")),
+      );
   })();
 
   const visible = assets.filter(
@@ -695,7 +721,16 @@ const FixedAssetRegister = () => {
             <button
               key={key}
               type="button"
-              onClick={() => setViewMode(key)}
+              onClick={() => {
+                setViewMode(key);
+                if (key === "byEmployee") {
+                  // these only make sense in the full asset list
+                  setHolder(null);
+                  setHolderQuery("");
+                  setAssignFilter("ALL");
+                  setFilters((f) => (["retired", "sold"].includes(f.status) ? { ...f, status: "" } : f));
+                }
+              }}
               style={{
                 border: `1px solid ${on ? "#4f46e5" : "#e5e7eb"}`,
                 background: on ? "#eef2ff" : "#fff",
@@ -711,6 +746,22 @@ const FixedAssetRegister = () => {
             </button>
           );
         })}
+      </div>
+
+      {/* Filters: the ones used most */}
+      <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <div className="uom-search-wrap" style={{ maxWidth: 280 }}>
+          <i className="bx bx-search"></i>
+          <Input
+            placeholder={
+              viewMode === "byEmployee"
+                ? "Which asset? Name, tag or serial..."
+                : "Search name, tag or serial..."
+            }
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         {viewMode === "byEmployee" && (
           <div className="uom-search-wrap" style={{ maxWidth: 260 }}>
             <i className="bx bx-search"></i>
@@ -721,18 +772,6 @@ const FixedAssetRegister = () => {
             />
           </div>
         )}
-      </div>
-
-      {/* Filters: the ones used most */}
-      <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <div className="uom-search-wrap" style={{ maxWidth: 280 }}>
-          <i className="bx bx-search"></i>
-          <Input
-            placeholder="Search name, tag or serial..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
         <Input
           type="select"
           style={{ width: 170 }}
@@ -759,6 +798,7 @@ const FixedAssetRegister = () => {
             </option>
           ))}
         </Input>
+        {viewMode === "list" && (
         <div style={{ position: "relative", width: 230 }}>
           {holder ? (
             <div
@@ -839,6 +879,8 @@ const FixedAssetRegister = () => {
             </>
           )}
         </div>
+        )}
+        {viewMode === "list" && (
         <Input
           type="select"
           style={{ width: 150 }}
@@ -849,6 +891,7 @@ const FixedAssetRegister = () => {
           <option value="assigned">Assigned</option>
           <option value="in_stock">In stock</option>
         </Input>
+        )}
         <Input
           type="select"
           style={{ width: 160 }}
@@ -858,9 +901,39 @@ const FixedAssetRegister = () => {
           <option value="">Any status</option>
           <option value="active">Active</option>
           <option value="under_maintenance">Under maintenance</option>
-          <option value="retired">Discarded</option>
-          <option value="sold">Sold</option>
+          {viewMode === "list" && (
+            <>
+              <option value="retired">Discarded</option>
+              <option value="sold">Sold</option>
+            </>
+          )}
         </Input>
+        {viewMode === "byEmployee" && (
+          <>
+            <Input
+              type="select"
+              style={{ width: 170 }}
+              value={minAssets}
+              onChange={(e) => setMinAssets(e.target.value)}
+              aria-label="How many they hold"
+            >
+              <option value="">Any number held</option>
+              <option value="2">2 or more</option>
+              <option value="3">3 or more</option>
+              <option value="5">5 or more</option>
+            </Input>
+            <Input
+              type="select"
+              style={{ width: 180 }}
+              value={groupSort}
+              onChange={(e) => setGroupSort(e.target.value)}
+              aria-label="Order"
+            >
+              <option value="most">Most assets first</option>
+              <option value="name">Name A to Z</option>
+            </Input>
+          </>
+        )}
         {filtersOn && (
           <Button
             color="light"
@@ -869,6 +942,9 @@ const FixedAssetRegister = () => {
               setAssignFilter("ALL");
               setHolder(null);
               setHolderQuery("");
+              setMinAssets("");
+              setGroupSearch("");
+              setGroupSort("most");
             }}
           >
             Clear
@@ -934,54 +1010,66 @@ const FixedAssetRegister = () => {
                 {groups.reduce((n, g) => n + g.items.length, 0)} asset
                 {groups.reduce((n, g) => n + g.items.length, 0) === 1 ? "" : "s"}.
               </div>
-              {groups.map((g) => (
-                <div
-                  key={g.emp._id}
-                  className="mb-3"
-                  style={{ border: "1px solid #eef0f3", borderRadius: 12, background: "#fff", overflow: "hidden" }}
-                >
-                  <div
-                    className="d-flex align-items-center justify-content-between px-3 py-2"
-                    style={{ background: "#f8f9fa", borderBottom: "1px solid #eef0f3" }}
-                  >
-                    <div>
-                      <span className="fw-semibold">{g.emp.name}</span>
-                      <span className="text-muted ms-2" style={{ fontSize: 12 }}>{g.emp.eCode}</span>
-                    </div>
-                    <span
-                      style={{ background: "#eef2ff", color: "#4f46e5", fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 999 }}
-                    >
-                      {g.items.length} asset{g.items.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                  {g.items.map((a) => (
-                    <div
-                      key={a._id}
-                      className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2"
-                      style={{ borderBottom: "1px solid #f8f9fa" }}
-                    >
-                      <div style={{ minWidth: 0, flex: "1 1 240px" }}>
-                        <div className="fw-semibold text-truncate" title={a.assetName}>{a.assetName}</div>
-                        <div className="text-muted" style={{ fontSize: 12 }}>
-                          <span style={{ fontFamily: "monospace" }}>{a.assetTag}</span>
-                          {a.serialNumber ? ` · ${a.serialNumber}` : ""}
-                          {` · since ${dateFmt(a.assignedAt)}`}
-                        </div>
-                      </div>
-                      <span
-                        title={a.category}
-                        style={{ background: "#f5f6fa", color: "#495057", fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 999 }}
-                      >
-                        {a.category}
-                      </span>
-                      <StatusPill status={a.status} />
-                      <Button size="sm" color="light" onClick={() => openDetail(a)}>
-                        View
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ))}
+              <div className="uom-table-card" style={{ overflowX: "auto" }}>
+                <table className="table mb-0" style={{ minWidth: 680 }}>
+                  <thead>
+                    <tr style={{ background: "#f3f4f8" }}>
+                      <th style={{ width: 240, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.4, color: "#475467" }}>Employee</th>
+                      <th className="text-center" style={{ width: 90, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.4, color: "#475467" }}>Assets</th>
+                      <th style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: 0.4, color: "#475467" }}>What they hold</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groups.map((g) => {
+                      const open = expandedEmps.has(g.emp._id);
+                      const shown = open ? g.items : g.items.slice(0, 6);
+                      return (
+                        <tr key={g.emp._id}>
+                          <td style={{ verticalAlign: "top", paddingTop: 14 }}>
+                            <div className="fw-semibold" style={{ color: "#3730a3" }}>{g.emp.name}</div>
+                            <div className="text-muted" style={{ fontSize: 12 }}>{g.emp.eCode}</div>
+                          </td>
+                          <td className="text-center" style={{ verticalAlign: "top", paddingTop: 12 }}>
+                            <span
+                              style={{ display: "inline-block", minWidth: 34, background: "#eef2ff", color: "#4f46e5", fontWeight: 700, fontSize: 16, padding: "2px 10px", borderRadius: 999 }}
+                            >
+                              {g.items.length}
+                            </span>
+                          </td>
+                          <td style={{ verticalAlign: "top" }}>
+                            <div className="d-flex flex-wrap gap-2 align-items-center">
+                              {shown.map((a) => (
+                                <button
+                                  type="button"
+                                  key={a._id}
+                                  onClick={() => openDetail(a)}
+                                  title={`${a.assetName} · ${a.assetTag}${a.category ? ` · ${a.category}` : ""} · since ${dateFmt(a.assignedAt)}`}
+                                  style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 8, padding: "4px 10px", fontSize: 13.5, textAlign: "left", cursor: "pointer" }}
+                                >
+                                  <span className="fw-semibold">{a.assetName}</span>{" "}
+                                  <span className="text-muted" style={{ fontSize: 11.5, fontFamily: "monospace" }}>{a.assetTag}</span>
+                                  {a.status === "under_maintenance" && (
+                                    <span style={{ color: "#f79009", fontSize: 11.5 }}> · repair</span>
+                                  )}
+                                </button>
+                              ))}
+                              {g.items.length > 6 && (
+                                <button
+                                  type="button"
+                                  className="btn btn-link btn-sm p-0"
+                                  onClick={() => toggleEmp(g.emp._id)}
+                                >
+                                  {open ? "Show less" : `+${g.items.length - 6} more`}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </>
           )}
         </div>
@@ -1369,11 +1457,32 @@ const FixedAssetRegister = () => {
                                               >
                                                 {emp.eCode}
                                               </span>
+                                              {["RESIGNED", "FNF_CLOSED"].includes(
+                                                emp.status,
+                                              ) && (
+                                                <span
+                                                  className="ms-2"
+                                                  style={{
+                                                    fontSize: 11,
+                                                    color: "#b42318",
+                                                    background: "#fdeceb",
+                                                    borderRadius: 6,
+                                                    padding: "1px 6px",
+                                                  }}
+                                                >
+                                                  Left the company
+                                                </span>
+                                              )}
                                             </div>
                                             <Button
                                               size="sm"
                                               color="primary"
-                                              disabled={assigning}
+                                              disabled={
+                                                assigning ||
+                                                ["RESIGNED", "FNF_CLOSED"].includes(
+                                                  emp.status,
+                                                )
+                                              }
                                               onClick={() =>
                                                 handleAssign(d, emp)
                                               }

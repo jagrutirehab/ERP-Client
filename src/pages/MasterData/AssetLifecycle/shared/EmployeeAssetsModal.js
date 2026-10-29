@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
   ModalHeader,
@@ -41,6 +41,7 @@ const EmployeeAssetsModal = ({
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState(null);
+  const returnLock = useRef(false); // one click = one request, even for a very fast double click
   const [form, setForm] = useState({});
   const [loadError, setLoadError] = useState("");
 
@@ -72,14 +73,21 @@ const EmployeeAssetsModal = ({
     setForm((f) => ({ ...f, [id]: { ...f[id], [key]: value } }));
 
   const handleReturn = async (asset) => {
+    if (returnLock.current) return;
+    returnLock.current = true;
     const f = form[asset._id] || {};
     setBusyId(asset._id);
     try {
-      await returnFixedAsset(asset._id, {
+      const res = await returnFixedAsset(asset._id, {
         condition: f.condition || "good",
         remarks: f.remarks || "",
       });
-      toast.success(`${asset.assetTag || asset.assetName} received`);
+      // keep the server's note when a write-off request was raised (damaged or lost)
+      toast.success(
+        f.condition === "damaged" || f.condition === "lost"
+          ? res?.message || `${asset.assetTag || asset.assetName} received`
+          : `${asset.assetTag || asset.assetName} received`,
+      );
       await load();
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -88,6 +96,7 @@ const EmployeeAssetsModal = ({
         );
       }
     } finally {
+      returnLock.current = false;
       setBusyId(null);
     }
   };
