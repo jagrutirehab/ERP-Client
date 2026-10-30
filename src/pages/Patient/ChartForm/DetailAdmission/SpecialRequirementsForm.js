@@ -167,7 +167,7 @@ const SpecialRequirementsForm = ({
       <div>
         <RenderFields fields={fields} validation={validation} />
 
-        {isAlreadyValidated ? (
+        {isAiRecord && (isAlreadyValidated ? (
           <div
             className="p-3 my-3 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2"
             style={{
@@ -296,7 +296,7 @@ const SpecialRequirementsForm = ({
               </div>
             )}
           </div>
-        )}
+        ))}
 
         <div className="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
           {/* Bottom Left: Cancel and Clear Form */}
