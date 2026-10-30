@@ -75,13 +75,64 @@ const MissedMedicineSearch = ({ candidates, selectedId, onPick, onClear }) => {
   );
 };
 
-// Dropdown label: "<id> | <type> <name> <strength> (baseunit: <baseUnit>)"
+// Dropdown label: "<id> | <type> <name> <strength> (baseunit: <baseUnit> · 1 <purchaseUnit> = <baseQuantity> <baseUnit>)"
+// Showing the pack conversion here lets the user see, at the point they pick the
+// medicine, exactly what "1 purchase unit" means for it - instead of us guessing.
 const formatMedicineLabel = (m) => {
   if (!m) return "";
   const main = [m.type, m.name, m.strength].filter(Boolean).join(" ");
   const unit = m.baseUnit || m.unit;
-  return `${m.id ? `${m.id} | ` : ""}${main}${unit ? ` (Baseunit: ${unit})` : ""}`;
+  const conv = m.conversion;
+  const factor = conv && conv.baseQuantity && conv.purchaseQuantity ? conv.baseQuantity / conv.purchaseQuantity : 1;
+  const packInfo = factor > 1 && m.purchaseUnit ? ` · 1 ${m.purchaseUnit} = ${conv.baseQuantity} ${unit}` : "";
+  return `${m.id ? `${m.id} | ` : ""}${main}${unit ? ` (Baseunit: ${unit}${packInfo})` : ""}`;
 };
+
+// Mirrors the server's computeQuantityUnitGuess (billExtraction.service.js): decide
+// whether `quantity` counts the medicine's base or purchase unit from the bill's own
+// price math, using THE MEDICINE THE USER ACTUALLY PICKED - not the auto-match.
+// Used as a fallback wherever the server couldn't guess (e.g. a "missing medicine"
+// line that only gets matched after the user searches for and selects it).
+// lineDiscountPercentage: this row's own discount %, when the bill prints the
+// Amount column AFTER it (common on bills with a per-line discount column) -
+// without this, a discounted Amount makes the ratio test below miss entirely.
+const guessQuantityUnit = (quantity, unitPrice, totalPrice, conversion, lineDiscountPercentage) => {
+  const purchaseQuantity = conversion?.purchaseQuantity || 1;
+  const baseQuantity = conversion?.baseQuantity || 1;
+  const factor = baseQuantity / purchaseQuantity;
+
+  const qty = Number(quantity) || 0;
+  const up = Number(unitPrice) || 0;
+  const tp = Number(totalPrice) || 0;
+  const discountFraction = Math.min(Math.max(Number(lineDiscountPercentage) || 0, 0), 100) / 100;
+  const expectedRatio = 1 - discountFraction;
+
+  if (factor <= 1 || qty <= 0) {
+    return { guess: "BASE", confidence: "HIGH", factor };
+  }
+
+  if (up > 0 && tp > 0) {
+    const ratio = tp / (qty * up);
+    const closeTo = (x, target) => target > 0 && Math.abs(x - target) / target <= 0.15;
+    if (closeTo(ratio, expectedRatio)) return { guess: "PURCHASE", confidence: "HIGH", factor };
+    if (closeTo(ratio, expectedRatio / factor)) return { guess: "BASE", confidence: "HIGH", factor };
+    return { guess: "UNKNOWN", confidence: "LOW", factor };
+  }
+
+  return { guess: "PURCHASE", confidence: "LOW", factor };
+};
+
+// Shown under the Add Qty input so the conversion is always visible, never silent.
+const QuantityUnitNote = ({ row }) => {
+  if (row.quantityUnitGuess !== "PURCHASE" || !row.quantityRaw) return null;
+  const warn = row.quantityConfidence === "LOW";
+  return (
+    <small className="d-block mt-1" style={{ fontSize: "0.7rem", color: warn ? "#b45309" : "#2563eb" }} title={warn ? "No price on the bill to confirm this - please verify" : "Bill qty read as packs, converted using this medicine's conversion"}>
+      {warn ? "⚠ " : ""}{row.quantityRaw} {row.purchaseUnit} → {row.quantity} {row.baseUnit}
+    </small>
+  );
+};
+
 
 const OCRBillImport = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -127,6 +178,8 @@ const OCRBillImport = () => {
 
   // Pharmacy check results
   const [pharmacyCheckResults, setPharmacyCheckResults] = useState({});
+  // Per-medicine failures from the last "Review Again" recheck, one line per medicine.
+  const [recheckFailures, setRecheckFailures] = useState([]);
 
   // Medicine confirmation
   const [, setConfirmedMedicines] = useState({});
@@ -218,6 +271,13 @@ const OCRBillImport = () => {
   //   medicineDiscount_i = (lineTotal_i / denominator) * effectiveAmount
   //   purchasePrice_i    = max(0, unitPrice_i - medicineDiscount_i / qty_i)
   //
+  // Exception: when a line carries its OWN lineDiscountPercentage (the bill
+  // printed a per-line discount column for it), that line is settled against
+  // its own printed rate instead of the bill-level spread above — a line's
+  // own discount is what it actually said, not an average of the whole bill.
+  //   medicineDiscount_i = lineTotal_i * lineDiscountPercentage_i / 100
+  //   purchasePrice_i    = max(0, unitPrice_i * (1 - lineDiscountPercentage_i / 100))
+  //
   // Returns an array aligned with the input order, each entry shaped
   //   { purchasePrice, medicineDiscount }
   // ============================================================
@@ -227,9 +287,17 @@ const OCRBillImport = () => {
     const totals = lines.map((m) => {
       const unitPrice = Number(m.unitPrice) || 0;
       const qty = Number(m.quantity) || 0;
-      return { unitPrice, qty, lineTotal: unitPrice * qty };
+      const lineDiscountPercentage = m.lineDiscountPercentage !== null && m.lineDiscountPercentage !== undefined
+        ? Number(m.lineDiscountPercentage)
+        : null;
+      return { unitPrice, qty, lineTotal: unitPrice * qty, lineDiscountPercentage };
     });
-    const totalSelected = totals.reduce((acc, t) => acc + t.lineTotal, 0);
+
+    // Only bill-level lines (no printed discount of their own) count toward
+    // the proportional spread - a line settled on its own rate shouldn't also
+    // soak up a share of the bill-level discount meant for the other lines.
+    const billLevelTotals = totals.filter((t) => t.lineDiscountPercentage === null);
+    const totalSelected = billLevelTotals.reduce((acc, t) => acc + t.lineTotal, 0);
 
     // Use the bill's gross as the denominator so each medicine gets only
     // its share of the discount — even when other bill lines weren't
@@ -244,6 +312,19 @@ const OCRBillImport = () => {
     }
 
     return totals.map((t) => {
+      if (t.lineDiscountPercentage !== null) {
+        const pct = Math.min(Math.max(t.lineDiscountPercentage, 0), 100);
+        const medicineDiscount = t.lineTotal * (pct / 100);
+        const purchasePrice = Math.max(
+          0,
+          Math.round(t.unitPrice * (1 - pct / 100) * 100) / 100
+        );
+        return {
+          purchasePrice,
+          medicineDiscount: Math.round(medicineDiscount * 100) / 100,
+        };
+      }
+
       // Guards: no qty, no denominator, or no discount → keep unit price as-is.
       if (t.qty === 0 || denominator === 0 || effectiveAmount === 0) {
         return { purchasePrice: t.unitPrice, medicineDiscount: 0 };
@@ -315,6 +396,7 @@ const OCRBillImport = () => {
         <div>
           <Input type="number" bsSize="sm" value={row.quantity || ""} onChange={(e) => handleFormChange(row.idx, "quantity", e.target.value)} placeholder="0" style={{ fontSize: "0.85rem", width: "100%" }} />
           <small className="text-muted d-block mt-1">{row.baseUnit}</small>
+          <QuantityUnitNote row={row} />
         </div>
       ),
     },
@@ -379,6 +461,7 @@ const OCRBillImport = () => {
         <div>
           <Input type="number" bsSize="sm" value={row.quantity || ""} onChange={(e) => handleFormChange(row.idx, "quantity", e.target.value)} placeholder="0" style={{ fontSize: "0.85rem", width: "100%" }} />
           <small className="text-muted d-block mt-1">{row.baseUnit}</small>
+          <QuantityUnitNote row={row} />
         </div>
       ),
     },
@@ -444,6 +527,7 @@ const OCRBillImport = () => {
         unitPrice: parseFloat(fd.unitPrice) || 0,
         // line total = price per pack x number of packs
         quantity: (parseFloat(fd.quantity) || 0) / factor,
+        lineDiscountPercentage: fd.lineDiscountPercentage ?? null,
       };
     });
     const discounts = computeDiscountedPrices(lines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
@@ -489,6 +573,9 @@ const OCRBillImport = () => {
         qty,
         purchaseUnit,
         packQtyDisplay,
+        quantityRaw: formData.quantityRaw ?? null,
+        quantityUnitGuess: formData.quantityUnitGuess || "BASE",
+        quantityConfidence: formData.quantityConfidence || "HIGH",
         purchasePrice: displayedPurchasePrice,
         discountedPrice: displayedPurchasePrice,
         medicineDiscount,
@@ -867,6 +954,12 @@ const OCRBillImport = () => {
             expiryDate: med.ocrExtracted?.expiryDate || "",
             unitPrice: med.ocrExtracted?.unitPrice || "",
             totalPrice: med.ocrExtracted?.totalPrice || "",
+            lineDiscountPercentage: med.ocrExtracted?.lineDiscountPercentage ?? null,
+            // Server's guess of whether `quantity` above counts the medicine's
+            // base or purchase unit (judged from price math) - used once the
+            // user picks the actual medicine match to convert to base units.
+            quantityUnitGuess: med.ocrExtracted?.quantityUnitGuess || "BASE",
+            quantityConfidence: med.ocrExtracted?.quantityConfidence || "HIGH",
           };
         });
       }
@@ -917,6 +1010,7 @@ const OCRBillImport = () => {
             expiryDate: med.ocrExtracted?.expiryDate || null,
             unitPrice: med.ocrExtracted?.unitPrice || null,
             totalPrice: med.ocrExtracted?.totalPrice || null,
+            lineDiscountPercentage: med.ocrExtracted?.lineDiscountPercentage ?? null,
             reason: "No matching medicine found in master database",
             action: "Try editing the name or strength to find a match",
           });
@@ -953,6 +1047,9 @@ const OCRBillImport = () => {
               expiryDate: med.ocrExtracted?.expiryDate || "",
               unitPrice: med.ocrExtracted?.unitPrice || "",
               totalPrice: med.ocrExtracted?.totalPrice || "",
+              lineDiscountPercentage: med.ocrExtracted?.lineDiscountPercentage ?? null,
+              quantityUnitGuess: med.ocrExtracted?.quantityUnitGuess || "BASE",
+              quantityConfidence: med.ocrExtracted?.quantityConfidence || "HIGH",
             };
 
             // Rebuild checked and selected state with new indices
@@ -1226,6 +1323,16 @@ const OCRBillImport = () => {
     if (!movedTempId) {
     }
 
+    // The server never guessed a unit for this line (it had no master match at
+    // extraction time) - guess it now against the medicine the user just picked.
+    const errorUnitGuess = guessQuantityUnit(
+      formData.quantity,
+      formData.unitPrice,
+      formData.totalPrice,
+      selectedMed.conversion,
+      formData.lineDiscountPercentage
+    );
+
     // Add to extracted medicines, preserving the _tempId for tracking
     const newIdx = extractedMedicines.length;
     setExtractedMedicines([...extractedMedicines, {
@@ -1238,8 +1345,11 @@ const OCRBillImport = () => {
         quantity: formData.quantity || 0,
         unitPrice: formData.unitPrice || null,
         totalPrice: formData.totalPrice || null,
+        lineDiscountPercentage: formData.lineDiscountPercentage ?? null,
         expiryDate: formData.expiryDate || null,
         confidence: 1.0,
+        quantityUnitGuess: errorUnitGuess.guess,
+        quantityConfidence: errorUnitGuess.confidence,
       },
       masterData: {
         medicineId: selectedMed._id,
@@ -1267,6 +1377,9 @@ const OCRBillImport = () => {
         expiryDate: formData.expiryDate || "",
         unitPrice: formData.unitPrice || 0,
         totalPrice: formData.totalPrice || 0,
+        lineDiscountPercentage: formData.lineDiscountPercentage ?? null,
+        quantityUnitGuess: errorUnitGuess.guess,
+        quantityConfidence: errorUnitGuess.confidence,
       },
     }));
 
@@ -1639,23 +1752,45 @@ const OCRBillImport = () => {
       return {
         unitPrice: parseFloat(ext.unitPrice) || 0,
         quantity: parseFloat(ext.quantity) || 0,
+        lineDiscountPercentage: ext.lineDiscountPercentage ?? null,
       };
     });
     const discounts = computeDiscountedPrices(lines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
 
     orderedEntries.forEach(([idx, result], i) => {
-      const { extractedData } = result;
+      const { extractedData, selectedMedicine } = result;
       const basePrice = parseFloat(extractedData.unitPrice) || 0;
       const purchasePriceWithDiscount = discounts[i]?.purchasePrice ?? basePrice;
+      const rawQty = parseFloat(extractedData.quantity) || 0;
+
+      // Prefer the server's guess (made at extraction time, before the user had
+      // picked a medicine); if this line never got one - e.g. a missing-medicine
+      // match made client-side, or a retried line that was unmatched at upload -
+      // compute it now against the medicine the user actually selected.
+      let guess = extractedData.quantityUnitGuess;
+      let confidence = extractedData.quantityConfidence;
+      if (!guess) {
+        const fresh = guessQuantityUnit(rawQty, basePrice, extractedData.totalPrice, selectedMedicine?.conversion, extractedData.lineDiscountPercentage);
+        guess = fresh.guess;
+        confidence = fresh.confidence;
+      }
+      const factor = getConversionFactor(selectedMedicine) || 1;
+      const correctedQty = guess === "PURCHASE" ? rawQty * factor : rawQty;
 
       initialData[idx] = {
         medicineName: extractedData.medicineName || "",
         strength: extractedData.strength || "",
-        quantity: parseFloat(extractedData.quantity) || 0,
+        quantity: Math.round(correctedQty * 100) / 100,
+        // Kept for display only - what the bill actually printed, and why the
+        // Add Qty value above differs from it (if it does).
+        quantityRaw: rawQty,
+        quantityUnitGuess: guess,
+        quantityConfidence: confidence,
         batchNumber: extractedData.batchNumber || "",
         expiryDate: extractedData.expiryDate || "",
         unitPrice: basePrice,
         totalCost: extractedData.totalCost || 0,
+        lineDiscountPercentage: extractedData.lineDiscountPercentage ?? null,
         purchasePrice: purchasePriceWithDiscount,
         mrp: basePrice > 0 ? Math.round(basePrice * 100) / 100 : "",
         salePrice: "",
@@ -1951,7 +2086,12 @@ const OCRBillImport = () => {
           expiryDate: med.expiryDate || null,
           unitPrice: med.unitPrice || null,
           totalPrice: med.totalPrice || null,
+          lineDiscountPercentage: med.lineDiscountPercentage ?? null,
           confidence: med.confidence || 0,
+          // Persisted from upload time (see billExtraction.service.js) - reused
+          // here instead of defaulting to BASE/HIGH.
+          quantityUnitGuess: med.quantityUnitGuess || "BASE",
+          quantityConfidence: med.quantityConfidence || "HIGH",
         },
         masterData: {},
         matchingMedicines: [],
@@ -1970,6 +2110,9 @@ const OCRBillImport = () => {
           expiryDate: med.ocrExtracted.expiryDate || "",
           unitPrice: med.ocrExtracted.unitPrice || "",
           totalPrice: med.ocrExtracted.totalPrice || "",
+          lineDiscountPercentage: med.ocrExtracted.lineDiscountPercentage ?? null,
+          quantityUnitGuess: med.ocrExtracted.quantityUnitGuess || "BASE",
+          quantityConfidence: med.ocrExtracted.quantityConfidence || "HIGH",
         };
         matchingMap[idx] = matchesByTempId[med._tempId];
       });
@@ -1993,6 +2136,7 @@ const OCRBillImport = () => {
           expiryDate: med.expiryDate || null,
           unitPrice: med.unitPrice || null,
           totalPrice: med.totalPrice || null,
+          lineDiscountPercentage: saved.lineDiscountPercentage ?? med.lineDiscountPercentage ?? null,
           reason: saved.reason || "No matching medicine found in master database",
         };
       });
@@ -2081,6 +2225,7 @@ const OCRBillImport = () => {
           expiryDate: e.expiryDate ?? src?.expiryDate ?? "",
           unitPrice: e.unitPrice ?? src?.unitPrice ?? 0,
           totalPrice: e.totalPrice ?? src?.totalPrice ?? 0,
+          lineDiscountPercentage: e.lineDiscountPercentage ?? src?.lineDiscountPercentage ?? null,
         };
       });
 
@@ -2262,6 +2407,7 @@ const OCRBillImport = () => {
               quantity: pick("quantity") || 0,
               unitPrice: pick("unitPrice") || null,
               totalPrice: pick("totalPrice") || null,
+              lineDiscountPercentage: pick("lineDiscountPercentage") ?? null,
               expiryDate: formattedExpiryDate || null,
               confidence: originalMedicine?.confidence || 0,
             },
@@ -2279,6 +2425,7 @@ const OCRBillImport = () => {
             expiryDate: formattedExpiryDate,
             unitPrice: pick("unitPrice") || null,
             totalPrice: pick("totalPrice") || null,
+            lineDiscountPercentage: pick("lineDiscountPercentage") ?? null,
           };
 
           // Don't auto-select on retry - let user manually verify strength match
@@ -2797,6 +2944,7 @@ const OCRBillImport = () => {
                               expiryDate: med.expiryDate || "",
                               unitPrice: med.unitPrice || 0,
                               totalPrice: med.totalPrice || 0,
+                              lineDiscountPercentage: med.lineDiscountPercentage ?? null,
                             },
                           }));
                         }
@@ -3056,6 +3204,7 @@ const OCRBillImport = () => {
                                   expiryDate: med.expiryDate || "",
                                   unitPrice: med.unitPrice || 0,
                                   totalPrice: med.totalPrice || 0,
+                                  lineDiscountPercentage: med.lineDiscountPercentage ?? null,
                                 },
                               }));
                             }
@@ -3475,6 +3624,38 @@ const OCRBillImport = () => {
                             }
                             placeholder="0"
                           />
+                          {(() => {
+                            const selectedMed = matchingMedicinesMap[idx]?.find((m) => m._id === selectedMedicineIds[idx]);
+                            if (!selectedMed) return null;
+                            const g = guessQuantityUnit(
+                              extractedFormData[idx]?.quantity,
+                              extractedFormData[idx]?.unitPrice,
+                              extractedFormData[idx]?.totalPrice,
+                              selectedMed.conversion,
+                              extractedFormData[idx]?.lineDiscountPercentage
+                            );
+                            if (g.guess !== "PURCHASE" || g.factor <= 1) return null;
+                            const enteredQty = Number(extractedFormData[idx]?.quantity) || 0;
+                            const baseQty = Math.round(enteredQty * g.factor * 100) / 100;
+                            return (
+                              <div
+                                style={{
+                                  fontSize: "0.68rem",
+                                  marginTop: 2,
+                                  whiteSpace: "nowrap",
+                                  color: g.confidence === "LOW" ? "#b45309" : "#2563eb",
+                                }}
+                                title={
+                                  g.confidence === "LOW"
+                                    ? "No price data to confirm this - defaulting to purchase unit. Verify before import."
+                                    : "Bill's Qty x Rate matches purchase-unit pricing - will be converted to base units on import."
+                                }
+                              >
+                                {g.confidence === "LOW" ? "⚠ " : ""}
+                                {enteredQty} {selectedMed.purchaseUnit || "pack"} → {baseQty} {selectedMed.baseUnit || "base"}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td>
                           <Input
@@ -3962,6 +4143,17 @@ const OCRBillImport = () => {
 
           {error && <Alert color="danger" className="mt-3">{error}</Alert>}
 
+          {recheckFailures.length > 0 && (
+            <Alert color="danger" className="mt-3 mb-0 py-2" style={{ fontSize: 13 }}>
+              <div className="mb-1">Could not recheck stock for {recheckFailures.length} medicine(s). Their previous values are shown - fix the issue below and try Review Again.</div>
+              <ul className="mb-0 ps-3">
+                {recheckFailures.map((f, i) => (
+                  <li key={i}><strong>{f.name}</strong>: {f.reason}</li>
+                ))}
+              </ul>
+            </Alert>
+          )}
+
           {editedSinceReview && (
             <Alert color="warning" className="mt-3 mb-0 py-2" style={{ fontSize: 13 }}>
               You changed values on this screen. Click <strong>Review Again</strong> to re-check stock before you can submit.
@@ -3981,8 +4173,10 @@ const OCRBillImport = () => {
               onClick={async () => {
                 setRechecking(true);
                 setError(null);
+                setRecheckFailures([]);
                 try {
                   const results = {};
+                  const failures = [];
                   for (const [idx, result] of Object.entries(pharmacyCheckResults)) {
                     const idx_num = parseInt(idx);
                     const formData = medicineFormData[idx_num];
@@ -4011,13 +4205,34 @@ const OCRBillImport = () => {
                         pharmacyStatus: { exists: checkResult.exists, data: checkResult.data },
                       };
                     } catch (err) {
+                      // Keep the row's previous result instead of silently dropping it
+                      // from the table - a failed recheck must not look like "no medicines".
+                      results[idx_num] = result;
+
+                      // The server's message lumps medicineId in with batchNumber/expiryDate,
+                      // but medicineId is always set from the match the user already picked -
+                      // there's nothing for them to "provide". Build the reason from what's
+                      // actually missing on the user's side instead of echoing that text.
+                      const missing = [];
+                      if (!formData.batchNumber) missing.push("Batch Number");
+                      if (!formData.expiryDate) missing.push("Expiry Date");
+                      const reason = missing.length > 0
+                        ? `${missing.join(" and ")} ${missing.length > 1 ? "are" : "is"} missing`
+                        : err?.error || err?.message || "Unknown error";
+                      failures.push({ name: selectedMedicine.name || "a medicine", reason });
                     }
                   }
 
                   setPharmacyCheckResults(results);
                   setEditedSinceReview(false);
-                  toast.success("Pharmacy check completed. Review the results above.");
+                  setRecheckFailures(failures);
+                  if (failures.length > 0) {
+                    toast.error(`Recheck failed for ${failures.length} medicine(s). See details below.`);
+                  } else {
+                    toast.success("Pharmacy check completed. Review the results above.");
+                  }
                 } catch (err) {
+                  setRecheckFailures([]);
                   setError("Failed to recheck pharmacy status");
                   toast.error("Failed to recheck pharmacy status");
                 } finally {
