@@ -62,6 +62,9 @@ const SpecialRequirementsForm = ({
   author,
   onClearForm: propOnClearForm,
   isEdit: propIsEdit,
+  hasGenerated: propHasGenerated,
+  isGenerating: propIsGenerating,
+  uploadedAudio: propUploadedAudio,
 }) => {
   const isEdit = Boolean(
     propIsEdit ??
@@ -72,11 +75,62 @@ const SpecialRequirementsForm = ({
   const dispatch = useDispatch();
   const context = useContext(DetailHistoryClearContext);
   const onClear = propOnClearForm || context?.onClearForm;
-  const isGenerating = context?.isGenerating || false;
+  const isGenerating = propIsGenerating ?? context?.isGenerating ?? false;
+  const hasGenerated = propHasGenerated ?? context?.hasGenerated ?? false;
+  const uploadedAudio = propUploadedAudio ?? context?.uploadedAudio ?? null;
 
   const [loading, setLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const isAlreadyValidated = Boolean(
+    editChartData?.detailAdmission?.validation?.isValidated ||
+      (isEdit && Boolean(validation?.values?.isValidated || validation?.values?.validation?.isValidated))
+  );
+
+  const isDoctor = (() => {
+    try {
+      const stored = localStorage.getItem("authUser");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (
+          parsed?.role &&
+          String(parsed.role).trim().toUpperCase() === "DOCTOR"
+        ) {
+          return true;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    if (
+      author?.role &&
+      String(author.role).trim().toUpperCase() === "DOCTOR"
+    ) {
+      return true;
+    }
+    return false;
+  })();
+
+  const isAiRecord = Boolean(
+    validation?.values?.aiGenerated ||
+      uploadedAudio?.url ||
+      validation?.values?.audioDetails ||
+      editChartData?.detailAdmission?.aiGenerated ||
+      editChartData?.detailAdmission?.audioDetails?.url
+  );
+
+  const isAiComplete =
+    !isGenerating &&
+    (Boolean(hasGenerated) ||
+      Boolean(validation?.values?.aiGenerated) ||
+      (isEdit &&
+        Boolean(
+          editChartData?.detailAdmission?.aiReviewed ||
+            editChartData?.detailAdmission?.validation?.isValidated
+        )));
+
+  const isValidationDisabled = isAiRecord && !isAiComplete;
 
   const handleValidate = async () => {
     setLoading(true);
@@ -113,12 +167,57 @@ const SpecialRequirementsForm = ({
       <div>
         <RenderFields fields={fields} validation={validation} />
 
-        {!isEdit && validation.values.aiGenerated && (
+        {isAlreadyValidated ? (
+          <div
+            className="p-3 my-3 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-2"
+            style={{
+              backgroundColor: "#ecfdf5",
+              border: "2px solid #10b981",
+              borderRadius: "8px",
+            }}
+          >
+            <div className="d-flex align-items-center gap-3">
+              <i className="ri-checkbox-circle-fill text-success fs-3 flex-shrink-0"></i>
+              <div>
+                <div className="d-flex align-items-center gap-2">
+                  <span className="fw-bold fs-6 text-success">AI Validated</span>
+                </div>
+                <div className="small text-muted" style={{ color: "#065f46" }}>
+                  {editChartData?.detailAdmission?.validation?.validatedBy?.name ||
+                  validation?.values?.validatedByName ? (
+                    <>
+                      Validated by{" "}
+                      <strong>
+                        {editChartData?.detailAdmission?.validation?.validatedBy?.name ||
+                          validation?.values?.validatedByName}
+                      </strong>
+                      {editChartData?.detailAdmission?.validation?.validatedAt && (
+                        <>
+                          {" "}
+                          on{" "}
+                          {new Date(
+                            editChartData.detailAdmission.validation.validatedAt
+                          ).toLocaleDateString()}
+                        </>
+                      )}
+                      . This clinical record is permanently validated.
+                    </>
+                  ) : (
+                    "This clinical record has been reviewed and permanently validated. Validation is non-revertable."
+                  )}
+                </div>
+              </div>
+            </div>
+            <span className="badge bg-success py-1 px-2 fs-7 d-inline-flex align-items-center gap-1">
+              <i className="ri-check-line"></i> Validated
+            </span>
+          </div>
+        ) : (
           <div
             className="p-3 my-3 shadow-sm"
             style={{
-              backgroundColor: "#f1f5f9", // distinct background highlight
-              border: "2px solid #0f172a", // solid dark navy/gray border
+              backgroundColor: "#f1f5f9",
+              border: "2px solid #0f172a",
               borderRadius: "8px",
             }}
           >
@@ -128,32 +227,77 @@ const SpecialRequirementsForm = ({
                 type="checkbox"
                 id="ai-reviewed-checkbox"
                 name="aiReviewed"
-                checked={Boolean(validation.values.aiReviewed)}
+                checked={Boolean(
+                  validation.values.aiReviewed || validation.values.isValidated
+                )}
+                disabled={isValidationDisabled}
+                title={
+                  isValidationDisabled
+                    ? "Cannot validate an AI-generated record until AI validation is successfully completed."
+                    : ""
+                }
                 onChange={(e) => {
+                  if (isValidationDisabled) return;
                   validation.setFieldValue("aiReviewed", e.target.checked);
+                  validation.setFieldValue("isValidated", e.target.checked);
                 }}
                 style={{
-                  border: "2px solid #0f172a", // solid dark navy/gray checkbox border
+                  border: "2px solid #0f172a",
                   width: "1.25rem",
                   height: "1.25rem",
-                  cursor: "pointer",
+                  cursor: isValidationDisabled ? "not-allowed" : "pointer",
                   marginTop: 0,
                   flexShrink: 0,
                 }}
               />
               <label
-                className="form-check-label fw-bold cursor-pointer ms-2 fs-6 mb-0"
+                className={`form-check-label fw-bold ms-2 fs-6 mb-0 ${
+                  isValidationDisabled ? "text-muted" : "cursor-pointer"
+                }`}
                 htmlFor="ai-reviewed-checkbox"
-                style={{ color: "#0f172a" }}
+                style={{ color: isValidationDisabled ? "#64748b" : "#0f172a" }}
+                title={
+                  isValidationDisabled
+                    ? "Cannot validate an AI-generated record until AI validation is successfully completed."
+                    : ""
+                }
               >
-                I have reviewed and validated the AI-generated data{" "}
-                <span className="text-danger">*</span>
+                I have reviewed and validated this clinical record, This is non revertable once validated.
+                {isDoctor ? (
+                  <span className="text-danger ms-1">* (Mandatory for Doctors)</span>
+                ) : (
+                  <span className="text-muted ms-1">(Optional)</span>
+                )}
               </label>
             </div>
             <div className="small text-muted ms-4 ps-1" style={{ color: "#334155" }}>
-              This record was populated with AI assistance. Clinical verification is mandatory before saving to the database.
-              You may uncheck this box, review or edit any fields across previous tabs, and re-check before saving.
+              {isDoctor
+                ? "Doctors must validate Detail History upon submission. This is non revertable once validated."
+                : "Checking this box records you as the clinical validator. This is non revertable once validated."}
             </div>
+
+            {isDoctor && !validation.values.isValidated && !isAlreadyValidated && (
+              <div className="text-danger small fw-semibold ms-4 ps-1 mt-1">
+                * Doctors must validate Detail History upon submission
+              </div>
+            )}
+
+            {isValidationDisabled && (
+              <div
+                className="alert alert-warning py-2 px-3 mt-2 mb-0 d-flex align-items-center gap-2"
+                style={{
+                  fontSize: "0.85rem",
+                  borderLeft: "4px solid #f59e0b",
+                  backgroundColor: "#fffbeb",
+                  color: "#92400e",
+                }}
+              >
+                <i className="ri-error-warning-line fs-5 flex-shrink-0"></i>
+                <span>
+                  <strong>AI Validation Guardrail:</strong> Cannot validate an AI-generated record until AI validation is successfully completed.
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -177,44 +321,13 @@ const SpecialRequirementsForm = ({
             )}
           </div>
 
-          {/* Bottom Right: AI validation warning, Validate, and Save */}
+          {/* Bottom Right: Save */}
           <div className="d-flex align-items-center gap-3 ms-auto">
-            {!isEdit && validation.values.aiGenerated && !validation.values.aiReviewed && (
-              <small className="text-danger fw-semibold">
-                * Please validate the AI-generated data to enable Save.
-              </small>
-            )}
-
-            {editChartData &&
-              !editChartData.doctorValidatorId &&
-              editChartData.needsValidation &&
-              author?.role === "DOCTOR" &&
-              !isVerified && (
-                <Button
-                  disabled={loading || validation.dirty}
-                  onClick={() => setIsModalOpen(true)}
-                  size="sm"
-                  color="success"
-                  type="button"
-                  title={
-                    validation.dirty
-                      ? "Please save your changes before validating"
-                      : ""
-                  }
-                >
-                  {loading ? "Validating..." : "Validate"}
-                </Button>
-              )}
             <Button
               size="sm"
               type="submit"
               color="primary"
-              disabled={Boolean(!isEdit && validation.values.aiGenerated && !validation.values.aiReviewed)}
-              title={
-                !isEdit && validation.values.aiGenerated && !validation.values.aiReviewed
-                  ? "Please check 'I have reviewed and validated the AI-generated data' to save."
-                  : ""
-              }
+              disabled={loading}
             >
               Save
             </Button>
@@ -239,6 +352,9 @@ SpecialRequirementsForm.propTypes = {
   author: PropTypes.object,
   onClearForm: PropTypes.func,
   isEdit: PropTypes.bool,
+  hasGenerated: PropTypes.bool,
+  isGenerating: PropTypes.bool,
+  uploadedAudio: PropTypes.object,
 };
 
 export default SpecialRequirementsForm;

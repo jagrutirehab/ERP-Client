@@ -27,6 +27,7 @@ const RecordingTab = ({
   setUploadedAudio,
   hasGenerated,
   onClearForm: propOnClearForm,
+  onCheckDraftConflict,
 }) => {
   const context = useContext(DetailHistoryClearContext);
   const onClear = propOnClearForm || context?.onClearForm;
@@ -37,6 +38,8 @@ const RecordingTab = ({
   // File Upload State
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatusText, setUploadStatusText] = useState("");
   const [audioPreviewUrl, setAudioPreviewUrl] = useState(null);
 
   // Browser Live Recording State
@@ -97,13 +100,26 @@ const RecordingTab = ({
   const uploadAudioFile = async (file, sourceType = "uploaded") => {
     try {
       setIsUploading(true);
+      setUploadProgress(0);
+      setUploadStatusText("Uploading audio to S3...");
+
       const formData = new FormData();
       formData.append("audio", file);
       formData.append("sourceType", sourceType);
       if (patient?._id) formData.append("patient", patient._id);
       if (center) formData.append("center", center);
 
-      const response = await uploadDetailAdmissionAudio(formData);
+      const response = await uploadDetailAdmissionAudio(formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress(percent);
+            setUploadStatusText(`Uploading to S3 (${percent}%)...`);
+          }
+        },
+      });
       const payload = response?.payload || response?.data || response;
 
       if (payload?.url) {
@@ -111,7 +127,7 @@ const RecordingTab = ({
           url: payload.url,
           path: payload.path,
           name: payload.name || file.name,
-          originalName: file.originalname || file.name,
+          originalName: payload.originalName || file.name,
           size: payload.size || file.size,
           type: payload.type || file.type,
           mimetype: payload.type || file.type,
@@ -133,11 +149,19 @@ const RecordingTab = ({
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
+      setUploadStatusText("");
     }
   };
 
   // File Input Handler (Upload Mode)
   const handleFileChange = async (e) => {
+    if (onCheckDraftConflict && onCheckDraftConflict()) {
+      if (e.target) e.target.value = null;
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -213,6 +237,10 @@ const RecordingTab = ({
 
   // Start Live Browser Recording
   const handleStartRecording = async () => {
+    if (onCheckDraftConflict && onCheckDraftConflict()) {
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -236,9 +264,13 @@ const RecordingTab = ({
         }
       }
 
-      const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
+      const recorderOptions = {
+        audioBitsPerSecond: 64000,
+      };
+      if (mimeType) {
+        recorderOptions.mimeType = mimeType;
+      }
+      const recorder = new MediaRecorder(stream, recorderOptions);
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
 
@@ -410,14 +442,37 @@ const RecordingTab = ({
                   className="form-control"
                   style={{ maxWidth: "450px" }}
                   accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm,.mpeg"
+                  onClick={(e) => {
+                    if (onCheckDraftConflict && onCheckDraftConflict()) {
+                      e.preventDefault();
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }
+                  }}
                   onChange={handleFileChange}
                   disabled={isUploading || isGenerating}
                 />
 
                 {isUploading && (
-                  <div className="d-flex align-items-center gap-2 text-primary">
-                    <Spinner size="sm" color="primary" />
-                    <span className="small">Uploading to S3...</span>
+                  <div className="d-flex flex-column gap-1 text-primary mt-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <Spinner size="sm" color="primary" />
+                      <span className="small fw-semibold">
+                        {uploadStatusText ||
+                          `Uploading to S3... ${uploadProgress > 0 ? `${uploadProgress}%` : ""}`}
+                      </span>
+                    </div>
+                    {uploadProgress > 0 && (
+                      <div
+                        className="progress"
+                        style={{ height: "6px", width: "100%", maxWidth: "350px" }}
+                      >
+                        <div
+                          className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                          role="progressbar"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -495,9 +550,26 @@ const RecordingTab = ({
               )}
 
               {isUploading && (
-                <div className="d-flex align-items-center gap-2 text-primary mt-2">
-                  <Spinner size="sm" color="primary" />
-                  <span className="small">Finalizing and uploading recording to S3...</span>
+                <div className="d-flex flex-column align-items-center gap-1 text-primary my-3">
+                  <div className="d-flex align-items-center gap-2">
+                    <Spinner size="sm" color="primary" />
+                    <span className="small fw-semibold">
+                      {uploadStatusText ||
+                        `Finalizing and uploading recording... ${uploadProgress > 0 ? `${uploadProgress}%` : ""}`}
+                    </span>
+                  </div>
+                  {uploadProgress > 0 && (
+                    <div
+                      className="progress"
+                      style={{ height: "6px", width: "100%", maxWidth: "250px" }}
+                    >
+                      <div
+                        className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                        role="progressbar"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -559,8 +631,8 @@ const RecordingTab = ({
             </Card>
           )}
 
-          {/* Generate Button & Generation State */}
-          {uploadedAudio && !isGenerating && (
+          {/* Generate Button & Generation State (Hidden once AI generation completes successfully) */}
+          {uploadedAudio && !isGenerating && !hasGenerated && (
             <div className="mb-4 text-center p-3 bg-light rounded border">
               <p className="mb-2 text-muted small">
                 Audio is ready. Click below to begin background chunking, transcription, and Detail History auto-fill.
@@ -687,6 +759,7 @@ RecordingTab.propTypes = {
   setUploadedAudio: PropTypes.func.isRequired,
   hasGenerated: PropTypes.bool,
   onClearForm: PropTypes.func,
+  onCheckDraftConflict: PropTypes.func,
 };
 
 export default RecordingTab;

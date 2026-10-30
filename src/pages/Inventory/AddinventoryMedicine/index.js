@@ -164,11 +164,24 @@ const AddinventoryMedicine = ({
       return;
     }
 
+    const isLiquidForm = watch("form") === "LIQUID_FORM";
+
     const centersPayload = selectedCenters.map((id) => {
       let stock = Number(centerStocks[id]) || 0;
-      const unitType = centerStockUnits[id] || "BASE";
+      const unitType = centerStockUnits[id] || (isLiquidForm ? "PURCHASE" : "BASE");
+      const hasConversion = medicineConversion?.baseQuantity && medicineConversion?.purchaseQuantity;
 
-      if (unitType === "PURCHASE" && medicineConversion?.baseQuantity && medicineConversion?.purchaseQuantity) {
+      if (isLiquidForm) {
+        // LIQUID_FORM medicines store Pharmacy stock in the purchase unit
+        // (e.g. bottle count), unlike every other form. A purchase-unit entry
+        // is already in that unit, so it's saved as-is; a base-unit entry
+        // (e.g. ml) is converted down to the exact (unrounded) purchase-unit
+        // equivalent before saving, since the stored field is always
+        // purchase-unit for this form.
+        if (unitType === "BASE" && hasConversion) {
+          stock = stock * (medicineConversion.purchaseQuantity / medicineConversion.baseQuantity);
+        }
+      } else if (unitType === "PURCHASE" && hasConversion) {
         stock = stock * (medicineConversion.baseQuantity / medicineConversion.purchaseQuantity);
       }
 
@@ -220,7 +233,18 @@ const AddinventoryMedicine = ({
   const [medicineConversion, setMedicineConversion] = useState(
     defaultValues.medicineId?.conversion || defaultValues.conversion || null
   );
-  const [centerStockUnits, setCenterStockUnits] = useState({});
+  const [centerStockUnits, setCenterStockUnits] = useState(() => {
+    const map = {};
+    const isLiquid = (defaultValues.medicineId?.form || defaultValues.form) === "LIQUID_FORM";
+    if (isLiquid && defaultValues.centers) {
+      defaultValues.centers.forEach((c) => {
+        const id =
+          typeof c.centerId === "object" ? String(c.centerId._id) : String(c.centerId);
+        map[id] = "PURCHASE";
+      });
+    }
+    return map;
+  });
   const [centerStockTouched, setCenterStockTouched] = useState({});
 
 
@@ -289,6 +313,7 @@ const AddinventoryMedicine = ({
       const res = await axios.get("/medicine/", {
         params: {
           search: query,
+          excludePending: true,
         },
       });
       const payload = res?.payload || [];
@@ -372,8 +397,9 @@ const AddinventoryMedicine = ({
       });
       setCenterStockUnits((prev) => {
         const copy = { ...prev };
+        const defaultUnit = watch("form") === "LIQUID_FORM" ? "PURCHASE" : "BASE";
         addedIds.forEach((id) => {
-          if (copy[id] === undefined) copy[id] = "BASE";
+          if (copy[id] === undefined) copy[id] = defaultUnit;
         });
         return copy;
       });
@@ -530,9 +556,20 @@ const AddinventoryMedicine = ({
                     })?.centerId;
                   const rawStockStr = centerStocks[id] ?? "";
                   let stockNum = Number(rawStockStr) || 0;
-                  const unitType = centerStockUnits[id] || "BASE";
+                  const isLiquidForm = watch("form") === "LIQUID_FORM";
+                  // The stored stock for LIQUID_FORM medicines is always a
+                  // purchase-unit quantity (e.g. bottle count), so that's the
+                  // correct default unit to show/edit it as — defaulting to
+                  // "BASE" here would mislabel the existing value and, if
+                  // saved unchanged, silently re-convert and corrupt it.
+                  const unitType = centerStockUnits[id] || (isLiquidForm ? "PURCHASE" : "BASE");
                   let convertedStock = stockNum;
-                  if (unitType === "PURCHASE" && medicineConversion?.baseQuantity && medicineConversion?.purchaseQuantity) {
+                  const hasConversion = medicineConversion?.baseQuantity && medicineConversion?.purchaseQuantity;
+                  if (isLiquidForm) {
+                    if (unitType === "BASE" && hasConversion) {
+                      convertedStock = stockNum * (medicineConversion.purchaseQuantity / medicineConversion.baseQuantity);
+                    }
+                  } else if (unitType === "PURCHASE" && hasConversion) {
                     convertedStock = stockNum * (medicineConversion.baseQuantity / medicineConversion.purchaseQuantity);
                   }
 
@@ -570,7 +607,10 @@ const AddinventoryMedicine = ({
                       )}
                       {rawStockStr !== "" && stockNum !== 0 && (
                         <div className="fs-12 text-dark mt-1 fw-medium" style={{ fontSize: "11px" }}>
-                          Total Stock: {convertedStock} {normalizeLabel(watch("baseUnit")) || "Unit"}
+                          Total Stock: {convertedStock}{" "}
+                          {isLiquidForm
+                            ? normalizeLabel(watch("purchaseUnit")) || "Unit"
+                            : normalizeLabel(watch("baseUnit")) || "Unit"}
                         </div>
                       )}
                     </div>

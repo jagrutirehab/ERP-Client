@@ -1,10 +1,22 @@
 import { useState } from "react";
 import { normalizeUnderscores } from "../../../../utils/normalizeUnderscore";
 import { display } from "../../../../utils/display";
+import { formatTwoDecimals } from "../../../../utils/numberFormat";
 
 const CENTER_PREVIEW_COUNT = 2;
 
-const CenterStockList = ({ centers = [] }) => {
+// Stock from the backend is already converted to base units (e.g. ml) for
+// LIQUID_FORM medicines (stored as a purchase-unit/bottle count), so just
+// show that value with its base unit label.
+const stockDisplay = (baseUnitStock, medicine) => {
+    if (medicine?.form !== "LIQUID_FORM") {
+        return display(baseUnitStock || 0);
+    }
+    const baseStock = Number(baseUnitStock) || 0;
+    return `${formatTwoDecimals(baseStock)} ${normalizeUnderscores(medicine.baseUnit)}`;
+};
+
+const CenterStockList = ({ centers = [], medicine }) => {
     const [expanded, setExpanded] = useState(false);
     if (centers.length === 0) return "-";
 
@@ -29,7 +41,7 @@ const CenterStockList = ({ centers = [] }) => {
                                 {display(item?.centerInfo?.title)}
                             </td>
                             <td className="text-end fw-bold" style={{ fontSize: 11 }}>
-                                {display(item?.stock)}
+                                {stockDisplay(item?.stock, medicine)}
                             </td>
                             <td className="text-end" style={{ fontSize: 11 }}>
                                 {item?.requestedQty || 0}
@@ -102,8 +114,8 @@ export const getStockSummaryGridColumns = () => [
         key: "totalStock",
         header: "Total Stock",
         align: "right",
-        minWidth: 90,
-        render: (row) => row.totalStock || 0,
+        minWidth: 160,
+        render: (row) => stockDisplay(row.totalStock, row.medicine),
     },
     {
         key: "totalReserved",
@@ -158,7 +170,7 @@ export const getStockSummaryGridColumns = () => [
             </table>
         ),
         minWidth: 440,
-        render: (row) => <CenterStockList centers={row.centers} />,
+        render: (row) => <CenterStockList centers={row.centers} medicine={row.medicine} />,
     },
     {
         key: "form",

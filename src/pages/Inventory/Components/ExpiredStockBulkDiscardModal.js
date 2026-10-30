@@ -12,6 +12,11 @@ import moment from "moment";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
 import { getExpiredStock, discardAllExpiredStock } from "../../../helpers/backend_helper";
+import { formatDualUnitStock, toBaseUnitStock } from "../../../utils/pharmacyStockDisplay";
+import { roundTo2Decimals } from "../../../utils/numberFormat";
+
+const nativeUnit = (medicine) =>
+  medicine?.form === "LIQUID_FORM" ? medicine?.purchaseUnit : medicine?.baseUnit;
 
 const MAX_CHUNK_CALLS = 1000;
 
@@ -76,7 +81,9 @@ const ExpiredStockBulkDiscardModal = ({
     previewPage * PREVIEW_PAGE_SIZE
   );
 
-  const totalUnits = rows.reduce((sum, r) => sum + (r.stock || 0), 0);
+  const totalUnits = roundTo2Decimals(
+    rows.reduce((sum, r) => sum + toBaseUnitStock(r.stock, r.medicine), 0)
+  );
   const affectedCenters = [
     ...new Set(rows.map((r) => r.center?.title).filter(Boolean)),
   ];
@@ -98,7 +105,7 @@ const ExpiredStockBulkDiscardModal = ({
         : r.Expiry || "",
       "Center": r.center?.title || "",
       "Stock Discarded": r.stock ?? 0,
-      "Unit": r.medicine?.baseUnit || "",
+      "Unit": nativeUnit(r.medicine) || "",
       "Company": r.company || "",
     }));
 
@@ -323,7 +330,9 @@ const ExpiredStockBulkDiscardModal = ({
                         style={{ fontSize: 12 }}
                         className={`fw-bold text-nowrap ${r.stock > 0 ? "text-danger" : "text-muted"}`}
                       >
-                        {r.stock > 0 ? `${r.stock} ${r.medicine?.baseUnit || ""}` : "Empty"}
+                        {r.stock > 0
+                          ? formatDualUnitStock(r.stock, r.medicine) ?? `${r.stock} ${r.medicine?.baseUnit || ""}`
+                          : "Empty"}
                       </td>
                     </tr>
                   ))}

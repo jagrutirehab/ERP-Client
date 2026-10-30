@@ -361,22 +361,64 @@ const Wrapper = ({
                   </h6>
                 </div>
               )}
-              <div className="d-flex align-items-center">
-                <span className="fs-xs-9">Author:</span>
-                <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
-                  {item?.fromNurse === true ? (
-                    <span className="badge bg-success">System Generated</span>
+              {chart === DETAIL_ADMISSION ? (
+                <>
+                  {!item?.detailAdmission?.validation?.isValidated ? (
+                    <div className="d-flex align-items-center my-1">
+                      <span className="badge bg-soft-warning text-warning border border-warning fs-xs-10 py-1 px-2">
+                        AI Validation: Non-Validated
+                      </span>
+                    </div>
                   ) : (
-                    item?.author?.name
+                    <div className="d-flex align-items-center gap-2 my-1">
+                      <span className="badge bg-soft-success text-success border border-success fs-xs-10 py-1 px-2 d-inline-flex align-items-center gap-1">
+                        <i className="ri-checkbox-circle-fill text-success fs-6"></i>
+                        <span>AI Validated</span>
+                      </span>
+                      <div className="d-flex align-items-center ms-1">
+                        <span className="fs-xs-9 text-muted">Validated By:</span>
+                        <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-1 text-dark">
+                          {item?.detailAdmission?.validation?.validatedBy?.name ||
+                            item?.author?.name}
+                        </h6>
+                      </div>
+                    </div>
                   )}
-                </h6>
-              </div>
-              <div className="d-flex align-items-center">
-                <span className="fs-xs-9">Role:</span>
-                <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
-                  {item?.author?.role}
-                </h6>
-              </div>
+                  <div className="d-flex align-items-center">
+                    <span className="fs-xs-9">Author:</span>
+                    <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
+                      {item?.author?.name || "N/A"}
+                    </h6>
+                  </div>
+                  <div className="d-flex align-items-center">
+                    <span className="fs-xs-9">Role:</span>
+                    <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
+                      {item?.author?.role ||
+                        item?.detailAdmission?.validation?.validatedBy?.role ||
+                        ""}
+                    </h6>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="d-flex align-items-center">
+                    <span className="fs-xs-9">Author:</span>
+                    <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
+                      {item?.fromNurse === true ? (
+                        <span className="badge bg-success">System Generated</span>
+                      ) : (
+                        item?.author?.name
+                      )}
+                    </h6>
+                  </div>
+                  <div className="d-flex align-items-center">
+                    <span className="fs-xs-9">Role:</span>
+                    <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
+                      {item?.author?.role}
+                    </h6>
+                  </div>
+                </>
+              )}
               {item?.isCarryForwarded && (
                 <div className="d-flex align-items-center mt-1">
                   <span className="badge bg-success">

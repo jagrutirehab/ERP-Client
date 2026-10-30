@@ -9,6 +9,7 @@ import {
   Spinner,
 } from "reactstrap";
 import moment from "moment";
+import { formatDualUnitStock } from "../../../utils/pharmacyStockDisplay";
 
 const ExpiredStockDiscardModal = ({
   isOpen,
@@ -70,7 +71,7 @@ const ExpiredStockDiscardModal = ({
               Stock to discard:{" "}
               {row.stock > 0 ? (
                 <span className="fw-bold text-danger">
-                  {row.stock} {row.medicine?.baseUnit || ""}
+                  {formatDualUnitStock(row.stock, row.medicine) ?? `${row.stock} ${row.medicine?.baseUnit || ""}`}
                 </span>
               ) : (
                 <span className="text-muted">Empty — already at 0</span>

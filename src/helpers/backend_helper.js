@@ -714,6 +714,7 @@ export const carryForwardDetailAdmission = (data) =>
 export const uploadDetailAdmissionAudio = (data, config = {}) =>
   api.create(url.POST_DETAIL_ADMISSION_AUDIO_UPLOAD, data, {
     headers: { "Content-Type": "multipart/form-data" },
+    timeout: 600000,
     ...config,
   });
 export const generateDetailAdmissionAudio = (data, config = {}) =>

@@ -2,6 +2,8 @@ import React from "react";
 import moment from "moment";
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { roundTo2Decimals } from "../../../../utils/numberFormat";
+import { formatDualUnitStock } from "../../../../utils/pharmacyStockDisplay";
 
 const expiryPill = (days) => {
   const base = {
@@ -103,7 +105,8 @@ export const getExpiredStockColumns = ({
     cell: (row) =>
       row.stock > 0 ? (
         <span className="fw-bold text-danger">
-          {row.stock} {row.medicine?.baseUnit || ""}
+          {formatDualUnitStock(row.stock, row.medicine) ??
+            `${roundTo2Decimals(row.stock)} ${row.medicine?.baseUnit || ""}`}
         </span>
       ) : (
         <span className="text-muted" title="Already at 0 — just needs removing from this center's record">
@@ -226,7 +229,8 @@ export const getExpiredStockHistoryColumns = () => [
     selector: (row) => row.removedQty,
     cell: (row) => (
       <span className="fw-bold text-danger">
-        {row.removedQty} {row.medicine?.baseUnit || ""}
+        {formatDualUnitStock(row.removedQty, row.medicine) ??
+          `${roundTo2Decimals(row.removedQty)} ${row.medicine?.baseUnit || ""}`}
       </span>
     ),
     center: true,

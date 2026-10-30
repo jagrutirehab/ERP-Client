@@ -16,7 +16,7 @@ const ValidateConfirmationModal = ({ isOpen, toggle, onConfirm, loading, isVerif
                     </p>
                 ) : (
                     <p className="mb-0">
-                        I have read all the details carefully and confirm that the chart is accurate.
+                        I have reviewed and validated this clinical record, This is non revertable once validated.
                     </p>
                 )}
             </ModalBody>
