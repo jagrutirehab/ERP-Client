@@ -1776,9 +1776,9 @@ export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);
 export const GetCsrf = () => userService.get(url.CSRF);
 // Roles
-export const getAllRoles = ({ page = 1, limit = 10, token }) => {
+export const getAllRoles = ({ page = 1, limit = 10, search = "", token }) => {
   return userService.get(url.ROLES, {
-    params: { page, limit },
+    params: { page, limit, search },
     headers: {
       Authorization: `Bearer ${token}`,
     },
