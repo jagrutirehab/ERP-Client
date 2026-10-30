@@ -45,6 +45,52 @@ import RecordingTab from "./RecordingTab";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
 const RECORDING = "RECORDING";
+// Center-based configuration for the Recording tab: Can be ["All"], ["None"], or specific center IDs/names
+const centersAllowed = ["All"];
+
+const isCenterAllowedForRecording = (
+  userCenter,
+  chartCenter,
+  allowed = centersAllowed
+) => {
+  if (!Array.isArray(allowed) || allowed.length === 0) return false;
+
+  const normalizedAllowed = allowed.map((item) =>
+    String(item).trim().toLowerCase()
+  );
+
+  // If "None", hide/disable recording for all centers
+  if (normalizedAllowed.includes("none")) {
+    return false;
+  }
+
+  // If "All", show recording for all centers
+  if (normalizedAllowed.includes("all") || normalizedAllowed.includes("*")) {
+    return true;
+  }
+
+  const candidates = [];
+  const addCandidate = (c) => {
+    if (!c) return;
+    if (typeof c === "string") {
+      candidates.push(c.trim().toLowerCase());
+    } else if (typeof c === "object") {
+      if (c._id) candidates.push(String(c._id).trim().toLowerCase());
+      if (c.id) candidates.push(String(c.id).trim().toLowerCase());
+      if (c.title) candidates.push(String(c.title).trim().toLowerCase());
+      if (c.name) candidates.push(String(c.name).trim().toLowerCase());
+    }
+  };
+
+  addCandidate(userCenter);
+  addCandidate(chartCenter);
+
+  if (Array.isArray(userCenter)) {
+    userCenter.forEach(addCandidate);
+  }
+
+  return candidates.some((cand) => normalizedAllowed.includes(cand));
+};
 // const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
@@ -114,7 +160,7 @@ export const hasDraftContent = (data) => {
   if (typeof data === "string") {
     const key =
       data.startsWith("detail_admission_draft_") ||
-      data.startsWith("detailAdmissionDraft_")
+        data.startsWith("detailAdmissionDraft_")
         ? data
         : getDetailAdmissionDraftKey(data);
     return checkExistingDraft(key, `detailAdmissionDraft_${data}`);
@@ -216,20 +262,38 @@ const DetailAdmission = ({
   const dispatch = useDispatch();
   const isEdit = Boolean(editChartData?._id);
   const [consentFiles, setConsentFiles] = useState();
+
+  const userCenter = author?.center || author?.centerAccess;
+  const chartCenter =
+    center ||
+    patientData?.center?._id ||
+    patientData?.center ||
+    patient?.center?._id ||
+    patient?.center;
+
+  const isRecordingAllowed = useMemo(
+    () => isCenterAllowedForRecording(userCenter, chartCenter, centersAllowed),
+    [userCenter, chartCenter]
+  );
+
+  const isRecordingEnabled = !isEdit && type === "IPD" && isRecordingAllowed;
+
   const [formStep, setFormStep] = useState(
-    !isEdit && type === "IPD" ? RECORDING : CHIEF_COMPLAINTS,
+    !isEdit && type === "IPD" && isRecordingAllowed
+      ? RECORDING
+      : CHIEF_COMPLAINTS
   );
   const [patientTypeSubmitAttempted, setPatientTypeSubmitAttempted] =
     useState(false);
   const [elderlyChecklistSubmitAttempted, setElderlyChecklistSubmitAttempted] =
     useState(false);
 
-  // When switching into edit mode, ensure formStep is not stuck on RECORDING
+  // When switching into edit mode or if recording is disabled/hidden for the center, ensure formStep is not stuck on RECORDING
   useEffect(() => {
-    if (isEdit && formStep === RECORDING) {
+    if ((isEdit || !isRecordingAllowed) && formStep === RECORDING) {
       setFormStep(CHIEF_COMPLAINTS);
     }
-  }, [isEdit, formStep]);
+  }, [isEdit, isRecordingAllowed, formStep]);
 
   // AI-Powered Audio Recording state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -317,8 +381,8 @@ const DetailAdmission = ({
         detailAdmissionForm?.doctorSignature?.provisionaldiagnosis,
       )
         ? detailAdmissionForm.doctorSignature.provisionaldiagnosis.map(
-            (d) => d.code_id,
-          )
+          (d) => d.code_id,
+        )
         : [],
 
       diagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.diagnosis)
@@ -346,19 +410,19 @@ const DetailAdmission = ({
         : "Adequate",
       negativeHistory: detailAdmissionForm
         ? (() => {
-            const val = detailAdmissionForm.detailHistory?.negativeHistory;
-            if (!val) return [];
-            if (Array.isArray(val)) {
-              return val
-                .flatMap((item) =>
-                  typeof item === "string"
-                    ? item.split(",").map((s) => s.trim())
-                    : item,
-                )
-                .filter(Boolean);
-            }
-            return [];
-          })()
+          const val = detailAdmissionForm.detailHistory?.negativeHistory;
+          if (!val) return [];
+          if (Array.isArray(val)) {
+            return val
+              .flatMap((item) =>
+                typeof item === "string"
+                  ? item.split(",").map((s) => s.trim())
+                  : item,
+              )
+              .filter(Boolean);
+          }
+          return [];
+        })()
         : [],
       negativeHistoryOther: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.negativeHistoryOther
@@ -368,25 +432,25 @@ const DetailAdmission = ({
         : "",
       developmentDelayDetails: detailAdmissionForm
         ? Array.isArray(
-            detailAdmissionForm.detailHistory?.developmentDelayDetails,
-          )
+          detailAdmissionForm.detailHistory?.developmentDelayDetails,
+        )
           ? detailAdmissionForm.detailHistory?.developmentDelayDetails
           : []
         : [],
       developmentDelaySittingDetails: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.developmentDelaySittingDetails ||
-          ""
+        ""
         : "",
       developmentDelayStandingDetails: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.developmentDelayStandingDetails ||
-          ""
+        ""
         : "",
       developmentDelaySpeechDetails: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.developmentDelaySpeechDetails || ""
         : "",
       developmentDelayToiletTrainingDetails: detailAdmissionForm
         ? detailAdmissionForm.detailHistory
-            ?.developmentDelayToiletTrainingDetails || ""
+          ?.developmentDelayToiletTrainingDetails || ""
         : "",
       pastHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.pastHistory
@@ -427,7 +491,7 @@ const DetailAdmission = ({
       ),
       specialRequirementsDetails: detailAdmissionForm
         ? detailAdmissionForm.specialRequirements?.specialRequirementsDetails ||
-          ""
+        ""
         : "",
 
       // ChiefComplaints
@@ -453,207 +517,207 @@ const DetailAdmission = ({
       //mental status examination
       ...(isOldMentalExamination
         ? {
-            appearance: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.appearance
-              : "",
-            ecc: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.ecc
-              : "",
-            speech: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.speech
-              : "",
-            mood: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.mood
-              : "",
-            effect: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.effect
-              : "",
-            thinking: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.thinking
-              : "",
-            perception: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.perception
-              : "",
-            memory: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.memory
-              : "",
-            abstractThinking: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.abstractThinking
-              : "",
-            socialJudgment: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.socialJudgment
-              : "",
-            insight: detailAdmissionForm
-              ? detailAdmissionForm.mentalExamination?.insight
-              : "",
-          }
+          appearance: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.appearance
+            : "",
+          ecc: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.ecc
+            : "",
+          speech: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.speech
+            : "",
+          mood: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.mood
+            : "",
+          effect: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.effect
+            : "",
+          thinking: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.thinking
+            : "",
+          perception: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.perception
+            : "",
+          memory: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.memory
+            : "",
+          abstractThinking: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.abstractThinking
+            : "",
+          socialJudgment: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.socialJudgment
+            : "",
+          insight: detailAdmissionForm
+            ? detailAdmissionForm.mentalExamination?.insight
+            : "",
+        }
         : {}),
 
       ...(!isOldMentalExamination
         ? {
-            // grooming:
-            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-            //     ?.grooming || "",
-            // eyeContact:
-            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-            //     ?.eyeContact || "",
-            // psychomotorActivity:
-            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-            //     ?.psychomotorActivity || "",
+          // grooming:
+          //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+          //     ?.grooming || "",
+          // eyeContact:
+          //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+          //     ?.eyeContact || "",
+          // psychomotorActivity:
+          //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+          //     ?.psychomotorActivity || "",
 
-            // rate:
-            //   detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
-            // volume:
-            //   detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+          // rate:
+          //   detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+          // volume:
+          //   detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
 
-            // affect:
-            //   detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
-            // affectNotes:
-            //   detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
-            // subjective:
-            //   detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+          // affect:
+          //   detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+          // affectNotes:
+          //   detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+          // subjective:
+          //   detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
 
-            // delusions:
-            //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
-            // delusionNotes:
-            //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
-            // content:
-            //   detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+          // delusions:
+          //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
+          // delusionNotes:
+          //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
+          // content:
+          //   detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
 
-            // perception:
-            //   detailAdmissionForm?.mentalExaminationV2?.perception || "",
-            // orientation:
-            //   detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
-            // memory:
-            //   detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
+          // perception:
+          //   detailAdmissionForm?.mentalExaminationV2?.perception || "",
+          // orientation:
+          //   detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
+          // memory:
+          //   detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
 
-            // grade:
-            //   detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
-            // judgment:
-            //   detailAdmissionForm?.mentalExaminationV2?.judgment || "",
-            // remarks:
-            //   detailAdmissionForm?.mentalExaminationV2?.remarks || "",
-            grooming:
-              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-                ?.grooming || "",
-            generalAppearance:
-              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-                ?.generalAppearance || "",
-            surroundingTouch:
-              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-                ?.surroundingTouch || "",
-            eyeContact:
-              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-                ?.eyeContact || "",
-            psychomotorActivity:
-              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-                ?.psychomotorActivity || "",
+          // grade:
+          //   detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+          // judgment:
+          //   detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+          // remarks:
+          //   detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+          grooming:
+            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+              ?.grooming || "",
+          generalAppearance:
+            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+              ?.generalAppearance || "",
+          surroundingTouch:
+            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+              ?.surroundingTouch || "",
+          eyeContact:
+            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+              ?.eyeContact || "",
+          psychomotorActivity:
+            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+              ?.psychomotorActivity || "",
 
-            rate: detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
-            tone: detailAdmissionForm?.mentalExaminationV2?.speech?.tone || "",
-            volume:
-              detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
-            reactionTime:
-              detailAdmissionForm?.mentalExaminationV2?.speech?.reactionTime ||
-              "",
-            productivity:
-              detailAdmissionForm?.mentalExaminationV2?.speech?.productivity ||
-              "",
-            speed:
-              detailAdmissionForm?.mentalExaminationV2?.speech?.speed || "",
-            relevance:
-              detailAdmissionForm?.mentalExaminationV2?.speech?.relevance || "",
-            coherence:
-              detailAdmissionForm?.mentalExaminationV2?.speech?.coherence || "",
-            goalDirection:
-              detailAdmissionForm?.mentalExaminationV2?.speech?.goalDirection ||
-              "",
+          rate: detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+          tone: detailAdmissionForm?.mentalExaminationV2?.speech?.tone || "",
+          volume:
+            detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+          reactionTime:
+            detailAdmissionForm?.mentalExaminationV2?.speech?.reactionTime ||
+            "",
+          productivity:
+            detailAdmissionForm?.mentalExaminationV2?.speech?.productivity ||
+            "",
+          speed:
+            detailAdmissionForm?.mentalExaminationV2?.speech?.speed || "",
+          relevance:
+            detailAdmissionForm?.mentalExaminationV2?.speech?.relevance || "",
+          coherence:
+            detailAdmissionForm?.mentalExaminationV2?.speech?.coherence || "",
+          goalDirection:
+            detailAdmissionForm?.mentalExaminationV2?.speech?.goalDirection ||
+            "",
 
-            affect:
-              detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
-            affectNotes:
-              detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
-            subjective:
-              detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
-            objective:
-              detailAdmissionForm?.mentalExaminationV2?.mood?.objective || "",
-            lability:
-              detailAdmissionForm?.mentalExaminationV2?.mood?.lability || "",
-            appropriateness1:
-              detailAdmissionForm?.mentalExaminationV2?.mood?.appropriateness ||
-              "",
+          affect:
+            detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+          affectNotes:
+            detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+          subjective:
+            detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+          objective:
+            detailAdmissionForm?.mentalExaminationV2?.mood?.objective || "",
+          lability:
+            detailAdmissionForm?.mentalExaminationV2?.mood?.lability || "",
+          appropriateness1:
+            detailAdmissionForm?.mentalExaminationV2?.mood?.appropriateness ||
+            "",
 
-            quality:
-              detailAdmissionForm?.mentalExaminationV2?.affectV2?.quality || "",
-            intensity:
-              detailAdmissionForm?.mentalExaminationV2?.affectV2?.intensity ||
-              "",
-            mobility:
-              detailAdmissionForm?.mentalExaminationV2?.affectV2?.mobility ||
-              "",
-            range:
-              detailAdmissionForm?.mentalExaminationV2?.affectV2?.range || "",
-            reactivity:
-              detailAdmissionForm?.mentalExaminationV2?.affectV2?.reactivity ||
-              "",
-            communicability:
-              detailAdmissionForm?.mentalExaminationV2?.affectV2
-                ?.communicability || "",
-            diurnalVariation:
-              detailAdmissionForm?.mentalExaminationV2?.affectV2
-                ?.diurnalVariation || "",
-            appropriateness2:
-              detailAdmissionForm?.mentalExaminationV2?.affectV2
-                ?.appropriateness || "",
+          quality:
+            detailAdmissionForm?.mentalExaminationV2?.affectV2?.quality || "",
+          intensity:
+            detailAdmissionForm?.mentalExaminationV2?.affectV2?.intensity ||
+            "",
+          mobility:
+            detailAdmissionForm?.mentalExaminationV2?.affectV2?.mobility ||
+            "",
+          range:
+            detailAdmissionForm?.mentalExaminationV2?.affectV2?.range || "",
+          reactivity:
+            detailAdmissionForm?.mentalExaminationV2?.affectV2?.reactivity ||
+            "",
+          communicability:
+            detailAdmissionForm?.mentalExaminationV2?.affectV2
+              ?.communicability || "",
+          diurnalVariation:
+            detailAdmissionForm?.mentalExaminationV2?.affectV2
+              ?.diurnalVariation || "",
+          appropriateness2:
+            detailAdmissionForm?.mentalExaminationV2?.affectV2
+              ?.appropriateness || "",
 
-            delusions:
-              detailAdmissionForm?.mentalExaminationV2?.thought?.delusions ||
-              "",
-            delusionNotes:
-              detailAdmissionForm?.mentalExaminationV2?.thought
-                ?.delusionNotes || "",
-            content:
-              detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
-            process:
-              detailAdmissionForm?.mentalExaminationV2?.thought?.process || "",
+          delusions:
+            detailAdmissionForm?.mentalExaminationV2?.thought?.delusions ||
+            "",
+          delusionNotes:
+            detailAdmissionForm?.mentalExaminationV2?.thought
+              ?.delusionNotes || "",
+          content:
+            detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+          process:
+            detailAdmissionForm?.mentalExaminationV2?.thought?.process || "",
 
-            perception:
-              detailAdmissionForm?.mentalExaminationV2?.perception || "",
-            perceptionNotes:
-              detailAdmissionForm?.mentalExaminationV2?.perceptionNotes || "",
+          perception:
+            detailAdmissionForm?.mentalExaminationV2?.perception || "",
+          perceptionNotes:
+            detailAdmissionForm?.mentalExaminationV2?.perceptionNotes || "",
 
-            orientationTime:
-              detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.orientationTime || "",
-            orientationPlace:
-              detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.orientationPlace || "",
-            orientationPerson:
-              detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.orientationPerson || "",
-            immediateMemory:
-              detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.immediateMemory || "",
-            recentMemory:
-              detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.recentMemory || "",
-            remoteMemory:
-              detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.remoteMemory || "",
-            attention:
-              detailAdmissionForm?.mentalExaminationV2?.cognition?.attention ||
-              "",
-            concentration:
-              detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.concentration || "",
+          orientationTime:
+            detailAdmissionForm?.mentalExaminationV2?.cognition
+              ?.orientationTime || "",
+          orientationPlace:
+            detailAdmissionForm?.mentalExaminationV2?.cognition
+              ?.orientationPlace || "",
+          orientationPerson:
+            detailAdmissionForm?.mentalExaminationV2?.cognition
+              ?.orientationPerson || "",
+          immediateMemory:
+            detailAdmissionForm?.mentalExaminationV2?.cognition
+              ?.immediateMemory || "",
+          recentMemory:
+            detailAdmissionForm?.mentalExaminationV2?.cognition
+              ?.recentMemory || "",
+          remoteMemory:
+            detailAdmissionForm?.mentalExaminationV2?.cognition
+              ?.remoteMemory || "",
+          attention:
+            detailAdmissionForm?.mentalExaminationV2?.cognition?.attention ||
+            "",
+          concentration:
+            detailAdmissionForm?.mentalExaminationV2?.cognition
+              ?.concentration || "",
 
-            grade:
-              detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+          grade:
+            detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
 
-            judgment: detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+          judgment: detailAdmissionForm?.mentalExaminationV2?.judgment || "",
 
-            remarks: detailAdmissionForm?.mentalExaminationV2?.remarks || "",
-          }
+          remarks: detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+        }
         : {}),
       //physical status examination
       // generalExamination: detailAdmissionForm
@@ -697,27 +761,27 @@ const DetailAdmission = ({
       //   : [],
       investigation: detailAdmissionForm
         ? (() => {
-            const data = detailAdmissionForm.doctorSignature?.investigation;
+          const data = detailAdmissionForm.doctorSignature?.investigation;
 
-            if (!data) return [];
+          if (!data) return [];
 
-            let result = [];
+          let result = [];
 
-            if (Array.isArray(data)) {
-              data.forEach((item) => {
-                if (typeof item === "string") {
-                  // handle "RFT,HIV"
-                  if (item.includes(",")) {
-                    result.push(...item.split(","));
-                  } else {
-                    result.push(item);
-                  }
+          if (Array.isArray(data)) {
+            data.forEach((item) => {
+              if (typeof item === "string") {
+                // handle "RFT,HIV"
+                if (item.includes(",")) {
+                  result.push(...item.split(","));
+                } else {
+                  result.push(item);
                 }
-              });
-            }
+              }
+            });
+          }
 
-            return result.map((i) => i.trim());
-          })()
+          return result.map((i) => i.trim());
+        })()
         : [],
       specialTest: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.specialTest
@@ -754,11 +818,16 @@ const DetailAdmission = ({
       date: chartDate,
       type,
       aiGenerated: detailAdmissionForm?.aiGenerated || false,
-      aiReviewed: false,
+      aiReviewed: Boolean(
+        detailAdmissionForm?.validation?.isValidated || false,
+      ),
+      isValidated: Boolean(
+        detailAdmissionForm?.validation?.isValidated || false,
+      ),
       audioDetails: detailAdmissionForm?.audioDetails
         ? (typeof detailAdmissionForm.audioDetails === "string"
-            ? detailAdmissionForm.audioDetails
-            : JSON.stringify(detailAdmissionForm.audioDetails))
+          ? detailAdmissionForm.audioDetails
+          : JSON.stringify(detailAdmissionForm.audioDetails))
         : "",
       ...(!isEdit && savedDraft ? savedDraft : {}),
     },
@@ -868,18 +937,6 @@ const DetailAdmission = ({
       // ),
     }),
     onSubmit: (values) => {
-      /* AI Validation Checkguard - only enforce for brand new records */
-      const isEditRecord =
-        isEdit ||
-        Boolean(values._id || values.id || values.chartId || editChartData?._id);
-      if (!isEditRecord && values.aiGenerated && !values.aiReviewed) {
-        toast.error(
-          "Please confirm that you have reviewed and validated the AI-generated data on the Special Requirements tab before saving."
-        );
-        setFormStep(SPECIAL_REQUIREMENTS);
-        return;
-      }
-
       /* appending */
       const { isValid } = validatePatientTypeFields(values);
       if (!isValid) {
@@ -994,6 +1051,53 @@ const DetailAdmission = ({
         values.audioDetails = audioMeta;
       }
 
+      values.isValidated = Boolean(
+        values.aiReviewed ||
+        values.isValidated ||
+        detailAdmissionForm?.validation?.isValidated
+      );
+
+      let currentUserRole = author?.role;
+      try {
+        const storedUser = localStorage.getItem("authUser");
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          if (parsed?.role) {
+            currentUserRole = parsed.role;
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      const isDoctor =
+        String(currentUserRole || "").trim().toUpperCase() === "DOCTOR";
+
+      if (isDoctor && !values.isValidated) {
+        toast.error("Doctors must validate Detail History upon submission");
+        return;
+      }
+
+      const isAiRecord = Boolean(
+        values.aiGenerated ||
+        uploadedAudioRef.current?.url ||
+        values.audioDetails ||
+        detailAdmissionForm?.aiGenerated ||
+        detailAdmissionForm?.audioDetails?.url
+      );
+      const isAiReviewed = Boolean(
+        values.aiReviewed ||
+        detailAdmissionForm?.validation?.isValidated ||
+        detailAdmissionForm?.aiReviewed
+      );
+
+      if (values.isValidated && isAiRecord && !isAiReviewed) {
+        toast.error(
+          "Cannot validate an AI-generated record until AI validation is successfully completed."
+        );
+        return;
+      }
+
       const formData = convertToFormData(values);
       consentFiles?.forEach((file) => formData.append("file", file.file));
       /* appending */
@@ -1017,7 +1121,7 @@ const DetailAdmission = ({
       validation.resetForm();
       setConsentFiles([]);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, detailAdmissionForm]);
 
   // AUTOFILL
@@ -1412,14 +1516,14 @@ const DetailAdmission = ({
         abortDetailAdmissionAudio({
           sessionId: sessionIdRef.current,
           audioPath: uploadedAudioRef.current?.path,
-        }).catch(() => {});
+        }).catch(() => { });
       }
       socket.off("detailHistoryAiProgress");
       socket.off("detailHistoryAiDone");
       socket.off("detailHistoryAiError");
       socket.disconnect();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleStartGeneration = async () => {
@@ -1571,7 +1675,7 @@ const DetailAdmission = ({
         // ignore
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validation.values]);
 
   return (
@@ -1580,7 +1684,7 @@ const DetailAdmission = ({
       <div>
         <Row className="mt-3">
           <div className="arrow-buttons d-flex gap-3">
-            {!isEdit && type === "IPD" && (
+            {isRecordingEnabled && (
               <Button
                 outline={formStep !== RECORDING}
                 onClick={() => setFormStep(RECORDING)}
@@ -1643,7 +1747,12 @@ const DetailAdmission = ({
           </div>
           <div className="mt-4">
             <DetailHistoryClearContext.Provider
-              value={{ onClearForm: clearFormHandler, isGenerating }}
+              value={{
+                onClearForm: clearFormHandler,
+                isGenerating,
+                hasGenerated: hasGenerated || Boolean(validation.values.aiGenerated),
+                uploadedAudio,
+              }}
             >
               <Form
                 // key={detailAdmissionForm?._id || "new"}
@@ -1669,7 +1778,7 @@ const DetailAdmission = ({
                   </>
                 )} */}
 
-                {!isEdit && type === "IPD" && formStep === RECORDING && (
+                {isRecordingEnabled && formStep === RECORDING && (
                   <RecordingTab
                     patient={patient}
                     center={center}
@@ -1780,6 +1889,9 @@ const DetailAdmission = ({
                     author={author}
                     onClearForm={clearFormHandler}
                     isEdit={isEdit}
+                    hasGenerated={hasGenerated || Boolean(validation.values.aiGenerated)}
+                    isGenerating={isGenerating}
+                    uploadedAudio={uploadedAudio}
                   />
                 )}
               </Form>
