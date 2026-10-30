@@ -23,6 +23,8 @@ import {
   ScanStatusPill,
   SCAN_STATUS,
   TAG_STATUS_LABEL,
+  AssignedName,
+  assigneeText,
   categoryPath,
   dateTimeFmt,
   errText,
@@ -356,6 +358,12 @@ const ScanIntake = () => {
       ),
     },
     {
+      name: "Assigned to",
+      minWidth: "130px",
+      wrap: true,
+      cell: (row) => <span className="uom-cell-muted" style={{ whiteSpace: "normal" }}><AssignedName job={row.jobId} /></span>,
+    },
+    {
       name: "Category",
       minWidth: "200px",
       cell: (row) => <span className="uom-cell-primary" style={{ fontSize: 13 }}>{categoryPath(row)}</span>,
@@ -615,6 +623,7 @@ const ScanIntake = () => {
                   ["Quantity", s.quantity != null ? String(s.quantity) : DASH],
                   ["Status", SCAN_STATUS[s.status]?.label || DASH],
                   ["Job", s.jobId?.jobCode || DASH],
+                  ["Assigned to", assigneeText(s.jobId)],
                   ["Site", s.centerId?.title || DASH],
                 ]
               : [];
@@ -850,6 +859,7 @@ const ScanIntake = () => {
                       <div style={sectionTitle} className="mb-2">DETAILS</div>
                       <div className="row g-3 mb-4">
                         <Field label="Job" value={d.jobId ? `${d.jobId.jobCode} - ${d.jobId.jobName}` : ""} />
+                        <Field label="Assigned to" value={d.jobId ? <AssignedName job={d.jobId} /> : ""} />
                         <Field label="Found at" value={d.centerId?.title} />
                         <div className="col-12"><Field label="Category" value={categoryPath(d)} /></div>
                         <Field label="Quantity" value={String(d.quantity)} />

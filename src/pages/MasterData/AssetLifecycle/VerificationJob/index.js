@@ -12,7 +12,7 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import { useDebounce } from "../../../../Components/Hooks/useDebounce";
-import { errText, useBusy } from "../shared/assetUi";
+import { errText, useBusy, AssignedName } from "../shared/assetUi";
 import useConfirm from "../shared/useConfirm";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -136,8 +136,10 @@ const VerificationJob = () => {
 
   // filters (the server does the filtering)
   const [filters, setFilters] = useState({ jobType: "", status: "", priority: "", centerId: "" });
+  const [assignedSearch, setAssignedSearch] = useState("");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
+  const debouncedAssigned = useDebounce(assignedSearch, 400);
   const [changing, runChange] = useBusy(); // Activate / Complete: one click = one request
 
   // create or edit
@@ -171,6 +173,7 @@ const VerificationJob = () => {
       priority: filters.priority || undefined,
       centerId: filters.centerId || undefined,
       search: debouncedSearch.trim() || undefined,
+      assignedTo: debouncedAssigned.trim() || undefined,
     })
       .then((res) => {
         if (!cancelled) setJobs(res?.data || []);
@@ -185,10 +188,10 @@ const VerificationJob = () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshFlag, filters, debouncedSearch]);
+  }, [refreshFlag, filters, debouncedSearch, debouncedAssigned]);
 
   const setFilter = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
-  const filtersOn = search || Object.values(filters).some(Boolean);
+  const filtersOn = search || assignedSearch || Object.values(filters).some(Boolean);
 
   const openModal = () => {
     setEditingJob(null);
@@ -353,7 +356,7 @@ const VerificationJob = () => {
       grow: 1,
       wrap: true,
       cell: (row) => (
-        <span className="uom-cell-muted" style={{ whiteSpace: "normal" }}>{row.assignedToId?.name || "—"}</span>
+        <span className="uom-cell-muted" style={{ whiteSpace: "normal" }}><AssignedName job={row} /></span>
       ),
     },
     {
@@ -465,6 +468,7 @@ const VerificationJob = () => {
           <i className="bx bx-search"></i>
           <Input placeholder="Search job name or code..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <Input style={{ width: 170 }} placeholder="Assigned to..." value={assignedSearch} onChange={(e) => setAssignedSearch(e.target.value)} />
         <Input type="select" style={{ width: 170 }} value={filters.jobType} onChange={setFilter("jobType")}>
           <option value="">All types</option>
           {JOB_TYPES.map((t) => (
@@ -496,6 +500,7 @@ const VerificationJob = () => {
             onClick={() => {
               setFilters({ jobType: "", status: "", priority: "", centerId: "" });
               setSearch("");
+              setAssignedSearch("");
             }}
           >
             Clear
@@ -645,6 +650,9 @@ const VerificationJob = () => {
                 value={assignedToId}
                 onChange={(id) => setAssignedToId(id)}
               />
+              {editingJob && !editingJob.assignedToId && editingJob.externalAssignedTo?.name && (
+                <div className="text-muted small mt-1">HiSYNC assigned this job to {editingJob.externalAssignedTo.name}</div>
+              )}
             </Col>
           </Row>
           <Row>
