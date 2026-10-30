@@ -166,6 +166,7 @@ const FixedAssetRegister = () => {
   // Extra fields on the Add Asset form
   const [addCategory, setAddCategory] = useState(EMPTY_CATEGORY);
   const [addSettings, setAddSettings] = useState({
+    isComplete: false,
     canAssign: true,
     identifierLabel: "",
   });
@@ -248,8 +249,12 @@ const FixedAssetRegister = () => {
         toast.error("Category, asset name and site are required");
         return;
       }
+      if (!addSettings.isComplete) {
+        toast.error("Choose the category down to the last level");
+        return;
+      }
       const levels = {};
-      ["categoryL1", "categoryL2"].forEach((k) => {
+      ["categoryL1", "categoryL2", "categoryL3", "categoryL4"].forEach((k) => {
         if (addCategory[k]) levels[k] = addCategory[k];
       });
       try {
@@ -1425,10 +1430,10 @@ const FixedAssetRegister = () => {
                                     style={{ fontSize: 13 }}
                                   >
                                     This asset cannot be given to an employee,
-                                    because its category ({d.category}) is not
-                                    set as an employee asset. To allow it, open
-                                    Asset Category master, edit this category and
-                                    tick "Can be given to an employee".
+                                    because its Level 4 category is not set as
+                                    an employee asset ({d.category}). To allow
+                                    it, open Asset Category (Level 4), edit that
+                                    category and tick "Can be given to an employee".
                                   </span>
                                 ) : d.status === "active" ? (
                                   <>
@@ -1846,12 +1851,7 @@ const FixedAssetRegister = () => {
                               <CategoryLevelSelect
                                 value={editCategory}
                                 onChange={setEditCategory}
-                                // two levels, or as deep as the asset already goes
-                                levels={
-                                  [4, 3].find(
-                                    (n) => editCategory[`categoryL${n}`],
-                                  ) || 2
-                                }
+                                levels={4}
                                 md={6}
                                 disabled={savingEdit}
                               />
@@ -2059,10 +2059,15 @@ const FixedAssetRegister = () => {
                     onChange={setAddCategory}
                     onSettings={setAddSettings}
                     required
-                    levels={2}
+                    levels={4}
                     md={6}
                     disabled={saving}
                   />
+                  {addCategory.categoryL1 && !addSettings.isComplete && (
+                    <div className="small mb-3" style={{ color: "#b54708" }}>
+                      This category has more levels below it. Choose the next level too.
+                    </div>
+                  )}
 
                   <div className="row g-3">
                     <div className="col-md-6">
