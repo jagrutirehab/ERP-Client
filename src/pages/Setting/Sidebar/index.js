@@ -9,6 +9,7 @@ const Sidebar = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("SETTING", "ROLESSETTING", "READ");
+  const hasUserRolesPerm = hasPermission("SETTING", "USERROLESSETTING", "READ");
   const location = useLocation();
 
   const toggleDataSidebar = () => {
@@ -59,6 +60,7 @@ const Sidebar = () => {
   const filteredSettings = (setting || []).filter((page) => {
     if (page.id === "grievanceofficer" && !hasGrievancePerm) return false;
     if (page.id === "roles" && !hasUserPermission) return false;
+    if (page.id === "userroles" && !hasUserRolesPerm) return false;
     if (page.id === "hrconfigs" && !hasHRConfigPerm) return false;
     if (page.id === "medicine" && !hasMedicinePerm) return false;
     // if (page.id === "billing" && !hasBillingPerm) return false;

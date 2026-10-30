@@ -681,6 +681,12 @@ export const setting = [
     icon: "bx bx-fingerprint",
   },
   {
+    id: "userroles",
+    label: "User Roles",
+    link: "/setting/user-roles",
+    icon: "bx bx-id-card",
+  },
+  {
     id: "therapies",
     label: "Therapies",
     link: "/setting/therapies",

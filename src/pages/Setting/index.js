@@ -9,6 +9,7 @@ import Calender from "./Calender";
 import OfferCode from "./OfferCode";
 import TaxManagement from "./TaxManagement";
 import RolesManagement from "./RolesManagement";
+import UserRoles from "./UserRoles";
 import Therapies from "./Therapies";
 import Conditions from "./Conditions";
 import Symptom from "./Symptom";
@@ -33,6 +34,7 @@ const index = (props) => {
               <Route path={`/offercode`} element={<OfferCode />} />
               <Route path={`/taxmanagement`} element={<TaxManagement />} />
               <Route path={`/rolesmanagment`} element={<RolesManagement />} />
+              <Route path={`/user-roles`} element={<UserRoles />} />
               <Route path={`/therapies`} element={<Therapies />} />
               <Route path={`/conditions`} element={<Conditions />} />
               <Route path={`/symptoms`} element={<Symptom />} />
