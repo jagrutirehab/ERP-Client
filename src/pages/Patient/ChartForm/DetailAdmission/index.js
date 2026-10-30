@@ -104,7 +104,6 @@ const IGNORED_KEYS = new Set([
   "patientType",
   "audioDetails",
   "aiGenerated",
-  "aiReviewed",
   "needsValidation",
   // Pre-loaded patient demographic and admission DB fields
   "age",
@@ -803,9 +802,6 @@ const DetailAdmission = ({
       date: chartDate,
       type,
       aiGenerated: detailAdmissionForm?.aiGenerated || false,
-      aiReviewed: Boolean(
-        detailAdmissionForm?.validation?.isValidated || false,
-      ),
       isValidated: Boolean(
         detailAdmissionForm?.validation?.isValidated || false,
       ),
@@ -1040,9 +1036,7 @@ const DetailAdmission = ({
       }
 
       values.isValidated = Boolean(
-        values.aiReviewed ||
-        values.isValidated ||
-        detailAdmissionForm?.validation?.isValidated,
+        values.isValidated || detailAdmissionForm?.validation?.isValidated,
       );
 
       let currentUserRole = author?.role;
@@ -1071,21 +1065,8 @@ const DetailAdmission = ({
         detailAdmissionForm?.audioDetails?.url,
       );
 
-      if (isDoctor && isAiRecord && !values.isValidated) {
-        toast.error("Doctors must validate Detail History upon submission");
-        return;
-      }
-
-      const isAiReviewed = Boolean(
-        values.aiReviewed ||
-        detailAdmissionForm?.validation?.isValidated ||
-        detailAdmissionForm?.aiReviewed,
-      );
-
-      if (values.isValidated && isAiRecord && !isAiReviewed) {
-        toast.error(
-          "Cannot validate an AI-generated record until AI validation is successfully completed.",
-        );
+      if (!isEdit && isDoctor && isAiRecord && !values.isValidated) {
+        toast.error("Doctors must validate AI-generated records upon creation.");
         return;
       }
 
@@ -1505,7 +1486,6 @@ const DetailAdmission = ({
     }
 
     merged.aiGenerated = true;
-    merged.aiReviewed = Boolean(currentValues.aiReviewed);
 
     return merged;
   };
@@ -1655,7 +1635,6 @@ const DetailAdmission = ({
     setHasGenerated(false);
     validation.resetForm();
     validation.setFieldValue("aiGenerated", false);
-    validation.setFieldValue("aiReviewed", false);
     setIsClearModalOpen(false);
     setFormStep(isEdit ? CHIEF_COMPLAINTS : RECORDING);
     toast.success("All form fields and draft cleared.");
@@ -1689,7 +1668,6 @@ const DetailAdmission = ({
     setHasGenerated(false);
     validation.resetForm();
     validation.setFieldValue("aiGenerated", false);
-    validation.setFieldValue("aiReviewed", false);
     setIsDraftConflictModalOpen(false);
     toast.success(
       "Existing draft cleared. You can now upload or record a new audio file.",
