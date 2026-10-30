@@ -140,6 +140,7 @@ export const permissionList = [
       { name: "OFFERCODESETTING", label: "Offer Code" },
       { name: "TAXMANAGEMENTSETTING", label: "Tax Management" },
       { name: "ROLESSETTING", label: "Roles" },
+      { name: "USERROLESSETTING", label: "User Roles" },
       { name: "THERAPIESSETTING", label: "Therapies" },
       { name: "CONDITIONSSETTING", label: "Conditions" },
       { name: "SYMPTOMSETTING", label: "Symptoms" },
