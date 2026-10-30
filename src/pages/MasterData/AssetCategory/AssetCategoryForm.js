@@ -193,19 +193,25 @@ const AssetCategoryForm = ({ editingItem, level, onSaved, onCancel }) => {
           </p>
           <Row>
             <Col md={6} className="mb-4">
-              <div className="d-flex align-items-center gap-2" style={{ marginTop: 6 }}>
-                <input
-                  type="checkbox"
-                  checked={v.assignableToEmployee}
-                  onChange={(e) => validation.setFieldValue("assignableToEmployee", e.target.checked)}
-                />
-                <div>
-                  <div className="fw-semibold small">Can be given to an employee</div>
-                  <div className="text-muted" style={{ fontSize: 11.5 }}>
-                    Applies to this category and everything under it
+              {level === 4 ? (
+                <div className="d-flex align-items-center gap-2" style={{ marginTop: 6 }}>
+                  <input
+                    type="checkbox"
+                    checked={v.assignableToEmployee}
+                    onChange={(e) => validation.setFieldValue("assignableToEmployee", e.target.checked)}
+                  />
+                  <div>
+                    <div className="fw-semibold small">Can be given to an employee</div>
+                    <div className="text-muted" style={{ fontSize: 11.5 }}>
+                      Assets of this Level 4 category can be given to an employee
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-muted small" style={{ marginTop: 6 }}>
+                  "Can be given to an employee" is set only on Level 4 categories.
+                </div>
+              )}
             </Col>
             <Col md={6} className="mb-4">
               <Label>Serial box name</Label>

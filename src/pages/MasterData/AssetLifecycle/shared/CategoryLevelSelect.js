@@ -11,7 +11,7 @@ export const EMPTY_CATEGORY = { categoryL1: "", categoryL2: "", categoryL3: "", 
 // Picks an asset category level by level (1 to 4) from the existing Asset Category master.
 // value: { categoryL1, categoryL2, categoryL3, categoryL4 } (ids, "" when not chosen)
 // Choosing a level clears the levels below it.
-// onSettings({ canAssign, identifierLabel }) is called with what the chosen category says (deepest level wins)
+// onSettings({ canAssign, identifierLabel }) is called with what the chosen category says (canAssign: the Level 4 tick only)
 // levelLabels: optional names for the boxes, e.g. ["Category", "Sub-category"] (default: "Category level 1", ...)
 // A deeper box only appears once the one above it is chosen, and only if there is something to choose.
 const CategoryLevelSelect = ({ value, onChange, onSettings, required = false, disabled = false, levels = 4, md = 3, levelLabels = [] }) => {
@@ -73,14 +73,20 @@ const CategoryLevelSelect = ({ value, onChange, onSettings, required = false, di
       .map((n) => (options[n - 1] || []).find((c) => c._id === ids[n - 1]))
       .filter(Boolean)
       .reverse();
+    // Is the category chosen down to its last level? (nothing left to pick below it)
+    let depth = 0;
+    while (depth < levels && ids[depth]) depth += 1;
+    const hasMore = depth > 0 && depth < levels && (options[depth] || []).length > 0;
     onSettings({
+      isComplete: depth > 0 && (loadFailed || (!loading && !hasMore)),
       hasCategory: chosen.length > 0,
       names: [...chosen].reverse().map((c) => c.name), // level 1 first
-      canAssign: chosen.length === 0 ? true : chosen.some((c) => c.assignableToEmployee),
+      // only the Level 4 category decides it
+      canAssign: chosen.length === 0 ? true : !!(options[3] || []).find((c) => c._id === ids[3])?.assignableToEmployee,
       identifierLabel: chosen.map((c) => c.identifierLabel).find(Boolean) || "",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, key]);
+  }, [options, key, loading, loadFailed]);
 
   const choose = (level, id) => {
     const next = { ...value };
