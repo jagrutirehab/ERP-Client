@@ -323,6 +323,12 @@ const DetailAdmission = ({
     }
   }, [draftKey, legacyDraftKey, isEdit, draftCleared]);
 
+  const savedDraftWithoutType = useMemo(() => {
+    if (!savedDraft) return null;
+    const { patientType: _pt, ...rest } = savedDraft;
+    return rest;
+  }, [savedDraft]);
+
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -810,7 +816,7 @@ const DetailAdmission = ({
           ? detailAdmissionForm.audioDetails
           : JSON.stringify(detailAdmissionForm.audioDetails)
         : "",
-      ...(!isEdit && savedDraft ? savedDraft : {}),
+      ...(!isEdit && savedDraftWithoutType ? savedDraftWithoutType : {}),
     },
 
     validationSchema: Yup.object({
@@ -951,9 +957,7 @@ const DetailAdmission = ({
         return;
       }
       if (values.patientType?.toLowerCase() === "geriatric") {
-        const { isValid: checklistValid } = validateElderlyChecklist(
-          values.elderlyChecklistFields,
-        );
+        const { isValid: checklistValid } = validateElderlyChecklist(values.elderlyChecklistFields);
         if (!checklistValid) {
           setElderlyChecklistSubmitAttempted(true);
           setFormStep(ELDERLY_CHECKLIST);
@@ -1682,6 +1686,11 @@ const DetailAdmission = ({
   const isGeriatric =
     validation.values.patientType?.toLowerCase() === "geriatric";
 
+  const isGeriatricChecklistValid = useMemo(() => {
+    if (!isGeriatric) return true;
+    return validateElderlyChecklist(validation.values.elderlyChecklistFields).isValid;
+  }, [isGeriatric, validation.values.elderlyChecklistFields]);
+
   useEffect(() => {
     if (formStep === ELDERLY_CHECKLIST && !isGeriatric) {
       setFormStep(DETAIL_HISTORY);
@@ -1754,8 +1763,12 @@ const DetailAdmission = ({
                 outline={formStep !== ELDERLY_CHECKLIST}
                 onClick={() => setFormStep(ELDERLY_CHECKLIST)}
                 disabled={isGenerating}
+                style={!isGeriatricChecklistValid ? { borderColor: "#dc3545" } : undefined}
               >
                 Elderly Functional and Daily Living Checklist
+                {!isGeriatricChecklistValid && (
+                  <span className="text-danger ms-1 fw-bold">!</span>
+                )}
               </Button>
             )}
             <Button

@@ -100,20 +100,34 @@ export const parseElderlyChecklist = (raw) => {
   };
 };
 
+const VALID_INFORMATION_SOURCE = new Set(["direct_observation", "resident", "caregiver_or_nursing_staff", "family", "other"]);
+const VALID_SUPERVISION_REQUIRED = new Set(["none", "intermittent", "continuous", "not_known"]);
+const VALID_STANDING_ABILITY = new Set(["independent", "support_required", "unable", "not_known"]);
+const VALID_WALKING_MOBILITY = new Set(["independent", "assistance_required", "unable", "not_known"]);
+const VALID_WALKING_AID_USED = new Set(["no", "yes", "not_known"]);
+const VALID_PERSONAL_HYGIENE = new Set(["independent", "needs_assistance", "dependent", "not_known"]);
+const VALID_SELF_CARE_ABILITY = new Set(["independent", "partially_dependent", "fully_dependent", "not_known"]);
+const VALID_LEVEL_OF_ASSISTANCE = new Set(["none", "minimal", "moderate", "maximum", "total", "not_known"]);
+const VALID_FOOD_INTAKE = new Set(["usual_adequate", "reduced", "poor", "not_known"]);
+const VALID_FLUID_INTAKE = new Set(["usual_adequate", "reduced", "poor", "not_known"]);
+const VALID_FEEDING_ASSISTANCE = new Set(["no", "yes", "not_known"]);
+const VALID_URINE_PATTERN = new Set(["usual", "change_reported", "not_known"]);
+const VALID_BOWEL_PATTERN = new Set(["usual", "change_reported", "not_known"]);
+const VALID_URINE_CONTROL = new Set(["no_accidents_reported", "accidents_reported", "not_known"]);
+const VALID_BOWEL_CONTROL = new Set(["no_accidents_reported", "accidents_reported", "not_known"]);
+const VALID_CATHETER_STATUS = new Set(["absent", "present", "not_known"]);
+const VALID_SKIN_CONCERNS = new Set(["none", "redness", "wound_sore", "not_known"]);
+const VALID_SLEEP_AS_REPORTED = new Set(["usual", "interrupted", "less_than_usual", "not_known"]);
+const VALID_ACTIVITY_PARTICIPATION = new Set(["joins_independently", "needs_encouragement", "does_not_join", "no_activity_offered_not_observed"]);
+const VALID_EXPRESSING_NEEDS = new Set(["clearly", "with_prompting_gestures", "needs_help", "not_observed"]);
+const VALID_FALL_SINCE_LAST_REVIEW = new Set(["no", "yes", "not_known"]);
+const VALID_CONCERN_SHARED_WITH = new Set(["nurse", "doctor", "care_team", "not_required"]);
+
 export const validateElderlyChecklist = (rawValues = {}) => {
   const values = parseElderlyChecklist(rawValues);
   const errors = {};
 
-  // if (!values.center) {
-  //   errors.center = "Patient's admission center is missing - cannot proceed";
-  // }
-  // if (!values.residentNameId?.trim()) {
-  //   errors.residentNameId = "Resident Name / ID is required";
-  // }
-  // if (!values.checklistDateTime) {
-  //   errors.checklistDateTime = "Date / Time is required";
-  // }
-  if (!values.informationSource) {
+  if (!VALID_INFORMATION_SOURCE.has(values.informationSource)) {
     errors.informationSource = "Information source is required";
   }
   if (
@@ -123,54 +137,58 @@ export const validateElderlyChecklist = (rawValues = {}) => {
     errors.informationSourceOther = "Please specify information source";
   }
 
-  if (!values.supervisionRequired) {
+  if (!VALID_SUPERVISION_REQUIRED.has(values.supervisionRequired)) {
     errors.supervisionRequired = "Supervision required is required";
   }
-  if (!values.standingAbility) {
+  if (!VALID_STANDING_ABILITY.has(values.standingAbility)) {
     errors.standingAbility = "Standing ability is required";
   }
-  if (!values.walkingMobility) {
+  if (!VALID_WALKING_MOBILITY.has(values.walkingMobility)) {
     errors.walkingMobility = "Walking / mobility is required";
   }
-  if (!values.walkingAidUsed) {
+  if (!VALID_WALKING_AID_USED.has(values.walkingAidUsed)) {
     errors.walkingAidUsed = "Walking aid used is required";
   }
-  if (!values.personalHygiene) {
+  if (!VALID_PERSONAL_HYGIENE.has(values.personalHygiene)) {
     errors.personalHygiene = "Personal hygiene is required";
   }
-  if (!values.selfCareAbility) {
+  if (!VALID_SELF_CARE_ABILITY.has(values.selfCareAbility)) {
     errors.selfCareAbility = "Self-care ability is required";
   }
-  if (!values.levelOfAssistanceRequired) {
+  if (!VALID_LEVEL_OF_ASSISTANCE.has(values.levelOfAssistanceRequired)) {
     errors.levelOfAssistanceRequired = "Level of assistance required is required";
   }
 
-  if (!values.foodIntake) {
+  if (!VALID_FOOD_INTAKE.has(values.foodIntake)) {
     errors.foodIntake = "Food intake is required";
   }
-  if (!values.fluidIntake) {
+  if (!VALID_FLUID_INTAKE.has(values.fluidIntake)) {
     errors.fluidIntake = "Fluid intake is required";
   }
-  if (!values.feedingAssistanceRequired) {
+  if (!VALID_FEEDING_ASSISTANCE.has(values.feedingAssistanceRequired)) {
     errors.feedingAssistanceRequired = "Feeding assistance required is required";
   }
-  if (!values.urinePatternAsReported) {
+  if (!VALID_URINE_PATTERN.has(values.urinePatternAsReported)) {
     errors.urinePatternAsReported = "Urine pattern is required";
   }
-  if (!values.bowelPatternAsReported) {
+  if (!VALID_BOWEL_PATTERN.has(values.bowelPatternAsReported)) {
     errors.bowelPatternAsReported = "Bowel pattern is required";
   }
-  if (!values.urineControl) {
+  if (!VALID_URINE_CONTROL.has(values.urineControl)) {
     errors.urineControl = "Urine control is required";
   }
-  if (!values.bowelControl) {
+  if (!VALID_BOWEL_CONTROL.has(values.bowelControl)) {
     errors.bowelControl = "Bowel control is required";
   }
-  if (!values.catheterStatus) {
+  if (!VALID_CATHETER_STATUS.has(values.catheterStatus)) {
     errors.catheterStatus = "Catheter status is required";
   }
 
-  if (!Array.isArray(values.skinConcerns) || values.skinConcerns.length === 0) {
+  if (
+    !Array.isArray(values.skinConcerns) ||
+    values.skinConcerns.length === 0 ||
+    !values.skinConcerns.some((v) => VALID_SKIN_CONCERNS.has(v))
+  ) {
     errors.skinConcerns = "Please select at least one skin concern";
   } else if (
     (values.skinConcerns.includes("redness") ||
@@ -180,16 +198,16 @@ export const validateElderlyChecklist = (rawValues = {}) => {
     errors.skinConcernDetails = "Skin concern location / details are required";
   }
 
-  if (!values.sleepAsReported) {
+  if (!VALID_SLEEP_AS_REPORTED.has(values.sleepAsReported)) {
     errors.sleepAsReported = "Sleep as reported is required";
   }
-  if (!values.activityParticipation) {
+  if (!VALID_ACTIVITY_PARTICIPATION.has(values.activityParticipation)) {
     errors.activityParticipation = "Activity participation is required";
   }
-  if (!values.expressingNeeds) {
+  if (!VALID_EXPRESSING_NEEDS.has(values.expressingNeeds)) {
     errors.expressingNeeds = "Expressing needs is required";
   }
-  if (!values.fallSinceLastReview) {
+  if (!VALID_FALL_SINCE_LAST_REVIEW.has(values.fallSinceLastReview)) {
     errors.fallSinceLastReview = "Fall since last review is required";
   }
   if (values.fallSinceLastReview === "yes" && !values.fallDate) {
@@ -198,7 +216,7 @@ export const validateElderlyChecklist = (rawValues = {}) => {
   if (!values.careNeedsChangesNoted?.trim()) {
     errors.careNeedsChangesNoted = "Care needs / changes noted is required";
   }
-  if (!values.concernSharedWith) {
+  if (!VALID_CONCERN_SHARED_WITH.has(values.concernSharedWith)) {
     errors.concernSharedWith = "Concern shared with is required";
   } else if (
     values.concernSharedWith !== "not_required" &&
