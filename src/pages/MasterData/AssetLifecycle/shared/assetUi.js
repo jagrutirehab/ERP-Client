@@ -4,6 +4,19 @@ import React, { useCallback, useRef, useState } from "react";
 
 export const DASH = "—";
 
+// Who a verification job is assigned to: the ERP user when there is one, otherwise the name HiSYNC gave
+// (shown with a small "(HiSYNC)"), otherwise a dash.
+export const assigneeText = (job) =>
+  job?.assignedToId?.name || (job?.externalAssignedTo?.name ? `${job.externalAssignedTo.name} (HiSYNC)` : DASH);
+
+export const AssignedName = ({ job }) => {
+  const erp = job?.assignedToId?.name;
+  if (erp) return <>{erp}</>;
+  const ext = job?.externalAssignedTo?.name;
+  if (ext) return <>{ext} <span className="text-muted" style={{ fontSize: 11 }}>(HiSYNC)</span></>;
+  return <>{DASH}</>;
+};
+
 export const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : DASH);
 export const dateTimeFmt = (d) => (d ? new Date(d).toLocaleString("en-IN") : DASH);
 

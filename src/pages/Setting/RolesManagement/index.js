@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import Breadcrumb from "../../../Components/Common/BreadCrumb";
-import { CardBody, Button, Spinner } from "reactstrap";
+import {
+  CardBody,
+  Button,
+  Spinner,
+  Input,
+  InputGroup,
+  InputGroupText,
+} from "reactstrap";
 import { AddRoleCard, RoleCard } from "../../../Components/Roles/RolesCard";
 import defaultimage from "../../../assets/profile-image.png";
 import {
@@ -30,6 +37,9 @@ const RolesManagement = () => {
   const [roleToDelete, setRoleToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [totalRoles, setTotalRoles] = useState(0);
 
   const limit = 10;
   const {
@@ -44,9 +54,10 @@ const RolesManagement = () => {
     if (!token) return;
     try {
       setLoading(true);
-      const response = await getAllRoles({ page, limit, token });
+      const response = await getAllRoles({ page, limit, search, token });
       setRoles(response?.data?.data || []);
       setTotalPages(response?.data?.totalPages || 1);
+      setTotalRoles(response?.data?.total || 0);
       setCurrentPage(response?.data?.currentPage || page);
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -61,7 +72,18 @@ const RolesManagement = () => {
     if (!hasUserPermission) return;
     fetchRoles(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, currentPage, hasUserPermission]);
+  }, [token, currentPage, hasUserPermission, search]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const value = searchInput.trim();
+      if (value !== search) {
+        setSearch(value);
+        setCurrentPage(1);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput, search]);
 
   const handleSubmit = async (formData) => {
     try {
@@ -169,6 +191,46 @@ const RolesManagement = () => {
 
       <CardBody className="p-3 bg-white">
         <h1>Roles Management</h1>
+        <div className="px-4 pt-3">
+          <InputGroup style={{ maxWidth: "400px" }}>
+            <InputGroupText className="bg-white">
+              <i className="bx bx-search" />
+            </InputGroupText>
+            <Input
+              type="text"
+              placeholder="Search by role name..."
+              value={searchInput}
+              autoComplete="off"
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const value = searchInput.trim();
+                  if (value !== search) {
+                    setSearch(value);
+                    setCurrentPage(1);
+                  }
+                }
+                if (e.key === "Escape") setSearchInput("");
+              }}
+            />
+            {searchInput && (
+              <Button
+                type="button"
+                color="light"
+                className="border"
+                title="Clear search"
+                onClick={() => setSearchInput("")}
+              >
+                <i className="bx bx-x" />
+              </Button>
+            )}
+          </InputGroup>
+          {search && !loading && (
+            <small className="text-muted d-block mt-1">
+              {totalRoles} role{totalRoles !== 1 ? "s" : ""} found for "{search}"
+            </small>
+          )}
+        </div>
         <div className="p-4">
           <div
             style={{
@@ -182,6 +244,9 @@ const RolesManagement = () => {
               <p>Loading roles...</p>
             ) : (
               <>
+                {roles.length === 0 && search && (
+                  <p className="text-muted">No roles found.</p>
+                )}
                 {roles.map((role) => (
                   <RoleCard
                     key={role.id || role._id}
