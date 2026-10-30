@@ -46,47 +46,37 @@ import RecordingTab from "./RecordingTab";
 
 const RECORDING = "RECORDING";
 // Center-based configuration for the Recording tab: Can be ["All"], ["None"], or specific center IDs/names
-const centersAllowed = ["All"];
+const centersAllowed = ["6519aafd522bd79e93d5ba5c", "Hyderabad"];
+// Navi
+// Hyderabad
 
 const isCenterAllowedForRecording = (
-  userCenter,
-  chartCenter,
-  allowed = centersAllowed
+  patientCenter,
+  allowed = centersAllowed,
 ) => {
   if (!Array.isArray(allowed) || allowed.length === 0) return false;
 
   const normalizedAllowed = allowed.map((item) =>
-    String(item).trim().toLowerCase()
+    String(item).trim().toLowerCase(),
   );
 
-  // If "None", hide/disable recording for all centers
-  if (normalizedAllowed.includes("none")) {
-    return false;
-  }
-
-  // If "All", show recording for all centers
+  if (normalizedAllowed.includes("none")) return false;
   if (normalizedAllowed.includes("all") || normalizedAllowed.includes("*")) {
     return true;
   }
 
   const candidates = [];
-  const addCandidate = (c) => {
-    if (!c) return;
-    if (typeof c === "string") {
-      candidates.push(c.trim().toLowerCase());
-    } else if (typeof c === "object") {
-      if (c._id) candidates.push(String(c._id).trim().toLowerCase());
-      if (c.id) candidates.push(String(c.id).trim().toLowerCase());
-      if (c.title) candidates.push(String(c.title).trim().toLowerCase());
-      if (c.name) candidates.push(String(c.name).trim().toLowerCase());
-    }
-  };
-
-  addCandidate(userCenter);
-  addCandidate(chartCenter);
-
-  if (Array.isArray(userCenter)) {
-    userCenter.forEach(addCandidate);
+  if (typeof patientCenter === "string") {
+    candidates.push(patientCenter.trim().toLowerCase());
+  } else if (patientCenter && typeof patientCenter === "object") {
+    if (patientCenter._id)
+      candidates.push(String(patientCenter._id).trim().toLowerCase());
+    if (patientCenter.id)
+      candidates.push(String(patientCenter.id).trim().toLowerCase());
+    if (patientCenter.title)
+      candidates.push(String(patientCenter.title).trim().toLowerCase());
+    if (patientCenter.name)
+      candidates.push(String(patientCenter.name).trim().toLowerCase());
   }
 
   return candidates.some((cand) => normalizedAllowed.includes(cand));
@@ -160,7 +150,7 @@ export const hasDraftContent = (data) => {
   if (typeof data === "string") {
     const key =
       data.startsWith("detail_admission_draft_") ||
-        data.startsWith("detailAdmissionDraft_")
+      data.startsWith("detailAdmissionDraft_")
         ? data
         : getDetailAdmissionDraftKey(data);
     return checkExistingDraft(key, `detailAdmissionDraft_${data}`);
@@ -190,7 +180,7 @@ export const hasDraftContent = (data) => {
             (row.quantity && String(row.quantity).trim()) ||
             (row.quantityDose && String(row.quantityDose).trim()) ||
             (row.lastUse && String(row.lastUse).trim()) ||
-            (row.route && String(row.route).trim()))
+            (row.route && String(row.route).trim())),
       );
     }
 
@@ -225,7 +215,11 @@ export const hasDraftContent = (data) => {
         if (item === null || item === undefined) return false;
         if (typeof item === "string") {
           const trimmed = item.trim();
-          return trimmed.length > 0 && trimmed !== "None" && trimmed !== "None identified";
+          return (
+            trimmed.length > 0 &&
+            trimmed !== "None" &&
+            trimmed !== "None identified"
+          );
         }
         if (typeof item === "object") return hasDraftContent(item);
         return Boolean(item);
@@ -263,17 +257,9 @@ const DetailAdmission = ({
   const isEdit = Boolean(editChartData?._id);
   const [consentFiles, setConsentFiles] = useState();
 
-  const userCenter = author?.center || author?.centerAccess;
-  const chartCenter =
-    center ||
-    patientData?.center?._id ||
-    patientData?.center ||
-    patient?.center?._id ||
-    patient?.center;
-
   const isRecordingAllowed = useMemo(
-    () => isCenterAllowedForRecording(userCenter, chartCenter, centersAllowed),
-    [userCenter, chartCenter]
+    () => isCenterAllowedForRecording(patient?.center, centersAllowed),
+    [patient?.center],
   );
 
   const isRecordingEnabled = !isEdit && type === "IPD" && isRecordingAllowed;
@@ -281,7 +267,7 @@ const DetailAdmission = ({
   const [formStep, setFormStep] = useState(
     !isEdit && type === "IPD" && isRecordingAllowed
       ? RECORDING
-      : CHIEF_COMPLAINTS
+      : CHIEF_COMPLAINTS,
   );
   const [patientTypeSubmitAttempted, setPatientTypeSubmitAttempted] =
     useState(false);
@@ -301,7 +287,8 @@ const DetailAdmission = ({
   const [uploadedAudio, setUploadedAudio] = useState(null);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-  const [isDraftConflictModalOpen, setIsDraftConflictModalOpen] = useState(false);
+  const [isDraftConflictModalOpen, setIsDraftConflictModalOpen] =
+    useState(false);
   const [draftCleared, setDraftCleared] = useState(false);
   const isDraftClearedRef = useRef(false);
 
@@ -328,8 +315,7 @@ const DetailAdmission = ({
     if (isEdit || draftCleared || isDraftClearedRef.current) return null;
     try {
       const d =
-        localStorage.getItem(draftKey) ||
-        localStorage.getItem(legacyDraftKey);
+        localStorage.getItem(draftKey) || localStorage.getItem(legacyDraftKey);
       if (!d) return null;
       const parsed = JSON.parse(d);
       return hasDraftContent(parsed) ? parsed : null;
@@ -381,8 +367,8 @@ const DetailAdmission = ({
         detailAdmissionForm?.doctorSignature?.provisionaldiagnosis,
       )
         ? detailAdmissionForm.doctorSignature.provisionaldiagnosis.map(
-          (d) => d.code_id,
-        )
+            (d) => d.code_id,
+          )
         : [],
 
       diagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.diagnosis)
@@ -410,19 +396,19 @@ const DetailAdmission = ({
         : "Adequate",
       negativeHistory: detailAdmissionForm
         ? (() => {
-          const val = detailAdmissionForm.detailHistory?.negativeHistory;
-          if (!val) return [];
-          if (Array.isArray(val)) {
-            return val
-              .flatMap((item) =>
-                typeof item === "string"
-                  ? item.split(",").map((s) => s.trim())
-                  : item,
-              )
-              .filter(Boolean);
-          }
-          return [];
-        })()
+            const val = detailAdmissionForm.detailHistory?.negativeHistory;
+            if (!val) return [];
+            if (Array.isArray(val)) {
+              return val
+                .flatMap((item) =>
+                  typeof item === "string"
+                    ? item.split(",").map((s) => s.trim())
+                    : item,
+                )
+                .filter(Boolean);
+            }
+            return [];
+          })()
         : [],
       negativeHistoryOther: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.negativeHistoryOther
@@ -432,25 +418,25 @@ const DetailAdmission = ({
         : "",
       developmentDelayDetails: detailAdmissionForm
         ? Array.isArray(
-          detailAdmissionForm.detailHistory?.developmentDelayDetails,
-        )
+            detailAdmissionForm.detailHistory?.developmentDelayDetails,
+          )
           ? detailAdmissionForm.detailHistory?.developmentDelayDetails
           : []
         : [],
       developmentDelaySittingDetails: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.developmentDelaySittingDetails ||
-        ""
+          ""
         : "",
       developmentDelayStandingDetails: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.developmentDelayStandingDetails ||
-        ""
+          ""
         : "",
       developmentDelaySpeechDetails: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.developmentDelaySpeechDetails || ""
         : "",
       developmentDelayToiletTrainingDetails: detailAdmissionForm
         ? detailAdmissionForm.detailHistory
-          ?.developmentDelayToiletTrainingDetails || ""
+            ?.developmentDelayToiletTrainingDetails || ""
         : "",
       pastHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.pastHistory
@@ -491,7 +477,7 @@ const DetailAdmission = ({
       ),
       specialRequirementsDetails: detailAdmissionForm
         ? detailAdmissionForm.specialRequirements?.specialRequirementsDetails ||
-        ""
+          ""
         : "",
 
       // ChiefComplaints
@@ -517,207 +503,207 @@ const DetailAdmission = ({
       //mental status examination
       ...(isOldMentalExamination
         ? {
-          appearance: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.appearance
-            : "",
-          ecc: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.ecc
-            : "",
-          speech: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.speech
-            : "",
-          mood: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.mood
-            : "",
-          effect: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.effect
-            : "",
-          thinking: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.thinking
-            : "",
-          perception: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.perception
-            : "",
-          memory: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.memory
-            : "",
-          abstractThinking: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.abstractThinking
-            : "",
-          socialJudgment: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.socialJudgment
-            : "",
-          insight: detailAdmissionForm
-            ? detailAdmissionForm.mentalExamination?.insight
-            : "",
-        }
+            appearance: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.appearance
+              : "",
+            ecc: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.ecc
+              : "",
+            speech: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.speech
+              : "",
+            mood: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.mood
+              : "",
+            effect: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.effect
+              : "",
+            thinking: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.thinking
+              : "",
+            perception: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.perception
+              : "",
+            memory: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.memory
+              : "",
+            abstractThinking: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.abstractThinking
+              : "",
+            socialJudgment: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.socialJudgment
+              : "",
+            insight: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.insight
+              : "",
+          }
         : {}),
 
       ...(!isOldMentalExamination
         ? {
-          // grooming:
-          //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-          //     ?.grooming || "",
-          // eyeContact:
-          //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-          //     ?.eyeContact || "",
-          // psychomotorActivity:
-          //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-          //     ?.psychomotorActivity || "",
+            // grooming:
+            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            //     ?.grooming || "",
+            // eyeContact:
+            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            //     ?.eyeContact || "",
+            // psychomotorActivity:
+            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            //     ?.psychomotorActivity || "",
 
-          // rate:
-          //   detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
-          // volume:
-          //   detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+            // rate:
+            //   detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+            // volume:
+            //   detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
 
-          // affect:
-          //   detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
-          // affectNotes:
-          //   detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
-          // subjective:
-          //   detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+            // affect:
+            //   detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+            // affectNotes:
+            //   detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+            // subjective:
+            //   detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
 
-          // delusions:
-          //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
-          // delusionNotes:
-          //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
-          // content:
-          //   detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+            // delusions:
+            //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
+            // delusionNotes:
+            //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
+            // content:
+            //   detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
 
-          // perception:
-          //   detailAdmissionForm?.mentalExaminationV2?.perception || "",
-          // orientation:
-          //   detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
-          // memory:
-          //   detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
+            // perception:
+            //   detailAdmissionForm?.mentalExaminationV2?.perception || "",
+            // orientation:
+            //   detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
+            // memory:
+            //   detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
 
-          // grade:
-          //   detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
-          // judgment:
-          //   detailAdmissionForm?.mentalExaminationV2?.judgment || "",
-          // remarks:
-          //   detailAdmissionForm?.mentalExaminationV2?.remarks || "",
-          grooming:
-            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-              ?.grooming || "",
-          generalAppearance:
-            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-              ?.generalAppearance || "",
-          surroundingTouch:
-            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-              ?.surroundingTouch || "",
-          eyeContact:
-            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-              ?.eyeContact || "",
-          psychomotorActivity:
-            detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-              ?.psychomotorActivity || "",
+            // grade:
+            //   detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+            // judgment:
+            //   detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+            // remarks:
+            //   detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+            grooming:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.grooming || "",
+            generalAppearance:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.generalAppearance || "",
+            surroundingTouch:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.surroundingTouch || "",
+            eyeContact:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.eyeContact || "",
+            psychomotorActivity:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.psychomotorActivity || "",
 
-          rate: detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
-          tone: detailAdmissionForm?.mentalExaminationV2?.speech?.tone || "",
-          volume:
-            detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
-          reactionTime:
-            detailAdmissionForm?.mentalExaminationV2?.speech?.reactionTime ||
-            "",
-          productivity:
-            detailAdmissionForm?.mentalExaminationV2?.speech?.productivity ||
-            "",
-          speed:
-            detailAdmissionForm?.mentalExaminationV2?.speech?.speed || "",
-          relevance:
-            detailAdmissionForm?.mentalExaminationV2?.speech?.relevance || "",
-          coherence:
-            detailAdmissionForm?.mentalExaminationV2?.speech?.coherence || "",
-          goalDirection:
-            detailAdmissionForm?.mentalExaminationV2?.speech?.goalDirection ||
-            "",
+            rate: detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+            tone: detailAdmissionForm?.mentalExaminationV2?.speech?.tone || "",
+            volume:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+            reactionTime:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.reactionTime ||
+              "",
+            productivity:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.productivity ||
+              "",
+            speed:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.speed || "",
+            relevance:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.relevance || "",
+            coherence:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.coherence || "",
+            goalDirection:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.goalDirection ||
+              "",
 
-          affect:
-            detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
-          affectNotes:
-            detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
-          subjective:
-            detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
-          objective:
-            detailAdmissionForm?.mentalExaminationV2?.mood?.objective || "",
-          lability:
-            detailAdmissionForm?.mentalExaminationV2?.mood?.lability || "",
-          appropriateness1:
-            detailAdmissionForm?.mentalExaminationV2?.mood?.appropriateness ||
-            "",
+            affect:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+            affectNotes:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+            subjective:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+            objective:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.objective || "",
+            lability:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.lability || "",
+            appropriateness1:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.appropriateness ||
+              "",
 
-          quality:
-            detailAdmissionForm?.mentalExaminationV2?.affectV2?.quality || "",
-          intensity:
-            detailAdmissionForm?.mentalExaminationV2?.affectV2?.intensity ||
-            "",
-          mobility:
-            detailAdmissionForm?.mentalExaminationV2?.affectV2?.mobility ||
-            "",
-          range:
-            detailAdmissionForm?.mentalExaminationV2?.affectV2?.range || "",
-          reactivity:
-            detailAdmissionForm?.mentalExaminationV2?.affectV2?.reactivity ||
-            "",
-          communicability:
-            detailAdmissionForm?.mentalExaminationV2?.affectV2
-              ?.communicability || "",
-          diurnalVariation:
-            detailAdmissionForm?.mentalExaminationV2?.affectV2
-              ?.diurnalVariation || "",
-          appropriateness2:
-            detailAdmissionForm?.mentalExaminationV2?.affectV2
-              ?.appropriateness || "",
+            quality:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.quality || "",
+            intensity:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.intensity ||
+              "",
+            mobility:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.mobility ||
+              "",
+            range:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.range || "",
+            reactivity:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.reactivity ||
+              "",
+            communicability:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2
+                ?.communicability || "",
+            diurnalVariation:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2
+                ?.diurnalVariation || "",
+            appropriateness2:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2
+                ?.appropriateness || "",
 
-          delusions:
-            detailAdmissionForm?.mentalExaminationV2?.thought?.delusions ||
-            "",
-          delusionNotes:
-            detailAdmissionForm?.mentalExaminationV2?.thought
-              ?.delusionNotes || "",
-          content:
-            detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
-          process:
-            detailAdmissionForm?.mentalExaminationV2?.thought?.process || "",
+            delusions:
+              detailAdmissionForm?.mentalExaminationV2?.thought?.delusions ||
+              "",
+            delusionNotes:
+              detailAdmissionForm?.mentalExaminationV2?.thought
+                ?.delusionNotes || "",
+            content:
+              detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+            process:
+              detailAdmissionForm?.mentalExaminationV2?.thought?.process || "",
 
-          perception:
-            detailAdmissionForm?.mentalExaminationV2?.perception || "",
-          perceptionNotes:
-            detailAdmissionForm?.mentalExaminationV2?.perceptionNotes || "",
+            perception:
+              detailAdmissionForm?.mentalExaminationV2?.perception || "",
+            perceptionNotes:
+              detailAdmissionForm?.mentalExaminationV2?.perceptionNotes || "",
 
-          orientationTime:
-            detailAdmissionForm?.mentalExaminationV2?.cognition
-              ?.orientationTime || "",
-          orientationPlace:
-            detailAdmissionForm?.mentalExaminationV2?.cognition
-              ?.orientationPlace || "",
-          orientationPerson:
-            detailAdmissionForm?.mentalExaminationV2?.cognition
-              ?.orientationPerson || "",
-          immediateMemory:
-            detailAdmissionForm?.mentalExaminationV2?.cognition
-              ?.immediateMemory || "",
-          recentMemory:
-            detailAdmissionForm?.mentalExaminationV2?.cognition
-              ?.recentMemory || "",
-          remoteMemory:
-            detailAdmissionForm?.mentalExaminationV2?.cognition
-              ?.remoteMemory || "",
-          attention:
-            detailAdmissionForm?.mentalExaminationV2?.cognition?.attention ||
-            "",
-          concentration:
-            detailAdmissionForm?.mentalExaminationV2?.cognition
-              ?.concentration || "",
+            orientationTime:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationTime || "",
+            orientationPlace:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationPlace || "",
+            orientationPerson:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationPerson || "",
+            immediateMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.immediateMemory || "",
+            recentMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.recentMemory || "",
+            remoteMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.remoteMemory || "",
+            attention:
+              detailAdmissionForm?.mentalExaminationV2?.cognition?.attention ||
+              "",
+            concentration:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.concentration || "",
 
-          grade:
-            detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+            grade:
+              detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
 
-          judgment: detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+            judgment: detailAdmissionForm?.mentalExaminationV2?.judgment || "",
 
-          remarks: detailAdmissionForm?.mentalExaminationV2?.remarks || "",
-        }
+            remarks: detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+          }
         : {}),
       //physical status examination
       // generalExamination: detailAdmissionForm
@@ -746,7 +732,6 @@ const DetailAdmission = ({
         : "",
       //diagnosis & doctor signature
 
-
       managmentPlan: (() => {
         const val = detailAdmissionForm?.doctorSignature?.managmentPlan;
         if (!val) return "";
@@ -761,27 +746,27 @@ const DetailAdmission = ({
       //   : [],
       investigation: detailAdmissionForm
         ? (() => {
-          const data = detailAdmissionForm.doctorSignature?.investigation;
+            const data = detailAdmissionForm.doctorSignature?.investigation;
 
-          if (!data) return [];
+            if (!data) return [];
 
-          let result = [];
+            let result = [];
 
-          if (Array.isArray(data)) {
-            data.forEach((item) => {
-              if (typeof item === "string") {
-                // handle "RFT,HIV"
-                if (item.includes(",")) {
-                  result.push(...item.split(","));
-                } else {
-                  result.push(item);
+            if (Array.isArray(data)) {
+              data.forEach((item) => {
+                if (typeof item === "string") {
+                  // handle "RFT,HIV"
+                  if (item.includes(",")) {
+                    result.push(...item.split(","));
+                  } else {
+                    result.push(item);
+                  }
                 }
-              }
-            });
-          }
+              });
+            }
 
-          return result.map((i) => i.trim());
-        })()
+            return result.map((i) => i.trim());
+          })()
         : [],
       specialTest: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.specialTest
@@ -825,9 +810,9 @@ const DetailAdmission = ({
         detailAdmissionForm?.validation?.isValidated || false,
       ),
       audioDetails: detailAdmissionForm?.audioDetails
-        ? (typeof detailAdmissionForm.audioDetails === "string"
+        ? typeof detailAdmissionForm.audioDetails === "string"
           ? detailAdmissionForm.audioDetails
-          : JSON.stringify(detailAdmissionForm.audioDetails))
+          : JSON.stringify(detailAdmissionForm.audioDetails)
         : "",
       ...(!isEdit && savedDraft ? savedDraft : {}),
     },
@@ -1031,9 +1016,12 @@ const DetailAdmission = ({
       if (!audioMeta && uploadedAudioRef.current?.url) {
         audioMeta = {
           url: uploadedAudioRef.current.url,
-          originalName: uploadedAudioRef.current.originalName || uploadedAudioRef.current.name,
+          originalName:
+            uploadedAudioRef.current.originalName ||
+            uploadedAudioRef.current.name,
           size: uploadedAudioRef.current.size,
-          mimetype: uploadedAudioRef.current.mimetype || uploadedAudioRef.current.type,
+          mimetype:
+            uploadedAudioRef.current.mimetype || uploadedAudioRef.current.type,
           duration: uploadedAudioRef.current.duration || 0,
           sourceType:
             uploadedAudioRef.current.sourceType === "recorded"
@@ -1054,7 +1042,7 @@ const DetailAdmission = ({
       values.isValidated = Boolean(
         values.aiReviewed ||
         values.isValidated ||
-        detailAdmissionForm?.validation?.isValidated
+        detailAdmissionForm?.validation?.isValidated,
       );
 
       let currentUserRole = author?.role;
@@ -1071,29 +1059,32 @@ const DetailAdmission = ({
       }
 
       const isDoctor =
-        String(currentUserRole || "").trim().toUpperCase() === "DOCTOR";
-
-      if (isDoctor && !values.isValidated) {
-        toast.error("Doctors must validate Detail History upon submission");
-        return;
-      }
+        String(currentUserRole || "")
+          .trim()
+          .toUpperCase() === "DOCTOR";
 
       const isAiRecord = Boolean(
         values.aiGenerated ||
         uploadedAudioRef.current?.url ||
         values.audioDetails ||
         detailAdmissionForm?.aiGenerated ||
-        detailAdmissionForm?.audioDetails?.url
+        detailAdmissionForm?.audioDetails?.url,
       );
+
+      if (isDoctor && isAiRecord && !values.isValidated) {
+        toast.error("Doctors must validate Detail History upon submission");
+        return;
+      }
+
       const isAiReviewed = Boolean(
         values.aiReviewed ||
         detailAdmissionForm?.validation?.isValidated ||
-        detailAdmissionForm?.aiReviewed
+        detailAdmissionForm?.aiReviewed,
       );
 
       if (values.isValidated && isAiRecord && !isAiReviewed) {
         toast.error(
-          "Cannot validate an AI-generated record until AI validation is successfully completed."
+          "Cannot validate an AI-generated record until AI validation is successfully completed.",
         );
         return;
       }
@@ -1217,10 +1208,8 @@ const DetailAdmission = ({
   // }, []);
   // AUTOFILL
 
-
   // Smart Merge Strategy: Preserve existing user inputs, populate empty fields
   const smartMergeAiData = (currentValues, aiData) => {
-
     if (!aiData || typeof aiData !== "object") return currentValues;
 
     const merged = { ...currentValues };
@@ -1233,10 +1222,12 @@ const DetailAdmission = ({
       return false;
     };
 
-    const isCellEmpty = (c) => c === undefined || c === null || String(c).trim() === "";
+    const isCellEmpty = (c) =>
+      c === undefined || c === null || String(c).trim() === "";
 
     const mergeRowArrays = (targetArr, sourceArr) => {
-      if (!Array.isArray(sourceArr) || sourceArr.length === 0) return targetArr || [];
+      if (!Array.isArray(sourceArr) || sourceArr.length === 0)
+        return targetArr || [];
       if (!Array.isArray(targetArr) || targetArr.length === 0) {
         return sourceArr.map((row) => {
           if (!row || typeof row !== "object") return row;
@@ -1249,8 +1240,20 @@ const DetailAdmission = ({
 
       // Check if target is a grid table (has substance, activity, parameter, or label)
       const isGridArray =
-        targetArr.some((r) => r && (r.substance !== undefined || r.activity !== undefined || r.parameter !== undefined)) ||
-        sourceArr.some((r) => r && (r.substance !== undefined || r.activity !== undefined || r.parameter !== undefined));
+        targetArr.some(
+          (r) =>
+            r &&
+            (r.substance !== undefined ||
+              r.activity !== undefined ||
+              r.parameter !== undefined),
+        ) ||
+        sourceArr.some(
+          (r) =>
+            r &&
+            (r.substance !== undefined ||
+              r.activity !== undefined ||
+              r.parameter !== undefined),
+        );
 
       if (!isGridArray) {
         return targetArr.length > 0 ? targetArr : sourceArr;
@@ -1258,11 +1261,16 @@ const DetailAdmission = ({
 
       return targetArr.map((targetRow) => {
         if (!targetRow || typeof targetRow !== "object") return targetRow;
-        const targetLabel = targetRow.substance || targetRow.activity || targetRow.parameter || targetRow.label;
+        const targetLabel =
+          targetRow.substance ||
+          targetRow.activity ||
+          targetRow.parameter ||
+          targetRow.label;
 
         const matchedSource = sourceArr.find((s) => {
           if (!s || typeof s !== "object") return false;
-          const sourceLabel = s.substance || s.activity || s.parameter || s.label;
+          const sourceLabel =
+            s.substance || s.activity || s.parameter || s.label;
           if (!sourceLabel || !targetLabel) return false;
           const sLower = String(sourceLabel).toLowerCase().trim();
           const tLower = String(targetLabel).toLowerCase().trim();
@@ -1284,10 +1292,16 @@ const DetailAdmission = ({
             mergedRow[k] = v;
           }
         }
-        if (isCellEmpty(mergedRow.quantityDose) && !isCellEmpty(mergedRow.quantity)) {
+        if (
+          isCellEmpty(mergedRow.quantityDose) &&
+          !isCellEmpty(mergedRow.quantity)
+        ) {
           mergedRow.quantityDose = mergedRow.quantity;
         }
-        if (isCellEmpty(mergedRow.quantity) && !isCellEmpty(mergedRow.quantityDose)) {
+        if (
+          isCellEmpty(mergedRow.quantity) &&
+          !isCellEmpty(mergedRow.quantityDose)
+        ) {
           mergedRow.quantity = mergedRow.quantityDose;
         }
         return mergedRow;
@@ -1307,8 +1321,12 @@ const DetailAdmission = ({
 
     // Normalize incoming aiData substance profile into addictionFields and psychiatricFields
     const effectiveAiData = { ...aiData };
-    const currentSelectedType = (currentValues.patientType || "").toLowerCase().trim();
-    const aiPatientType = (effectiveAiData.patientType || "").toLowerCase().trim();
+    const currentSelectedType = (currentValues.patientType || "")
+      .toLowerCase()
+      .trim();
+    const aiPatientType = (effectiveAiData.patientType || "")
+      .toLowerCase()
+      .trim();
 
     // Preserve existing form selection if present; otherwise adopt AI-inferred type (fallback to psychiatric)
     let resolvedType = currentSelectedType || aiPatientType || "psychiatric";
@@ -1318,11 +1336,20 @@ const DetailAdmission = ({
     const rawSubstanceProfile =
       effectiveAiData.substanceProfile ||
       parseObj(effectiveAiData.addictionFields)?.substanceProfile ||
-      parseObj(effectiveAiData.psychiatricFields)?.pastIllness?.substanceUseTable;
+      parseObj(effectiveAiData.psychiatricFields)?.pastIllness
+        ?.substanceUseTable;
 
-    const hasSubstanceUse = Array.isArray(rawSubstanceProfile) && rawSubstanceProfile.some(
-      (r) => r.ageOfFirstUse || r.currentUse || r.frequency || r.quantityDose || r.quantity || r.lastUse
-    );
+    const hasSubstanceUse =
+      Array.isArray(rawSubstanceProfile) &&
+      rawSubstanceProfile.some(
+        (r) =>
+          r.ageOfFirstUse ||
+          r.currentUse ||
+          r.frequency ||
+          r.quantityDose ||
+          r.quantity ||
+          r.lastUse,
+      );
 
     // Route substance profiles and prevent cross-contamination based on active patient type (100% HMIS Compliance)
     if (resolvedType === "geriatric") {
@@ -1341,8 +1368,14 @@ const DetailAdmission = ({
       merged.elderlyChecklistFields = JSON.stringify({});
       merged.psychiatricFields = JSON.stringify({});
       const parsedAddiction = parseObj(effectiveAiData.addictionFields);
-      if (Array.isArray(rawSubstanceProfile) && rawSubstanceProfile.length > 0) {
-        if (!parsedAddiction.substanceProfile || parsedAddiction.substanceProfile.length === 0) {
+      if (
+        Array.isArray(rawSubstanceProfile) &&
+        rawSubstanceProfile.length > 0
+      ) {
+        if (
+          !parsedAddiction.substanceProfile ||
+          parsedAddiction.substanceProfile.length === 0
+        ) {
           parsedAddiction.substanceProfile = rawSubstanceProfile;
         }
       }
@@ -1359,13 +1392,21 @@ const DetailAdmission = ({
       merged.addictionFields = JSON.stringify({});
       const parsedPsych = parseObj(effectiveAiData.psychiatricFields);
       parsedPsych.pastIllness = parsedPsych.pastIllness || {};
-      if (Array.isArray(rawSubstanceProfile) && rawSubstanceProfile.length > 0) {
-        if (!parsedPsych.pastIllness.substanceUseTable || parsedPsych.pastIllness.substanceUseTable.length === 0) {
+      if (
+        Array.isArray(rawSubstanceProfile) &&
+        rawSubstanceProfile.length > 0
+      ) {
+        if (
+          !parsedPsych.pastIllness.substanceUseTable ||
+          parsedPsych.pastIllness.substanceUseTable.length === 0
+        ) {
           parsedPsych.pastIllness.substanceUseTable = rawSubstanceProfile;
         }
       }
       if (!parsedPsych.pastIllness.substanceUseHistory) {
-        parsedPsych.pastIllness.substanceUseHistory = hasSubstanceUse ? "Yes" : "No";
+        parsedPsych.pastIllness.substanceUseHistory = hasSubstanceUse
+          ? "Yes"
+          : "No";
       }
       effectiveAiData.psychiatricFields = parsedPsych;
     }
@@ -1378,7 +1419,11 @@ const DetailAdmission = ({
         const result = { ...target };
         for (const [key, val] of Object.entries(source || {})) {
           if (Array.isArray(val)) {
-            if (Array.isArray(target[key]) && target[key].length > 0 && typeof target[key][0] === "object") {
+            if (
+              Array.isArray(target[key]) &&
+              target[key].length > 0 &&
+              typeof target[key][0] === "object"
+            ) {
               result[key] = mergeRowArrays(target[key], val);
             } else if (isEmptyVal(target[key]) && !isEmptyVal(val)) {
               result[key] = val;
@@ -1405,13 +1450,26 @@ const DetailAdmission = ({
         key === "elderlyChecklistFields"
       ) {
         // Prevent cross-contamination: do not merge fields outside active patient type
-        if (resolvedType === "geriatric" && (key === "psychiatricFields" || key === "addictionFields")) {
+        if (
+          resolvedType === "geriatric" &&
+          (key === "psychiatricFields" || key === "addictionFields")
+        ) {
           return;
         }
-        if (resolvedType === "psychiatric" && (key === "geriatricFields" || key === "elderlyChecklistFields" || key === "addictionFields")) {
+        if (
+          resolvedType === "psychiatric" &&
+          (key === "geriatricFields" ||
+            key === "elderlyChecklistFields" ||
+            key === "addictionFields")
+        ) {
           return;
         }
-        if (resolvedType === "addiction" && (key === "geriatricFields" || key === "elderlyChecklistFields" || key === "psychiatricFields")) {
+        if (
+          resolvedType === "addiction" &&
+          (key === "geriatricFields" ||
+            key === "elderlyChecklistFields" ||
+            key === "psychiatricFields")
+        ) {
           return;
         }
         merged[key] = mergeNested(currentValues[key], effectiveAiData[key]);
@@ -1421,13 +1479,19 @@ const DetailAdmission = ({
           return;
         }
         if (Array.isArray(effectiveAiData.substanceProfile)) {
-          merged.substanceProfile = mergeRowArrays(currentValues.substanceProfile, effectiveAiData.substanceProfile);
+          merged.substanceProfile = mergeRowArrays(
+            currentValues.substanceProfile,
+            effectiveAiData.substanceProfile,
+          );
         }
       } else if (key === "patientType") {
         // Keep the dynamically resolved patientType
         merged.patientType = resolvedType;
       } else {
-        if (isEmptyVal(currentValues[key]) && !isEmptyVal(effectiveAiData[key])) {
+        if (
+          isEmptyVal(currentValues[key]) &&
+          !isEmptyVal(effectiveAiData[key])
+        ) {
           merged[key] = effectiveAiData[key];
         }
       }
@@ -1482,12 +1546,12 @@ const DetailAdmission = ({
           validation.setValues(merged);
         }
         toast.success(
-          "Detail History successfully auto-filled! Please review across tabs before saving."
+          "Detail History successfully auto-filled! Please review across tabs before saving.",
         );
       } catch (err) {
         console.error("detailHistoryAiDone handler failed:", err);
         toast.error(
-          "AI auto-fill completed but applying the results failed. Please check the browser console and try again."
+          "AI auto-fill completed but applying the results failed. Please check the browser console and try again.",
         );
       } finally {
         setIsGenerating(false);
@@ -1507,7 +1571,7 @@ const DetailAdmission = ({
         abortDetailAdmissionAudio({
           sessionId: sessionIdRef.current,
           audioPath: uploadedAudioRef.current?.path,
-        }).catch(() => { });
+        }).catch(() => {});
       }
       socket.off("detailHistoryAiProgress");
       socket.off("detailHistoryAiDone");
@@ -1627,7 +1691,9 @@ const DetailAdmission = ({
     validation.setFieldValue("aiGenerated", false);
     validation.setFieldValue("aiReviewed", false);
     setIsDraftConflictModalOpen(false);
-    toast.success("Existing draft cleared. You can now upload or record a new audio file.");
+    toast.success(
+      "Existing draft cleared. You can now upload or record a new audio file.",
+    );
 
     // Keep draft cleared flag active until after Formik's re-renders settle
     setTimeout(() => {
@@ -1741,7 +1807,8 @@ const DetailAdmission = ({
               value={{
                 onClearForm: clearFormHandler,
                 isGenerating,
-                hasGenerated: hasGenerated || Boolean(validation.values.aiGenerated),
+                hasGenerated:
+                  hasGenerated || Boolean(validation.values.aiGenerated),
                 uploadedAudio,
               }}
             >
@@ -1781,7 +1848,9 @@ const DetailAdmission = ({
                     nextStep={CHIEF_COMPLAINTS}
                     uploadedAudio={uploadedAudio}
                     setUploadedAudio={setUploadedAudio}
-                    hasGenerated={hasGenerated || Boolean(validation.values.aiGenerated)}
+                    hasGenerated={
+                      hasGenerated || Boolean(validation.values.aiGenerated)
+                    }
                     onClearForm={clearFormHandler}
                     onCheckDraftConflict={handleCheckDraftConflict}
                   />
@@ -1880,7 +1949,9 @@ const DetailAdmission = ({
                     author={author}
                     onClearForm={clearFormHandler}
                     isEdit={isEdit}
-                    hasGenerated={hasGenerated || Boolean(validation.values.aiGenerated)}
+                    hasGenerated={
+                      hasGenerated || Boolean(validation.values.aiGenerated)
+                    }
                     isGenerating={isGenerating}
                     uploadedAudio={uploadedAudio}
                   />
@@ -1897,14 +1968,18 @@ const DetailAdmission = ({
           centered
         >
           <ModalHeader toggle={() => setIsClearModalOpen(false)}>
-            <i className="ri-alert-line text-warning me-2"></i> Confirm Clear Form
+            <i className="ri-alert-line text-warning me-2"></i> Confirm Clear
+            Form
           </ModalHeader>
           <ModalBody>
             <p className="mb-0 fs-6">
-              Are you sure you want to clear all form fields and local storage draft?
+              Are you sure you want to clear all form fields and local storage
+              draft?
             </p>
             <small className="text-muted d-block mt-2">
-              This will reset all entered data across every tab, remove the saved draft, and reset the AI validation status. This action cannot be undone.
+              This will reset all entered data across every tab, remove the
+              saved draft, and reset the AI validation status. This action
+              cannot be undone.
             </small>
           </ModalBody>
           <ModalFooter>
@@ -1925,23 +2000,33 @@ const DetailAdmission = ({
           backdrop="static"
         >
           <ModalHeader toggle={() => setIsDraftConflictModalOpen(false)}>
-            <i className="ri-error-warning-fill text-warning me-2 fs-5"></i> Existing Draft Found
+            <i className="ri-error-warning-fill text-warning me-2 fs-5"></i>{" "}
+            Existing Draft Found
           </ModalHeader>
           <ModalBody>
             <div className="alert alert-warning d-flex align-items-start gap-2 mb-3">
               <i className="ri-alert-line fs-5 mt-1"></i>
               <div>
-                <strong>You must clear your existing draft before uploading or recording a new audio file.</strong>
+                <strong>
+                  You must clear your existing draft before uploading or
+                  recording a new audio file.
+                </strong>
               </div>
             </div>
             <p className="text-muted small mb-0">
-              An existing draft with filled form data was detected for this patient.
-              To ensure clean AI auto-filling without mixing old data, you must clear the existing draft first.
-              Clicking <strong>&quot;Clear Draft&quot;</strong> will remove the saved draft and reset all form fields so you can proceed with a fresh audio recording.
+              An existing draft with filled form data was detected for this
+              patient. To ensure clean AI auto-filling without mixing old data,
+              you must clear the existing draft first. Clicking{" "}
+              <strong>&quot;Clear Draft&quot;</strong> will remove the saved
+              draft and reset all form fields so you can proceed with a fresh
+              audio recording.
             </p>
           </ModalBody>
           <ModalFooter>
-            <Button color="light" onClick={() => setIsDraftConflictModalOpen(false)}>
+            <Button
+              color="light"
+              onClick={() => setIsDraftConflictModalOpen(false)}
+            >
               Cancel
             </Button>
             <Button color="danger" onClick={handleClearDraftAndUnlock}>
