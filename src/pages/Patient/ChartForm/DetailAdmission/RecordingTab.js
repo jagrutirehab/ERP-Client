@@ -113,7 +113,7 @@ const RecordingTab = ({
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
+              (progressEvent.loaded * 100) / progressEvent.total,
             );
             setUploadProgress(percent);
             setUploadStatusText(`Uploading to S3 (${percent}%)...`);
@@ -133,7 +133,9 @@ const RecordingTab = ({
           mimetype: payload.type || file.type,
           duration: payload.duration || payload.audioDetails?.duration || 0,
           sourceType:
-            payload.audioDetails?.sourceType || payload.sourceType || sourceType,
+            payload.audioDetails?.sourceType ||
+            payload.sourceType ||
+            sourceType,
           uploadedAt: payload.audioDetails?.uploadedAt || new Date(),
         });
         toast.success("Audio uploaded to S3 successfully!");
@@ -174,7 +176,7 @@ const RecordingTab = ({
 
     if (!isAudio || !allowedExt.includes(ext)) {
       toast.error(
-        "Only valid audio files allowed (.mp3, .wav, .webm, .ogg, .aac, .m4a, .mpeg)"
+        "Only valid audio files allowed (.mp3, .wav, .webm, .ogg, .aac, .m4a, .mpeg)",
       );
       if (e.target) e.target.value = null;
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -223,7 +225,7 @@ const RecordingTab = ({
             x,
             canvas.height - barHeight,
             barWidth - 2,
-            barHeight
+            barHeight,
           );
           x += barWidth;
         }
@@ -294,7 +296,7 @@ const RecordingTab = ({
         const audioFile = new File(
           [audioBlob],
           `browser-recording-${Date.now()}.${ext}`,
-          { type: blobType }
+          { type: blobType },
         );
 
         const preview = URL.createObjectURL(audioBlob);
@@ -315,7 +317,7 @@ const RecordingTab = ({
       // eslint-disable-next-line no-console
       console.error("Microphone error:", err);
       toast.error(
-        "Could not access microphone. Please ensure microphone permissions are granted."
+        "Could not access microphone. Please ensure microphone permissions are granted.",
       );
     }
   };
@@ -391,16 +393,22 @@ const RecordingTab = ({
               AI-Powered Audio Recording & Detail History Auto-Fill
             </h5>
             <p className="text-muted small mb-0">
-              Upload an audio file or record directly in your browser to automatically populate all sections of the Detail History form.
+              Upload an audio file or record directly in your browser to
+              automatically populate all sections of the Detail History form.
             </p>
           </div>
 
-          <Alert fade={false} color="light" className="border d-flex align-items-center gap-2 mb-4 py-2">
+          <Alert
+            fade={false}
+            color="light"
+            className="border d-flex align-items-center gap-2 mb-4 py-2"
+          >
             <i className="ri-information-line fs-5 text-info"></i>
             <span className="small text-muted">
-              Audio input is <strong>non-mandatory</strong> with no file size limit.
-              Long audio files are automatically segmented and processed.
-              You may also skip directly to manual entry using the &quot;Next&quot; button.
+              Audio input is <strong>non-mandatory</strong> with no file size
+              limit. Long audio files are automatically segmented and processed.
+              You may also skip directly to manual entry using the
+              &quot;Next&quot; button.
             </span>
           </Alert>
 
@@ -416,7 +424,8 @@ const RecordingTab = ({
                   onClick={() => handleModeChange("upload")}
                   disabled={isGenerating || isRecording}
                 >
-                  <i className="ri-upload-cloud-line me-1"></i> Upload Audio File
+                  <i className="ri-upload-cloud-line me-1"></i> Upload Audio
+                  File
                 </Button>
                 <Button
                   type="button"
@@ -434,7 +443,9 @@ const RecordingTab = ({
           {/* Mode 1: File Upload Area */}
           {inputMode === "upload" && (
             <div className="mb-4 p-3 bg-light rounded border">
-              <label className="form-label fw-bold">Select Audio File from Device</label>
+              <label className="form-label fw-bold">
+                Select Audio File from Device
+              </label>
               <div className="d-flex align-items-center gap-3 flex-wrap">
                 <input
                   ref={fileInputRef}
@@ -464,7 +475,11 @@ const RecordingTab = ({
                     {uploadProgress > 0 && (
                       <div
                         className="progress"
-                        style={{ height: "6px", width: "100%", maxWidth: "350px" }}
+                        style={{
+                          height: "6px",
+                          width: "100%",
+                          maxWidth: "350px",
+                        }}
                       >
                         <div
                           className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
@@ -488,7 +503,7 @@ const RecordingTab = ({
                 )}
               </div>
               <small className="text-muted d-block mt-2">
-                Supported formats: MP3, WAV, WEBM, OGG, AAC, MPEG, M4A (No file size limit)
+                Supported formats: MP3, WAV, WEBM, OGG, AAC, MPEG, M4A
               </small>
             </div>
           )}
@@ -496,7 +511,9 @@ const RecordingTab = ({
           {/* Mode 2: Live Browser Audio Recorder Area */}
           {inputMode === "record" && (
             <div className="mb-4 p-3 bg-light rounded border">
-              <label className="form-label fw-bold d-block">Record Audio in Browser</label>
+              <label className="form-label fw-bold d-block">
+                Record Audio in Browser
+              </label>
 
               {!isRecording && !uploadedAudio && (
                 <div className="d-flex align-items-center gap-3 flex-wrap">
@@ -510,7 +527,8 @@ const RecordingTab = ({
                     <i className="ri-mic-fill fs-5"></i> Start Recording
                   </Button>
                   <span className="text-muted small">
-                    Click to start recording your clinical consultation using your microphone.
+                    Click to start recording your clinical consultation using
+                    your microphone.
                   </span>
                 </div>
               )}
@@ -518,7 +536,10 @@ const RecordingTab = ({
               {isRecording && (
                 <div>
                   <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                    <Badge color="danger" className="d-flex align-items-center gap-1 px-3 py-2 fs-6">
+                    <Badge
+                      color="danger"
+                      className="d-flex align-items-center gap-1 px-3 py-2 fs-6"
+                    >
                       <span
                         className="spinner-grow spinner-grow-sm me-1 text-light"
                         role="status"
@@ -533,17 +554,25 @@ const RecordingTab = ({
                       className="d-flex align-items-center gap-2 px-4 py-2"
                       onClick={handleStopRecording}
                     >
-                      <i className="ri-stop-circle-fill fs-5 text-danger"></i> Stop Recording
+                      <i className="ri-stop-circle-fill fs-5 text-danger"></i>{" "}
+                      Stop Recording
                     </Button>
                   </div>
 
                   {/* Real-time Audio Waveform Visualizer */}
-                  <div className="p-2 bg-white rounded border" style={{ maxWidth: "450px" }}>
+                  <div
+                    className="p-2 bg-white rounded border"
+                    style={{ maxWidth: "450px" }}
+                  >
                     <canvas
                       ref={canvasRef}
                       width={430}
                       height={45}
-                      style={{ width: "100%", height: "45px", display: "block" }}
+                      style={{
+                        width: "100%",
+                        height: "45px",
+                        display: "block",
+                      }}
                     />
                   </div>
                 </div>
@@ -561,7 +590,11 @@ const RecordingTab = ({
                   {uploadProgress > 0 && (
                     <div
                       className="progress"
-                      style={{ height: "6px", width: "100%", maxWidth: "250px" }}
+                      style={{
+                        height: "6px",
+                        width: "100%",
+                        maxWidth: "250px",
+                      }}
                     >
                       <div
                         className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
@@ -608,7 +641,8 @@ const RecordingTab = ({
                         {uploadedAudio.originalName || uploadedAudio.name}
                       </div>
                       <small className="text-muted">
-                        Size: {formatFileSize(uploadedAudio.size)} | Ready for AI analysis
+                        Size: {formatFileSize(uploadedAudio.size)} | Ready for
+                        AI analysis
                       </small>
                     </div>
                   </div>
@@ -635,7 +669,8 @@ const RecordingTab = ({
           {uploadedAudio && !isGenerating && !hasGenerated && (
             <div className="mb-4 text-center p-3 bg-light rounded border">
               <p className="mb-2 text-muted small">
-                Audio is ready. Click below to begin background chunking, transcription, and Detail History auto-fill.
+                Audio is ready. Click below to begin background chunking,
+                transcription, and Detail History auto-fill.
               </p>
               <Button
                 color="primary"
@@ -654,13 +689,17 @@ const RecordingTab = ({
             <Card className="border-primary shadow-sm mb-4">
               <CardBody className="p-4 text-center">
                 <div className="mb-3">
-                  <Spinner color="primary" style={{ width: "3rem", height: "3rem" }} />
+                  <Spinner
+                    color="primary"
+                    style={{ width: "3rem", height: "3rem" }}
+                  />
                 </div>
                 <h6 className="fw-bold text-primary mb-1">
                   AI Auto-Fill in Progress
                 </h6>
                 <p className="text-muted small mb-3">
-                  {generationProgress?.message || "Analyzing audio chunks and mapping fields..."}
+                  {generationProgress?.message ||
+                    "Analyzing audio chunks and mapping fields..."}
                 </p>
 
                 {generationProgress?.percent > 0 && (
@@ -691,13 +730,18 @@ const RecordingTab = ({
 
           {/* Completion Banner */}
           {hasGenerated && !isGenerating && (
-            <Alert fade={false} color="success" className="d-flex align-items-center justify-content-between mb-4">
+            <Alert
+              fade={false}
+              color="success"
+              className="d-flex align-items-center justify-content-between mb-4"
+            >
               <div className="d-flex align-items-center gap-2">
                 <i className="ri-checkbox-circle-line fs-4 text-success"></i>
                 <div>
                   <div className="fw-bold">AI Extraction Complete!</div>
                   <div className="small">
-                    Form fields have been populated. Please review each tab and confirm on the final &quot;Special Requirements&quot; tab.
+                    Form fields have been populated. Please review each tab and
+                    confirm on the final &quot;Special Requirements&quot; tab.
                   </div>
                 </div>
               </div>
@@ -735,7 +779,11 @@ const RecordingTab = ({
               className="text-white px-4"
               onClick={() => setFormStep(nextStep)}
               disabled={isGenerating || isRecording}
-              title={isGenerating ? "Navigation is locked while AI is generating" : "Proceed to Chief Complaints"}
+              title={
+                isGenerating
+                  ? "Navigation is locked while AI is generating"
+                  : "Proceed to Chief Complaints"
+              }
             >
               Next <i className="ri-arrow-right-line ms-1"></i>
             </Button>
