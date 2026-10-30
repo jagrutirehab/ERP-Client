@@ -214,14 +214,14 @@ const SpecialRequirementsForm = ({
           </div>
         ) : (
           <div
-            className="p-3 my-3 shadow-sm"
+            className="p-3 my-3"
             style={{
-              backgroundColor: "#f1f5f9",
-              border: "2px solid #0f172a",
-              borderRadius: "8px",
+              backgroundColor: "rgba(64, 81, 137, 0.08)",
+              borderLeft: "4px solid var(--vz-primary, #405189)",
+              borderRadius: "6px",
             }}
           >
-            <div className="form-check form-check-outline mb-1 d-flex align-items-center">
+            <div className="form-check form-check-outline mb-2 d-flex align-items-center">
               <input
                 className="form-check-input"
                 type="checkbox"
@@ -242,7 +242,6 @@ const SpecialRequirementsForm = ({
                   validation.setFieldValue("isValidated", e.target.checked);
                 }}
                 style={{
-                  border: "2px solid #0f172a",
                   width: "1.25rem",
                   height: "1.25rem",
                   cursor: isValidationDisabled ? "not-allowed" : "pointer",
@@ -251,33 +250,31 @@ const SpecialRequirementsForm = ({
                 }}
               />
               <label
-                className={`form-check-label fw-bold ms-2 fs-6 mb-0 ${
+                className={`form-check-label ms-2 fs-6 mb-0 ${
                   isValidationDisabled ? "text-muted" : "cursor-pointer"
                 }`}
                 htmlFor="ai-reviewed-checkbox"
-                style={{ color: isValidationDisabled ? "#64748b" : "#0f172a" }}
+                style={{ color: isValidationDisabled ? "#94a3b8" : "var(--vz-primary, #405189)" }}
                 title={
                   isValidationDisabled
                     ? "Cannot validate an AI-generated record until AI validation is successfully completed."
                     : ""
                 }
               >
-                I have reviewed and validated this clinical record, This is non revertable once validated.
-                {isDoctor ? (
-                  <span className="text-danger ms-1">* (Mandatory for Doctors)</span>
-                ) : (
-                  <span className="text-muted ms-1">(Optional)</span>
+                I have reviewed and validated this clinical record, This is non revertable once validated.*
+                {isDoctor && (
+                  <span className="ms-1" style={{ color: "#2d3a61" }}>(Mandatory for Doctors)</span>
                 )}
               </label>
             </div>
-            <div className="small text-muted ms-4 ps-1" style={{ color: "#334155" }}>
+            <div className="small ms-4 ps-1" style={{ color: "#5b6b94" }}>
               {isDoctor
                 ? "Doctors must validate Detail History upon submission. This is non revertable once validated."
                 : "Checking this box records you as the clinical validator. This is non revertable once validated."}
             </div>
 
             {isDoctor && !validation.values.isValidated && !isAlreadyValidated && (
-              <div className="text-danger small fw-semibold ms-4 ps-1 mt-1">
+              <div className="text-danger small ms-4 ps-1 mt-1">
                 * Doctors must validate Detail History upon submission
               </div>
             )}
