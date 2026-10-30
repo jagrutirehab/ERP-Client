@@ -952,6 +952,12 @@ export const editTherapy = (data) => api.put(url.EDIT_THERAPY, data);
 export const deleteTherapy = (data) =>
   api.delete(`${url.DELETE_THERAPY}/${data}`);
 
+//Job roles (User.role options, Setting → User Roles)
+export const getJobRoles = (params) => api.get(url.JOB_ROLES, params);
+export const postJobRole = (data) => api.create(url.JOB_ROLES, data);
+export const editJobRole = (id, data) => api.put(`${url.JOB_ROLES}/${id}`, data);
+export const deleteJobRole = (id) => api.delete(`${url.JOB_ROLES}/${id}`);
+
 //Condition
 export const getConditions = (data) => api.get(url.GET_CONDITIONS, data);
 export const postCondition = (data) => api.create(url.POST_CONDITION, data);

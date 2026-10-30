@@ -58,6 +58,7 @@ const PatientTopbar = ({
   psychologists,
   nurses,
   rmos,
+  msws,
   deletePatient,
   loading,
   nurseLoading,
@@ -77,6 +78,7 @@ const PatientTopbar = ({
   const [selectedPsychologist, setSelectedPsychologist] = useState(null);
   const [selectedNurse, setSelectedNurse] = useState(null);
   const [selectedRmo, setSelectedRmo] = useState(null);
+  const [selectedMsw, setSelectedMsw] = useState(null);
   const [notesModal, setNotesModal] = useState(false);
   const [nurseModal, setNurseModal] = useState(false);
   // const [additionalDiagnosis, setAdditionalDiagnosis] = useState(null);
@@ -154,7 +156,7 @@ const PatientTopbar = ({
         label: admission.psychologist.name || "",
       });
     }
-    // Unlike doctor/psychologist, nurse and RMO can be empty — reset to null so
+    // Unlike doctor/psychologist, nurse, RMO and MSW can be empty — reset to null so
     // a previous patient's selection never carries over into this modal.
     setSelectedNurse(
       admission?.nurse
@@ -166,11 +168,20 @@ const PatientTopbar = ({
         ? { value: admission.rmo._id || "", label: admission.rmo.name || "" }
         : null,
     );
+    setSelectedMsw(
+      admission?.msw
+        ? { value: admission.msw._id || "", label: admission.msw.name || "" }
+        : null,
+    );
     setIsEditModalOpen(true);
   };
 
   const hasAnySelection =
-    selectedDoctor || selectedPsychologist || selectedNurse || selectedRmo;
+    selectedDoctor ||
+    selectedPsychologist ||
+    selectedNurse ||
+    selectedRmo ||
+    selectedMsw;
 
   const handleSave = async () => {
     if (!hasAnySelection) {
@@ -186,6 +197,7 @@ const PatientTopbar = ({
         psychologistId: selectedPsychologist?.value,
         nurseId: selectedNurse?.value,
         rmoId: selectedRmo?.value,
+        mswId: selectedMsw?.value,
       }),
     );
   };
@@ -612,6 +624,21 @@ const PatientTopbar = ({
                   </UncontrolledTooltip>
                 </li>
 
+                <li
+                  id="patient-msw"
+                  className="list-inline-item m-0 ms-4 d-none d-md-inline"
+                  onClick={handleEditClick}
+                  style={{ cursor: "pointer" }}
+                >
+                  <i className="ri-service-line align-middle me-1 fs-18"></i>
+                  <span className={admission?.msw?.name ? "" : "text-muted"}>
+                    {admission?.msw?.name || "Add MSW"}
+                  </span>
+                  <UncontrolledTooltip target={"patient-msw"}>
+                    Click to edit MSW
+                  </UncontrolledTooltip>
+                </li>
+
                 <li className="list-inline-item m-0">
                   <Dropdown isOpen={search_Menu} toggle={toggleSearch}>
                     <DropdownToggle
@@ -806,6 +833,19 @@ const PatientTopbar = ({
                   isLoading={!rmos}
                 />
               </Col>
+              <Col md={12} className="mb-3">
+                <Label>MSW</Label>
+                <Select
+                  value={selectedMsw}
+                  onChange={setSelectedMsw}
+                  options={msws?.map((msw) => ({
+                    value: msw._id,
+                    label: msw.name,
+                  }))}
+                  placeholder="Select MSW"
+                  isLoading={!msws}
+                />
+              </Col>
             </Row>
             <div className="text-end mt-3">
               <Button
@@ -851,6 +891,7 @@ const mapStateToProps = (state) => ({
   psychologists: state.User?.counsellors,
   nurses: state.User?.nurses,
   rmos: state.User?.rmos,
+  msws: state.User?.msws,
   admissions: state.Chart.data,
   loading: state.Patient.admissionLoading,
   nurseLoading: state.Patient.nurseLoading,
