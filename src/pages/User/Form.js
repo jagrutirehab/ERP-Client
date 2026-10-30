@@ -6,10 +6,9 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCondition, fetchTherapy, updateUser } from "../../store/actions";
-import authRoles from "../../Components/constants/authRoles";
 import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
-import { getAllRoleslist } from "../../helpers/backend_helper";
+import { getAllRoleslist, getJobRoles } from "../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import { addNewUser } from "../../store/features/auth/user/userSlice";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
@@ -77,6 +76,7 @@ const UserForm = ({
   const [languages, setLanguages] = useState([]);
   // const [loading, setLoading] = useState(false);
   const [accessroles, setAcccessRoles] = useState([]);
+  const [jobRoles, setJobRoles] = useState([]);
   // const [search, setSearch] = useState([]);
   const handleAuthError = useAuthError();
 
@@ -105,6 +105,27 @@ const UserForm = ({
     fetchRoles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  // Job roles from Setting → User Roles (active only). The select renders
+  // `_id` as the option value, so the stored role value goes there.
+  useEffect(() => {
+    getJobRoles({ active: true })
+      .then((res) =>
+        setJobRoles(
+          (res?.payload || []).map((r) => ({ _id: r.value, name: r.name })),
+        ),
+      )
+      .catch(() => toast.error("Failed to fetch user roles."));
+  }, []);
+
+  // Keep the user's current role selectable when editing, even if it is now
+  // inactive or an old value no longer in the list — otherwise the dropdown
+  // shows blank and the save is refused.
+  const currentRole = userData?.role;
+  const roleOptions =
+    currentRole && !jobRoles.some((r) => r._id === currentRole)
+      ? [...jobRoles, { _id: currentRole, name: currentRole }]
+      : jobRoles;
 
   useEffect(() => {
     if (!userForm.isOpen || userForm.data?.role !== "DOCTOR") return;
@@ -435,7 +456,7 @@ const UserForm = ({
       label: "Role",
       name: "role",
       type: "select",
-      options: authRoles,
+      options: roleOptions,
       placeholder: "Select role",
     },
     {
