@@ -124,8 +124,26 @@ const guessQuantityUnit = (quantity, unitPrice, totalPrice, conversion, lineDisc
 
 // Shown under the Add Qty input so the conversion is always visible, never silent.
 const QuantityUnitNote = ({ row }) => {
-  if (row.quantityUnitGuess !== "PURCHASE" || !row.quantityRaw) return null;
+  if (!row.quantityRaw) return null;
   const warn = row.quantityConfidence === "LOW";
+  const isLiquid = row.form === "LIQUID_FORM";
+
+  if (isLiquid) {
+    if (row.quantityUnitGuess !== "BASE") {
+      return (
+        <small className="d-block mt-1" style={{ fontSize: "0.7rem", whiteSpace: "nowrap", color: "#2563eb" }} title="Liquid medicines are stocked by purchase unit (e.g. bottle), not base unit - the bill's quantity is used as-is.">
+          saved as {row.purchaseUnit} (liquid)
+        </small>
+      );
+    }
+    return (
+      <small className="d-block mt-1" style={{ fontSize: "0.7rem", whiteSpace: "nowrap", color: warn ? "#b45309" : "#2563eb" }} title={warn ? "No price on the bill to confirm this - please verify" : "Liquid medicines are stocked by purchase unit, not base unit - bill qty read as base units, converted down to purchase units"}>
+        {warn ? "⚠ " : ""}{row.quantityRaw} {row.baseUnit} → {row.quantity} {row.purchaseUnit} (liquid)
+      </small>
+    );
+  }
+
+  if (row.quantityUnitGuess !== "PURCHASE") return null;
   return (
     <small className="d-block mt-1" style={{ fontSize: "0.7rem", color: warn ? "#b45309" : "#2563eb" }} title={warn ? "No price on the bill to confirm this - please verify" : "Bill qty read as packs, converted using this medicine's conversion"}>
       {warn ? "⚠ " : ""}{row.quantityRaw} {row.purchaseUnit} → {row.quantity} {row.baseUnit}
@@ -391,11 +409,11 @@ const OCRBillImport = () => {
     },
     {
       name: <div>Add Qty*</div>,
-      width: "100px",
+      width: "170px",
       cell: (row) => (
         <div>
           <Input type="number" bsSize="sm" value={row.quantity || ""} onChange={(e) => handleFormChange(row.idx, "quantity", e.target.value)} placeholder="0" style={{ fontSize: "0.85rem", width: "100%" }} />
-          <small className="text-muted d-block mt-1">{row.baseUnit}</small>
+          <small className="text-muted d-block mt-1">{row.qtyUnit}</small>
           <QuantityUnitNote row={row} />
         </div>
       ),
@@ -448,7 +466,7 @@ const OCRBillImport = () => {
       cell: (row) => (
         <div style={{ lineHeight: 1.35 }}>
           <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#111827" }}>
-            {row.centerStock || 0} {row.baseUnit}
+            {row.centerStock || 0} {row.qtyUnit}
           </div>
           <small className="text-muted d-block">this center</small>
         </div>
@@ -456,11 +474,11 @@ const OCRBillImport = () => {
     },
     {
       name: <div>Add Qty*</div>,
-      width: "100px",
+      width: "170px",
       cell: (row) => (
         <div>
           <Input type="number" bsSize="sm" value={row.quantity || ""} onChange={(e) => handleFormChange(row.idx, "quantity", e.target.value)} placeholder="0" style={{ fontSize: "0.85rem", width: "100%" }} />
-          <small className="text-muted d-block mt-1">{row.baseUnit}</small>
+          <small className="text-muted d-block mt-1">{row.qtyUnit}</small>
           <QuantityUnitNote row={row} />
         </div>
       ),
@@ -479,7 +497,7 @@ const OCRBillImport = () => {
       width: "130px",
       cell: (row) => (
         <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#111827" }}>
-          {row.qty === 0 ? "—" : `${row.stockAfter} ${row.baseUnit}`}
+          {row.qty === 0 ? "—" : `${row.stockAfter} ${row.qtyUnit}`}
         </div>
       ),
     },
@@ -523,10 +541,14 @@ const OCRBillImport = () => {
     const lines = collection.map(({ idx, result }) => {
       const fd = medicineFormData[idx] || {};
       const factor = getConversionFactor(result?.selectedMedicine) || 1;
+      const isLiquid = result?.selectedMedicine?.form === "LIQUID_FORM";
+      const rawQuantity = parseFloat(fd.quantity) || 0;
       return {
         unitPrice: parseFloat(fd.unitPrice) || 0,
-        // line total = price per pack x number of packs
-        quantity: (parseFloat(fd.quantity) || 0) / factor,
+        // line total = price per pack x number of packs - liquid quantities
+        // are already in purchase units (packs), everything else is in base
+        // units and needs dividing down to packs first.
+        quantity: isLiquid ? rawQuantity : rawQuantity / factor,
         lineDiscountPercentage: fd.lineDiscountPercentage ?? null,
       };
     });
@@ -544,8 +566,12 @@ const OCRBillImport = () => {
 
       const purchaseUnit = selectedMedicine?.purchaseUnit || selectedMedicine?.baseUnit || "unit";
       const factor = getConversionFactor(selectedMedicine) || 1;
+      const isLiquid = selectedMedicine?.form === "LIQUID_FORM";
+      // Liquid Add Qty is already in purchase units (see initializeMedicineFormData) -
+      // the stock delta and "packs" display need no further division for them.
       const baseUnitQty = qty;
-      const packQtyDisplay = qty === 0 ? "—" : String(Math.round((qty / factor) * 100) / 100);
+      const packQtyDisplay = qty === 0 ? "—" : (isLiquid ? String(qty) : String(Math.round((qty / factor) * 100) / 100));
+      const qtyUnit = isLiquid ? purchaseUnit : (selectedMedicine?.baseUnit || "unit");
 
       // Once the user manually edits Purchase Price, that value is final —
       // it must stop being overwritten by the auto-discount recompute on
@@ -566,6 +592,7 @@ const OCRBillImport = () => {
         strength: selectedMedicine?.strength,
         form: selectedMedicine?.form,
         baseUnit: selectedMedicine?.baseUnit,
+        qtyUnit,
         batchNumber: formData.batchNumber || extractedData?.batchNumber || "",
         expiryDate: formData.expiryDate || extractedData?.expiryDate || "",
         centerStock: pharmacyStatus?.data?.centerStock || 0,
@@ -1763,19 +1790,26 @@ const OCRBillImport = () => {
       const purchasePriceWithDiscount = discounts[i]?.purchasePrice ?? basePrice;
       const rawQty = parseFloat(extractedData.quantity) || 0;
 
-      // Prefer the server's guess (made at extraction time, before the user had
-      // picked a medicine); if this line never got one - e.g. a missing-medicine
-      // match made client-side, or a retried line that was unmatched at upload -
-      // compute it now against the medicine the user actually selected.
-      let guess = extractedData.quantityUnitGuess;
-      let confidence = extractedData.quantityConfidence;
-      if (!guess) {
-        const fresh = guessQuantityUnit(rawQty, basePrice, extractedData.totalPrice, selectedMedicine?.conversion, extractedData.lineDiscountPercentage);
-        guess = fresh.guess;
-        confidence = fresh.confidence;
-      }
+      // Always recompute against the medicine THE USER ACTUALLY SELECTED here -
+      // the server's guess at extraction time (or the "BASE" default when it
+      // never computed one) was made against whatever it auto-matched, which
+      // can differ from what the user later picked from the dropdown in
+      // Step 1. Trusting the stale guess silently skipped the conversion for
+      // any line where the user's pick had a real pack conversion the
+      // server's own match didn't.
+      const fresh = guessQuantityUnit(rawQty, basePrice, extractedData.totalPrice, selectedMedicine?.conversion, extractedData.lineDiscountPercentage);
+      const guess = fresh.guess;
+      const confidence = fresh.confidence;
       const factor = getConversionFactor(selectedMedicine) || 1;
-      const correctedQty = guess === "PURCHASE" ? rawQty * factor : rawQty;
+      // Liquid medicines are stocked in the PURCHASE unit (bottles), not the
+      // base unit (ml) - the inverse of every other form, which is stocked in
+      // base units. So a PURCHASE-unit read needs no conversion for liquids
+      // (it's already the unit we save in), while a BASE-unit read gets
+      // converted DOWN into purchase units instead of staying as-is.
+      const isLiquid = selectedMedicine?.form === "LIQUID_FORM";
+      const correctedQty = isLiquid
+        ? (guess === "PURCHASE" ? rawQty : rawQty / factor)
+        : (guess === "PURCHASE" ? rawQty * factor : rawQty);
 
       initialData[idx] = {
         medicineName: extractedData.medicineName || "",
@@ -3634,8 +3668,30 @@ const OCRBillImport = () => {
                               selectedMed.conversion,
                               extractedFormData[idx]?.lineDiscountPercentage
                             );
-                            if (g.guess !== "PURCHASE" || g.factor <= 1) return null;
+                            if (g.factor <= 1) return null;
                             const enteredQty = Number(extractedFormData[idx]?.quantity) || 0;
+                            const isLiquid = selectedMed.form === "LIQUID_FORM";
+
+                            if (isLiquid) {
+                              if (g.guess !== "BASE") return null;
+                              const packQty = Math.round((enteredQty / g.factor) * 100) / 100;
+                              return (
+                                <div
+                                  style={{
+                                    fontSize: "0.68rem",
+                                    marginTop: 2,
+                                    whiteSpace: "nowrap",
+                                    color: g.confidence === "LOW" ? "#b45309" : "#2563eb",
+                                  }}
+                                  title="Liquid medicines are stocked by purchase unit, not base unit - bill qty read as base units, converted down to purchase units."
+                                >
+                                  {g.confidence === "LOW" ? "⚠ " : ""}
+                                  {enteredQty} {selectedMed.baseUnit || "base"} → {packQty} {selectedMed.purchaseUnit || "pack"} (liquid)
+                                </div>
+                              );
+                            }
+
+                            if (g.guess !== "PURCHASE") return null;
                             const baseQty = Math.round(enteredQty * g.factor * 100) / 100;
                             return (
                               <div
