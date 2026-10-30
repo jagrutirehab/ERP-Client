@@ -86,16 +86,16 @@ const ElderlyChecklistForm = ({
     setFieldValue: (name, value) => {
       updateField(name, value);
     },
-    handleBlur: () => {},
+    handleBlur: () => { },
     touched: {
       ...touchedObject,
       elderlyChecklistFields: touchedObject,
     },
     errors: attempted
       ? {
-          ...errors,
-          elderlyChecklistFields: errors,
-        }
+        ...errors,
+        elderlyChecklistFields: errors,
+      }
       : {},
   };
 

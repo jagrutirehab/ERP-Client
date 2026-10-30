@@ -1310,17 +1310,8 @@ const DetailAdmission = ({
     const currentSelectedType = (currentValues.patientType || "").toLowerCase().trim();
     const aiPatientType = (effectiveAiData.patientType || "").toLowerCase().trim();
 
-    // Dynamic AI Patient Type Switching:
-    // If AI detects geriatric (cognitive decline/memory loss), dynamically switch/set to geriatric (even if previous was addiction).
-    // If form patientType was unselected/empty, use AI-inferred type (or fallback to psychiatric).
-    let resolvedType = currentSelectedType;
-    if (aiPatientType === "geriatric") {
-      resolvedType = "geriatric";
-    } else if (!resolvedType) {
-      resolvedType = aiPatientType || "psychiatric";
-    } else if (aiPatientType) {
-      resolvedType = aiPatientType;
-    }
+    // Preserve existing form selection if present; otherwise adopt AI-inferred type (fallback to psychiatric)
+    let resolvedType = currentSelectedType || aiPatientType || "psychiatric";
 
     merged.patientType = resolvedType;
 
