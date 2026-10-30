@@ -25,7 +25,7 @@ import RenderWhen from "../../Components/Common/RenderWhen";
 import CheckPermission from "../../Components/HOC/CheckPermission";
 import smallImage9 from "../../assets/images/small/img-9.jpg";
 import { toast } from "react-toastify";
-import { getAllUsers } from "../../helpers/backend_helper";
+import { getAllUsers, getJobRoles } from "../../helpers/backend_helper";
 import {
   fetchAllCenters,
   fetchCenters,
@@ -40,7 +40,6 @@ import {
 } from "../../store/features/auth/user/userSlice";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
-import authRoles from "../../Components/constants/authRoles";
 
 const UserCenterList = ({ centers }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -87,6 +86,14 @@ const Main = ({ user, form, centerAccess }) => {
   const userDataa = useSelector((state) => state.User.data || []);
   const [query, setQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("");
+  // All roles, inactive included — the filter is for finding existing users.
+  const [jobRoles, setJobRoles] = useState([]);
+
+  useEffect(() => {
+    getJobRoles()
+      .then((res) => setJobRoles(res?.payload || []))
+      .catch(() => {});
+  }, []);
   const [sortFilter, setSortFilter] = useState("");
   const [userData, setUserData] = useState(null);
   const [passwordModal, setPasswordModal] = useState(false);
@@ -320,7 +327,7 @@ const Main = ({ user, form, centerAccess }) => {
                     style={{ flex: 1, minWidth: "170px", border: "1px solid black" }}
                   >
                     <option value="">Please Select Role</option>
-                    {authRoles.map((role) => (
+                    {jobRoles.map((role) => (
                       <option key={role?.value} value={role?.value}>
                         {role?.name}
                       </option>

@@ -310,6 +310,9 @@ export const POST_THERAPY = "/therapy";
 export const EDIT_THERAPY = "/therapy";
 export const DELETE_THERAPY = "/therapy";
 
+//JOB ROLES (User.role options — not access roles)
+export const JOB_ROLES = "/user-roles";
+
 //SYMPTOM
 export const GET_SYMPTOMS = "/symptom";
 export const POST_SYMPTOM = "/symptom";
