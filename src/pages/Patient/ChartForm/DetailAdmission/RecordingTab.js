@@ -405,10 +405,10 @@ const RecordingTab = ({
           >
             <i className="ri-information-line fs-5 text-info"></i>
             <span className="small text-muted">
-              Audio input is <strong>non-mandatory</strong> with no file size
-              limit. Long audio files are automatically segmented and processed.
-              You may also skip directly to manual entry using the
-              &quot;Next&quot; button.
+              Audio input is <strong>non-mandatory</strong>, recommeneded to
+              upload audios under 40mb, audio files are automatically segmented
+              and processed. You may also skip directly to manual entry using
+              the &quot;Next&quot; button.
             </span>
           </Alert>
 
