@@ -50,6 +50,11 @@ import {
   REFERRAL_SOURCES_REQUIRING_REF,
 } from "../../../Components/constants/referralSources";
 
+// "NA" on Nurse / RMO / MSW: nobody assigned. The server stores the field as null
+// (and closes the previous person's assignment on an edit).
+const STAFF_NA = "NA";
+const STAFF_NA_OPTION = { _id: STAFF_NA, name: "NA" };
+
 // Ahmedabad is closed to new admissions — they must go to Ahmedabad-2 instead.
 // Matched on the exact trimmed title rather than an _id so the block holds in
 // staging/dev where the ids differ, and compared with === (not includes) so
@@ -141,10 +146,11 @@ const AdmitPatient = ({
       }),
       psychologist: data ? data.psychologist?._id : "",
       doctor: data ? data.doctor?._id : "",
-      // Optional. Admissions that predate them have neither, so fall back to "".
-      nurse: assignedNurse?._id || "",
-      rmo: assignedRmo?._id || "",
-      msw: assignedMsw?._id || "",
+      // Optional. Nobody assigned (including admissions that predate these
+      // fields) shows as "NA"; the server stores that as null.
+      nurse: assignedNurse?._id || STAFF_NA,
+      rmo: assignedRmo?._id || STAFF_NA,
+      msw: assignedMsw?._id || STAFF_NA,
       provisional_diagnosis: [],
       Ipdnum: data ? data.Ipdnum : "",
       ward: data ? data.ward || "" : "",
@@ -514,27 +520,27 @@ const AdmitPatient = ({
       type: "select",
       options: counsellors,
     },
-    // Optional: may be left blank, so `optional` keeps them out of the
-    // required-field checks on submit.
+    // Optional: may be left as NA, so `optional` keeps them out of the
+    // required-field checks on submit. NA is always the last option.
     {
-      label: "Nurse",
-      name: "nurse",
+      label: "MSW",
+      name: "msw",
       type: "select",
-      options: nurses,
+      options: [...(msws || []), STAFF_NA_OPTION],
       optional: true,
     },
     {
       label: "RMO",
       name: "rmo",
       type: "select",
-      options: rmos,
+      options: [...(rmos || []), STAFF_NA_OPTION],
       optional: true,
     },
     {
-      label: "MSW",
-      name: "msw",
+      label: "Nurse",
+      name: "nurse",
       type: "select",
-      options: msws,
+      options: [...(nurses || []), STAFF_NA_OPTION],
       optional: true,
     },
   ];
