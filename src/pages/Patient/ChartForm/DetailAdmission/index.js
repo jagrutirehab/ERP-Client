@@ -42,6 +42,7 @@ import PatientTypeFields, {
 import ElderlyChecklistForm from "./ElderlyChecklistForm";
 import { validateElderlyChecklist } from "../../../../utils/elderlyChecklistValidation";
 import RecordingTab from "./RecordingTab";
+import { useRecordingSession } from "./useRecordingSession";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
 const RECORDING = "RECORDING";
@@ -1624,6 +1625,15 @@ const DetailAdmission = ({
     sessionIdRef.current = null;
   };
 
+  const recordingSession = useRecordingSession({
+    patient,
+    center,
+    uploadedAudio,
+    setUploadedAudio,
+    onAbortGeneration: handleAbortGeneration,
+    isGenerating,
+  });
+
   const handleModalClose = async () => {
     if (isGeneratingRef.current && sessionIdRef.current) {
       await handleAbortGeneration(false);
@@ -1840,8 +1850,6 @@ const DetailAdmission = ({
 
                 {isRecordingEnabled && formStep === RECORDING && (
                   <RecordingTab
-                    patient={patient}
-                    center={center}
                     isGenerating={isGenerating}
                     generationProgress={generationProgress}
                     onStartGeneration={handleStartGeneration}
@@ -1849,12 +1857,12 @@ const DetailAdmission = ({
                     setFormStep={setFormStep}
                     nextStep={CHIEF_COMPLAINTS}
                     uploadedAudio={uploadedAudio}
-                    setUploadedAudio={setUploadedAudio}
                     hasGenerated={
                       hasGenerated || Boolean(validation.values.aiGenerated)
                     }
                     onClearForm={clearFormHandler}
                     onCheckDraftConflict={handleCheckDraftConflict}
+                    session={recordingSession}
                   />
                 )}
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useContext, useEffect } from "react";
+import React, { useRef, useContext } from "react";
 import PropTypes from "prop-types";
 import {
   Card,
@@ -11,12 +11,9 @@ import {
   Badge,
 } from "reactstrap";
 import { toast } from "react-toastify";
-import { uploadDetailAdmissionAudio } from "../../../../helpers/backend_helper";
 import { DetailHistoryClearContext } from "./DetailHistoryClearContext";
 
 const RecordingTab = ({
-  patient,
-  center,
   isGenerating,
   generationProgress,
   onStartGeneration,
@@ -24,139 +21,34 @@ const RecordingTab = ({
   setFormStep,
   nextStep,
   uploadedAudio,
-  setUploadedAudio,
   hasGenerated,
   onClearForm: propOnClearForm,
   onCheckDraftConflict,
+  session,
 }) => {
   const context = useContext(DetailHistoryClearContext);
   const onClear = propOnClearForm || context?.onClearForm;
 
-  // Dual Input Mode: "upload" | "record"
-  const [inputMode, setInputMode] = useState("upload");
-
-  // File Upload State
   const fileInputRef = useRef(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadStatusText, setUploadStatusText] = useState("");
-  const [audioPreviewUrl, setAudioPreviewUrl] = useState(null);
-
-  // Browser Live Recording State
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const mediaRecorderRef = useRef(null);
-  const mediaStreamRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const timerIntervalRef = useRef(null);
-  const canvasRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const analyserRef = useRef(null);
-  const animationFrameRef = useRef(null);
 
   const allowedExt = ["mp3", "wav", "webm", "ogg", "aac", "mpeg", "m4a"];
 
-  // Cleanup Web Audio & Visualizer
-  const cleanupVisualizer = () => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    if (audioContextRef.current && audioContextRef.current.state !== "closed") {
-      audioContextRef.current.close().catch(() => {});
-      audioContextRef.current = null;
-    }
-  };
+  const {
+    inputMode,
+    isUploading,
+    uploadProgress,
+    uploadStatusText,
+    audioPreviewUrl,
+    isRecording,
+    recordingSeconds,
+    registerCanvas,
+    handleFileSelected,
+    handleStartRecording,
+    handleStopRecording,
+    handleModeChange,
+    handleRemoveAudio,
+  } = session;
 
-  // Stop active media stream tracks
-  const stopMediaStream = () => {
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
-      mediaStreamRef.current = null;
-    }
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-    cleanupVisualizer();
-    setIsRecording(false);
-  };
-
-  // Lifecycle Cleanup on Unmount
-  useEffect(() => {
-    return () => {
-      if (
-        mediaRecorderRef.current &&
-        mediaRecorderRef.current.state !== "inactive"
-      ) {
-        mediaRecorderRef.current.stop();
-      }
-      stopMediaStream();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Shared Upload to S3 Helper
-  const uploadAudioFile = async (file, sourceType = "uploaded") => {
-    try {
-      setIsUploading(true);
-      setUploadProgress(0);
-      setUploadStatusText("Uploading audio to S3...");
-
-      const formData = new FormData();
-      formData.append("audio", file);
-      formData.append("sourceType", sourceType);
-      if (patient?._id) formData.append("patient", patient._id);
-      if (center) formData.append("center", center);
-
-      const response = await uploadDetailAdmissionAudio(formData, {
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total,
-            );
-            setUploadProgress(percent);
-            setUploadStatusText(`Uploading to S3 (${percent}%)...`);
-          }
-        },
-      });
-      const payload = response?.payload || response?.data || response;
-
-      if (payload?.url) {
-        setUploadedAudio({
-          url: payload.url,
-          path: payload.path,
-          name: payload.name || file.name,
-          originalName: payload.originalName || file.name,
-          size: payload.size || file.size,
-          type: payload.type || file.type,
-          mimetype: payload.type || file.type,
-          duration: payload.duration || payload.audioDetails?.duration || 0,
-          sourceType:
-            payload.audioDetails?.sourceType ||
-            payload.sourceType ||
-            sourceType,
-          uploadedAt: payload.audioDetails?.uploadedAt || new Date(),
-        });
-        toast.success("Audio uploaded to S3 successfully!");
-      } else {
-        throw new Error(response?.message || "Failed to upload audio to S3");
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("Audio upload error:", err);
-      toast.error(err.message || "Failed to upload audio file");
-      setUploadedAudio(null);
-      setAudioPreviewUrl(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-      setUploadStatusText("");
-    }
-  };
-
-  // File Input Handler (Upload Mode)
   const handleFileChange = async (e) => {
     if (onCheckDraftConflict && onCheckDraftConflict()) {
       if (e.target) e.target.value = null;
@@ -183,192 +75,26 @@ const RecordingTab = ({
       return;
     }
 
-    const preview = URL.createObjectURL(file);
-    setAudioPreviewUrl(preview);
-    await uploadAudioFile(file, "uploaded");
+    await handleFileSelected(file);
   };
 
-  // Setup Canvas Visualizer for Live Recording
-  const setupVisualizer = (stream) => {
-    try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      audioContextRef.current = ctx;
-
-      const source = ctx.createMediaStreamSource(stream);
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 64;
-      analyserRef.current = analyser;
-      source.connect(analyser);
-
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const canvasCtx = canvas.getContext("2d");
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      const draw = () => {
-        animationFrameRef.current = requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
-
-        canvasCtx.fillStyle = "#f8fafc";
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const barWidth = (canvas.width / bufferLength) * 1.5;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-          const barHeight = (dataArray[i] / 255) * canvas.height;
-          canvasCtx.fillStyle = "#2563eb"; // Vibrant blue
-          canvasCtx.fillRect(
-            x,
-            canvas.height - barHeight,
-            barWidth - 2,
-            barHeight,
-          );
-          x += barWidth;
-        }
-      };
-
-      draw();
-    } catch (e) {
-      // Visualizer is an enhancement; recording still continues
+  const onModeChange = async (newMode) => {
+    if (newMode === "record" && fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
+    await handleModeChange(newMode);
   };
 
-  // Start Live Browser Recording
-  const handleStartRecording = async () => {
+  const onStartRecordingClick = async () => {
     if (onCheckDraftConflict && onCheckDraftConflict()) {
       return;
     }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
-      mediaStreamRef.current = stream;
-
-      let mimeType = "audio/webm;codecs=opus";
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        if (MediaRecorder.isTypeSupported("audio/webm")) {
-          mimeType = "audio/webm";
-        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
-          mimeType = "audio/mp4";
-        } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
-          mimeType = "audio/ogg";
-        } else {
-          mimeType = "";
-        }
-      }
-
-      const recorderOptions = {
-        audioBitsPerSecond: 64000,
-      };
-      if (mimeType) {
-        recorderOptions.mimeType = mimeType;
-      }
-      const recorder = new MediaRecorder(stream, recorderOptions);
-      mediaRecorderRef.current = recorder;
-      audioChunksRef.current = [];
-
-      recorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      recorder.onstop = async () => {
-        stopMediaStream();
-        const blobType = mimeType || recorder.mimeType || "audio/webm";
-        const audioBlob = new Blob(audioChunksRef.current, { type: blobType });
-        if (audioBlob.size === 0) return;
-
-        const ext = blobType.includes("mp4")
-          ? "m4a"
-          : blobType.includes("ogg")
-            ? "ogg"
-            : "webm";
-        const audioFile = new File(
-          [audioBlob],
-          `browser-recording-${Date.now()}.${ext}`,
-          { type: blobType },
-        );
-
-        const preview = URL.createObjectURL(audioBlob);
-        setAudioPreviewUrl(preview);
-
-        await uploadAudioFile(audioFile, "recorded");
-      };
-
-      setupVisualizer(stream);
-      recorder.start(250);
-      setIsRecording(true);
-      setRecordingSeconds(0);
-
-      timerIntervalRef.current = setInterval(() => {
-        setRecordingSeconds((prev) => prev + 1);
-      }, 1000);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("Microphone error:", err);
-      toast.error(
-        "Could not access microphone. Please ensure microphone permissions are granted.",
-      );
-    }
+    await handleStartRecording();
   };
 
-  // Stop Live Browser Recording
-  const handleStopRecording = () => {
-    if (
-      mediaRecorderRef.current &&
-      mediaRecorderRef.current.state !== "inactive"
-    ) {
-      mediaRecorderRef.current.stop();
-    }
-  };
-
-  // Exclusive State Mode Switch
-  const handleModeChange = async (newMode) => {
-    if (isGenerating || isRecording || newMode === inputMode) return;
-
-    if (newMode === "upload") {
-      // Clear browser recording state
-      stopMediaStream();
-      if (uploadedAudio?.path) {
-        await onAbortGeneration(false);
-      }
-      setUploadedAudio(null);
-      setAudioPreviewUrl(null);
-      setRecordingSeconds(0);
-      setInputMode("upload");
-    } else if (newMode === "record") {
-      // Clear file upload state
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      if (uploadedAudio?.path) {
-        await onAbortGeneration(false);
-      }
-      setUploadedAudio(null);
-      setAudioPreviewUrl(null);
-      setRecordingSeconds(0);
-      setInputMode("record");
-    }
-  };
-
-  // Remove Audio & Abort
-  const handleRemoveAudio = async () => {
-    if (isGenerating) return;
-    if (uploadedAudio?.path) {
-      await onAbortGeneration(false);
-    }
-    setUploadedAudio(null);
-    setAudioPreviewUrl(null);
-    setRecordingSeconds(0);
+  const onRemoveAudioClick = async () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
+    await handleRemoveAudio();
   };
 
   const formatFileSize = (bytes) => {
@@ -421,7 +147,7 @@ const RecordingTab = ({
                   type="button"
                   color={inputMode === "upload" ? "primary" : "outline-primary"}
                   size="sm"
-                  onClick={() => handleModeChange("upload")}
+                  onClick={() => onModeChange("upload")}
                   disabled={isGenerating || isRecording}
                 >
                   <i className="ri-upload-cloud-line me-1"></i> Upload Audio
@@ -431,7 +157,7 @@ const RecordingTab = ({
                   type="button"
                   color={inputMode === "record" ? "primary" : "outline-primary"}
                   size="sm"
-                  onClick={() => handleModeChange("record")}
+                  onClick={() => onModeChange("record")}
                   disabled={isGenerating || isRecording}
                 >
                   <i className="ri-mic-line me-1"></i> Record in Browser
@@ -495,7 +221,7 @@ const RecordingTab = ({
                   <Button
                     color="outline-danger"
                     size="sm"
-                    onClick={handleRemoveAudio}
+                    onClick={onRemoveAudioClick}
                     disabled={isGenerating}
                   >
                     <i className="ri-delete-bin-line me-1"></i> Remove
@@ -521,7 +247,7 @@ const RecordingTab = ({
                     color="danger"
                     size="md"
                     className="d-flex align-items-center gap-2 px-4 py-2"
-                    onClick={handleStartRecording}
+                    onClick={onStartRecordingClick}
                     disabled={isUploading || isGenerating}
                   >
                     <i className="ri-mic-fill fs-5"></i> Start Recording
@@ -565,7 +291,7 @@ const RecordingTab = ({
                     style={{ maxWidth: "450px" }}
                   >
                     <canvas
-                      ref={canvasRef}
+                      ref={registerCanvas}
                       width={430}
                       height={45}
                       style={{
@@ -611,7 +337,7 @@ const RecordingTab = ({
                   <Button
                     color="outline-secondary"
                     size="sm"
-                    onClick={handleStartRecording}
+                    onClick={onStartRecordingClick}
                     disabled={isGenerating}
                   >
                     <i className="ri-refresh-line me-1"></i> Record Again
@@ -619,7 +345,7 @@ const RecordingTab = ({
                   <Button
                     color="outline-danger"
                     size="sm"
-                    onClick={handleRemoveAudio}
+                    onClick={onRemoveAudioClick}
                     disabled={isGenerating}
                   >
                     <i className="ri-delete-bin-line me-1"></i> Discard
@@ -795,8 +521,6 @@ const RecordingTab = ({
 };
 
 RecordingTab.propTypes = {
-  patient: PropTypes.object,
-  center: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   isGenerating: PropTypes.bool.isRequired,
   generationProgress: PropTypes.object,
   onStartGeneration: PropTypes.func.isRequired,
@@ -804,10 +528,10 @@ RecordingTab.propTypes = {
   setFormStep: PropTypes.func.isRequired,
   nextStep: PropTypes.string.isRequired,
   uploadedAudio: PropTypes.object,
-  setUploadedAudio: PropTypes.func.isRequired,
   hasGenerated: PropTypes.bool,
   onClearForm: PropTypes.func,
   onCheckDraftConflict: PropTypes.func,
+  session: PropTypes.object.isRequired,
 };
 
 export default RecordingTab;
