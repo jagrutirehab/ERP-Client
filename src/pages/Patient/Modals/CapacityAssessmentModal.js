@@ -189,6 +189,19 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     fontWeight: "bold",
   };
 
+  // The two signature-row datetime-local inputs hold a raw ISO-ish value
+  // (e.g. "2026-10-31T13:47"), not the browser's localized display \u2014
+  // captureSection reads .value directly, so format it for print here.
+  const SIGNATURE_DATETIME_FIELDS = ["consultantDateTime", "secondConsultantDateTime"];
+  const formatDisplayDate = (value) => {
+    if (!value) return "";
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    const pad = (n) => (n < 10 ? "0" + n : n);
+    const datePart = `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+    return `${datePart} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const captureSection = async (ref, pdf, isFirstPage = false) => {
     if (!ref?.current) return pdf;
 
@@ -197,12 +210,14 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     const inputs = clone.querySelectorAll("input, textarea, select");
     inputs.forEach((input) => {
       const span = document.createElement("span");
-      let value =
-        input.type === "checkbox" || input.type === "radio"
-          ? input.checked
-            ? "YES"
-            : ""
-          : input.value || "";
+      let value;
+      if (input.type === "checkbox" || input.type === "radio") {
+        value = input.checked ? "YES" : "";
+      } else if (SIGNATURE_DATETIME_FIELDS.includes(input.name)) {
+        value = formatDisplayDate(input.value);
+      } else {
+        value = input.value || "";
+      }
       span.innerText = value || "\u00A0";
       span.style.borderBottom = "1px solid #000";
       span.style.display =
