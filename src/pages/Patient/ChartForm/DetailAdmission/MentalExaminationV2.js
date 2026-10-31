@@ -415,6 +415,21 @@ const fields = [
   },
 ];
 
+const VALID_MSE_QUALITY = new Set(["dysphoric", "anxious", "irritable", "perplexed", "elevated", "euphoric", "elated", "exalted", "ecstatic", "euthymic"]);
+const VALID_MSE_REACTIVITY = new Set(["present", "absent"]);
+const VALID_MSE_MOBILITY = new Set(["intact", "constricted", "fixed", "labile"]);
+const VALID_MSE_DELUSIONS = new Set(["none", "present"]);
+const VALID_MSE_FORM_OF_THOUGHT = new Set(["normal", "loosening_of_associations", "flight_of_ideas", "thought_blocking", "perseveration", "circumstantial", "tangential"]);
+const VALID_MSE_PERCEPTION = new Set(["normal", "hallucination", "illusion"]);
+const MSE_ENUM_VALIDATORS = {
+  quality: VALID_MSE_QUALITY,
+  reactivity: VALID_MSE_REACTIVITY,
+  mobility: VALID_MSE_MOBILITY,
+  delusions: VALID_MSE_DELUSIONS,
+  formOfThought: VALID_MSE_FORM_OF_THOUGHT,
+  perception: VALID_MSE_PERCEPTION,
+};
+
 const MentalExaminationV3 = ({ validation, setFormStep, step }) => {
   const [attempted, setAttempted] = useState(false);
 
@@ -446,7 +461,10 @@ const MentalExaminationV3 = ({ validation, setFormStep, step }) => {
 
   const validate = () => {
     setAttempted(true);
-    const missingFields = requiredFields.filter((f) => !validation.values[f]);
+    const missingFields = requiredFields.filter((f) => {
+      const enumSet = MSE_ENUM_VALIDATORS[f];
+      return enumSet ? !enumSet.has(validation.values[f]) : !validation.values[f];
+    });
     return missingFields.length === 0;
   };
 

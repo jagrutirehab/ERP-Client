@@ -990,7 +990,18 @@ const DetailAdmission = ({
           "grade",
           "judgment",
         ];
-        const mseMissing = mseFields.some((f) => !values[f]);
+        const mseEnumValidators = {
+          quality: new Set(["dysphoric", "anxious", "irritable", "perplexed", "elevated", "euphoric", "elated", "exalted", "ecstatic", "euthymic"]),
+          reactivity: new Set(["present", "absent"]),
+          mobility: new Set(["intact", "constricted", "fixed", "labile"]),
+          delusions: new Set(["none", "present"]),
+          formOfThought: new Set(["normal", "loosening_of_associations", "flight_of_ideas", "thought_blocking", "perseveration", "circumstantial", "tangential"]),
+          perception: new Set(["normal", "hallucination", "illusion"]),
+        };
+        const mseMissing = mseFields.some((f) => {
+          const enumSet = mseEnumValidators[f];
+          return enumSet ? !enumSet.has(values[f]) : !values[f];
+        });
         if (mseMissing) {
           setFormStep(MENTAL_EXAMINATION);
           return;
