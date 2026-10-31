@@ -229,13 +229,13 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     await Promise.all(
       Array.from(signatureImgs).map(async (img) => {
         try {
-          const response = await fetch(img.src);
+          const response = await fetch(img.src, { cache: "reload" });
           if (!response.ok) {
-            console.warn(
-              "[CapacityAssessment] signature fetch failed",
-              img.src,
-              response.status,
-            );
+            // console.warn(
+            //   "[CapacityAssessment] signature fetch failed",
+            //   img.src,
+            //   response.status,
+            // );
             return;
           }
           const blob = await response.blob();
@@ -251,7 +251,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
             img.src = dataUrl;
           });
         } catch (err) {
-          console.warn("[CapacityAssessment] signature fetch error", img.src, err);
+          // console.warn("[CapacityAssessment] signature fetch error", img.src, err);
           // leave the original src; html2canvas will just skip this image
         }
       }),
