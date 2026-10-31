@@ -262,6 +262,7 @@ export const editAdmissionAssignment = createAsyncThunk(
       );
       dispatch(setChartAdmission(response.payload));
       dispatch(setBillAdmission(response.payload));
+      dispatch(fetchPatientById(data.patientId));
 
       return response;
     } catch (error) {
