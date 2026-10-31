@@ -76,7 +76,9 @@ const isLeafFilled = (item, values) => {
   if (item.type === "multiselect") {
     if (!Array.isArray(val) || val.length === 0) return false;
     if (Array.isArray(item.options) && item.options.length > 0) {
-      return val.some((v) => item.options.includes(v));
+      return val.some((v) =>
+        item.options.some((opt) => String(opt).toLowerCase() === String(v).toLowerCase()),
+      );
     }
     return true;
   }
@@ -87,7 +89,8 @@ const isLeafFilled = (item, values) => {
   }
   if (val === null || val === undefined) return false;
   if (item.type === "select" && Array.isArray(item.options) && item.options.length > 0) {
-    return item.options.includes(String(val));
+    const strVal = String(val).toLowerCase();
+    return item.options.some((opt) => String(opt).toLowerCase() === strVal);
   }
   return String(val).trim() !== "";
 };
