@@ -73,13 +73,22 @@ export const setInPath = (obj, path, value) => {
 
 const isLeafFilled = (item, values) => {
   const val = getIn(values, item.path);
-  if (item.type === "multiselect") return Array.isArray(val) && val.length > 0;
+  if (item.type === "multiselect") {
+    if (!Array.isArray(val) || val.length === 0) return false;
+    if (Array.isArray(item.options) && item.options.length > 0) {
+      return val.some((v) => item.options.includes(v));
+    }
+    return true;
+  }
   if (item.type === "yesno") return val === true || val === false;
   if (item.type === "checkbox") {
     if (typeof val === "boolean") return true;
     return Array.isArray(val) && val.length > 0;
   }
   if (val === null || val === undefined) return false;
+  if (item.type === "select" && Array.isArray(item.options) && item.options.length > 0) {
+    return item.options.includes(String(val));
+  }
   return String(val).trim() !== "";
 };
 
