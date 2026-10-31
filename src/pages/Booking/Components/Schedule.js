@@ -372,7 +372,7 @@ const Schedule = ({
   weeklySchedule,
 }) => {
   const dispatch = useDispatch();
-  const [toggled, setToggled] = useState(false);
+  const [toggled, setToggled] = useState(true);
   const [apiFlag, setApiFlag] = useState(false);
 
   const [tab, setTab] = useState(0);
@@ -647,14 +647,14 @@ const Schedule = ({
     const fetchSchedule = async () => {
       if (doctor?._id) {
         const resultAction = await dispatch(fetchUserSchedule(doctor._id));
-        setToggled(resultAction?.payload?.user?.isHideFromSearch);
+        setToggled(resultAction?.payload?.user?.isHideFromSearch ?? true);
       }
     };
     fetchSchedule();
   }, [dispatch, doctor?._id, apiFlag]);
 
   useEffect(() => {
-    if (doctor) setToggled(doctor?.isHideFromSearch);
+    if (doctor) setToggled(doctor?.isHideFromSearch ?? true);
   }, [doctor]);
 
   const handleUserHide = async (e) => {

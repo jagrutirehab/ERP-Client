@@ -1,25 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import { Card, CardBody, Col, Input, Row, Spinner } from "reactstrap";
+import { Card, CardBody, Col, Input, Label, Row, Spinner } from "reactstrap";
 import CalenderHourDuration from "./CalenderHourDuration";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 import { connect, useDispatch } from "react-redux";
 import { fetchAllDoctorSchedule } from "../../../../store/actions";
+import Select from "react-select";
 
-const BookingBar = ({ loading, centerAccess }) => {
+const BookingBar = ({ loading, assignedCenters, centers }) => {
   const dispatch = useDispatch();
   const [query, setQuery] = useState("");
+  const [centerFilter, setCenterFilter] = useState("ALL");
+
+  // Only centers actually assigned to the logged-in user
+  const centerOptions = useMemo(() => {
+    const options = (centers || [])
+      .filter((c) => (assignedCenters || []).includes(c._id))
+      .map((c) => ({ value: c._id, label: c.title || "Unknown Center" }));
+    return options.length > 1
+      ? [{ value: "ALL", label: "All Centers" }, ...options]
+      : options;
+  }, [centers, assignedCenters]);
 
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
+      const selected =
+        centerFilter === "ALL" ? assignedCenters || [] : [centerFilter];
       dispatch(
         fetchAllDoctorSchedule({
           name: query,
-          centerAccess: JSON.stringify(centerAccess),
+          centerAccess: JSON.stringify(selected),
         })
       );
     }, 1000);
-  }, [dispatch, query, centerAccess]);
+    return () => clearTimeout(timer);
+  }, [dispatch, query, assignedCenters, centerFilter]);
 
   return (
     <React.Fragment>
@@ -28,6 +43,19 @@ const BookingBar = ({ loading, centerAccess }) => {
           <Row className="gap-2 align-items-end">
             <Col xs={12} md={4} lg={3}>
               <CalenderHourDuration />
+            </Col>
+            <Col xs={12} md={4} lg={3}>
+              <Label className="form-label mb-1">Center</Label>
+              <Select
+                options={centerOptions}
+                value={
+                  centerOptions.find((o) => o.value === centerFilter) ||
+                  centerOptions[0]
+                }
+                onChange={(opt) => setCenterFilter(opt?.value || "ALL")}
+                placeholder="Select center"
+                isSearchable
+              />
             </Col>
             <Col xs={12} md={4} lg={4}>
               <div className="search-box">
@@ -76,12 +104,14 @@ const BookingBar = ({ loading, centerAccess }) => {
 
 const mapStateToProps = (state) => ({
   loading: state.Setting.loading,
-  centerAccess: state.User?.centerAccess,
+  assignedCenters: state.User?.user?.centerAccess,
+  centers: state.Center.data,
 });
 
 BookingBar.prototype = {
   loading: PropTypes.bool,
-  centerAccess: PropTypes.array,
+  assignedCenters: PropTypes.array,
+  centers: PropTypes.array,
 };
 
 export default connect(mapStateToProps)(BookingBar);

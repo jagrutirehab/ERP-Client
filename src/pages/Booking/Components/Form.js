@@ -285,7 +285,7 @@ const EventForm = ({
 
     const docCenters = docs.map((doc) => ({
       ...doc,
-      centerAccess: doc?.centerAccess.map((center) => center._id),
+      centerAccess: (doc?.centerAccess || []).map((center) => center?._id || center),
     }));
 
     return (docCenters || []).filter((doc) =>
@@ -840,9 +840,9 @@ const EventForm = ({
                   <option value="" selected disabled hidden>
                     Choose here
                   </option>
-                  {(validation.values.consultationType === "ONLINE"
-                    ? doctors
-                    : filterDoctors(doctors) || []
+                  {(validation.values.center
+                    ? filterDoctors(doctors || [])
+                    : doctors || []
                   ).map((option, idx) => (
                     <option key={idx} value={option?._id}>
                       {option?.name}
