@@ -26,6 +26,7 @@ const initialFilters = () => ({
   rules: [],            // array of { value, label } from AsyncSelect
   categories: [],       // array of SOP category values (empty = all)
   centers: [],          // array of center _ids (empty = all accessible)
+  roles: [],            // array of User.role values the alert was routed to (empty = all)
   ...todayDefaults(),
   readState: "all",     // all | unread | read
   phase: "all",         // all | IMMEDIATE | DELAYED
@@ -55,6 +56,9 @@ const buildServerParams = (filters, page, pageSize) => {
   }
   if (filters.centers?.length) {
     out.centers = filters.centers.join(",");
+  }
+  if (filters.roles?.length) {
+    out.roles = filters.roles.join(",");
   }
   if (filters.severity?.length) {
     out.severity = filters.severity.join(",");

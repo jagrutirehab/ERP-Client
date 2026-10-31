@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Flatpickr from "react-flatpickr";
 import AsyncSelect from "react-select/async";
 import Select from "react-select";
@@ -12,6 +12,7 @@ import { endOfDay, startOfDay } from "date-fns";
 import {
   getSearchPatients,
   listSopRules,
+  sopGetRoles,
 } from "../../../helpers/backend_helper";
 import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
 import { ALERT_CATEGORY_OPTIONS } from "../../../Components/constants/sopConstants";
@@ -76,6 +77,25 @@ const AlertsFilters = ({
     if (allCentresScope && !everyCenter?.length) dispatch(fetchAllCenters());
   }, [allCentresScope, everyCenter?.length, dispatch]);
 
+  // Routed-role options: the same role list the SOP rule's routing picker uses,
+  // so every role an alert can be routed to is selectable.
+  const [roleOptions, setRoleOptions] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    sopGetRoles()
+      .then((res) => {
+        const list = (Array.isArray(res) && res) || res?.data || [];
+        if (alive)
+          setRoleOptions(
+            list.map((r) => ({ value: r.name, label: r.name })),
+          );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // Center options scoped to the user's center access — same source the
   // Finance report uses. centerAccess may be a list of ids or of objects.
   // Empty until the role has loaded, so the pre-selection below runs once,
@@ -109,6 +129,7 @@ const AlertsFilters = ({
     serverFilters.rules?.length > 0 ||
     serverFilters.categories?.length > 0 ||
     serverFilters.centers?.length > 0 ||
+    serverFilters.roles?.length > 0 ||
     !!serverFilters.dateFrom ||
     !!serverFilters.dateTo ||
     serverFilters.readState !== "all" ||
@@ -254,6 +275,25 @@ const AlertsFilters = ({
           onChange={(ids) => onServerFilterChange("centers", ids)}
           className=""
         />
+
+        {/* Alerts routed to ANY of the picked roles. Narrows what the user
+            can already see; it never shows alerts outside their access. */}
+        <div style={{ minWidth: 240 }}>
+          <Select
+            isMulti
+            options={roleOptions}
+            value={roleOptions.filter((o) =>
+              (serverFilters.roles || []).includes(o.value),
+            )}
+            onChange={(v) =>
+              onServerFilterChange(
+                "roles",
+                (v || []).map((o) => o.value),
+              )
+            }
+            placeholder="All routed roles"
+          />
+        </div>
 
         <ButtonGroup size="sm">
           {READ_STATES.map(({ k, label }) => (
