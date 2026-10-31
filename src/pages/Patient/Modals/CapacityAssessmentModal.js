@@ -60,6 +60,16 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     signatures: [],
     consultantName: "",
     consultantDateTime: "",
+    consultantSignature: "",
+    secondConsultantName: "",
+    secondConsultantDateTime: "",
+    secondConsultantSignature: "",
+  });
+  const [defaultNames, setDefaultNames] = useState({
+    doctor: "",
+    psychologist: "",
+    doctorSignature: "",
+    psychologistSignature: "",
   });
   const capacityFormRef = useRef(null);
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -74,9 +84,26 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
+    const newValue = type === "checkbox" ? checked : value;
+
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: newValue };
+
+      if (name === "consultantName") {
+        updated.consultantSignature =
+          newValue === defaultNames.doctor
+            ? defaultNames.doctorSignature || ""
+            : "";
+      }
+
+      if (name === "secondConsultantName") {
+        updated.secondConsultantSignature =
+          newValue === defaultNames.psychologist
+            ? defaultNames.psychologistSignature || ""
+            : "";
+      }
+
+      return updated;
     });
   };
 
@@ -192,6 +219,43 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     clone.style.background = "#fff";
     clone.style.padding = "40px";
     document.body.appendChild(clone);
+
+    // Signature images are loaded cross-origin (S3) without the crossOrigin
+    // attribute, since setting it on the live <img> breaks loading entirely.
+    // Fetch each one as a blob (same approach @react-pdf/renderer's
+    // cross-fetch uses for the prescription print) and swap in a data URI so
+    // html2canvas can read its pixels without tainting the canvas.
+    const signatureImgs = clone.querySelectorAll('img[alt="Signature"]');
+    await Promise.all(
+      Array.from(signatureImgs).map(async (img) => {
+        try {
+          const response = await fetch(img.src);
+          if (!response.ok) {
+            console.warn(
+              "[CapacityAssessment] signature fetch failed",
+              img.src,
+              response.status,
+            );
+            return;
+          }
+          const blob = await response.blob();
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+            img.src = dataUrl;
+          });
+        } catch (err) {
+          console.warn("[CapacityAssessment] signature fetch error", img.src, err);
+          // leave the original src; html2canvas will just skip this image
+        }
+      }),
+    );
 
     // 2. Capture everything in ONE go (Fast)
     const canvas = await html2canvas(clone, { scale: 2, useCORS: true });
@@ -317,8 +381,21 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
       const age = patient?.age || "";
       const sex = patient?.gender || "";
       const admission = patient?.addmission?.addmissionDate || ""
+      const doctor = patient?.doctorData?.name || "";
       const consultant = patient?.psychologistData?.name || "";
+      const getSignatureUrl = (signature) =>
+        (typeof signature === "string" ? signature : signature?.url) || "";
+      const doctorSignature = getSignatureUrl(patient?.doctorData?.signature);
+      const psychologistSignature = getSignatureUrl(
+        patient?.psychologistData?.signature
+      );
       const me = patient?.detailAdmission?.mentalExaminationV2;
+      setDefaultNames({
+        doctor,
+        psychologist: consultant,
+        doctorSignature,
+        psychologistSignature,
+      });
       setFormData((prev) => ({
         ...prev,
         patientName: patient.name,
@@ -332,8 +409,12 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
         nominatedRepresentativeInformed: patient?.guardianName ? "Yes" : "",
         representativeName: patient?.guardianName || "",
         relationship: patient?.guardianRelation || "",
-        consultantName: consultant || "",
+        consultantName: doctor || "",
         consultantDateTime: formatDateTimeLocal(new Date()),
+        consultantSignature: doctorSignature,
+        secondConsultantName: consultant || "",
+        secondConsultantDateTime: formatDateTimeLocal(new Date()),
+        secondConsultantSignature: psychologistSignature,
         primaryDiagnosis: patient?.detailAdmission?.doctorSignature?.diagnosis
           ?.map((d) => d?.code)
           ?.join(", "),
@@ -792,12 +873,12 @@ Remarks: ${me?.remarks || ""}
               </thead>
               <tbody>
                 {[
-                  { role: "Consultant Mental Health Professional", key: "psychiatrist" },
+                  { role: "Consultant Psychiatrist", key: "psychiatrist" },
                   {
-                    role: "Second Mental Health Professional (if required)",
+                    role: "Consultant Mental Health Professional",
                     key: "secondPsychiatrist",
                   },
-                  { role: "Witness (Nurse/Psychologist)", key: "witness" },
+                  { role: "Witness (Consultant Mental Health Professional)", key: "witness" },
                 ].map((row, index) => (
                   <tr key={index} style={{ height: "90px" }}>
                     <td className="text-start fw-bold  py-2 ps-2">
@@ -821,6 +902,14 @@ Remarks: ${me?.remarks || ""}
                           value={formData?.consultantName || ""}
                           onChange={handleChange}
                         />
+                      ) : index === 1 ? (
+                        <Input
+                          type="text"
+                          className="px-2"
+                          name="secondConsultantName"
+                          value={formData?.secondConsultantName || ""}
+                          onChange={handleChange}
+                        />
                       ) : (
                         <Input
                           type="text"
@@ -831,12 +920,52 @@ Remarks: ${me?.remarks || ""}
                       )}
                     </td>
                     <td>
-                      <Input
-                        type="text"
-                        plainText
-                        className="px-2"
-                        placeholder="Initial"
-                      />
+                      {index === 0 ? (
+                        formData?.consultantSignature &&
+                        formData.consultantSignature ===
+                          defaultNames.doctorSignature ? (
+                          <img
+                            src={formData.consultantSignature}
+                            alt="Signature"
+                            style={{ maxHeight: "80px", maxWidth: "100%" }}
+                          />
+                        ) : (
+                          <Input
+                            type="text"
+                            className="px-2"
+                            name="consultantSignature"
+                            value={formData?.consultantSignature || ""}
+                            onChange={handleChange}
+                            placeholder="Initial"
+                          />
+                        )
+                      ) : index === 1 ? (
+                        formData?.secondConsultantSignature &&
+                        formData.secondConsultantSignature ===
+                          defaultNames.psychologistSignature ? (
+                          <img
+                            src={formData.secondConsultantSignature}
+                            alt="Signature"
+                            style={{ maxHeight: "80px", maxWidth: "100%" }}
+                          />
+                        ) : (
+                          <Input
+                            type="text"
+                            className="px-2"
+                            name="secondConsultantSignature"
+                            value={formData?.secondConsultantSignature || ""}
+                            onChange={handleChange}
+                            placeholder="Initial"
+                          />
+                        )
+                      ) : (
+                        <Input
+                          type="text"
+                          plainText
+                          className="px-2"
+                          placeholder="Initial"
+                        />
+                      )}
                     </td>
                     <td>
                       {/* <Input type="date" plainText className="px-2" /> */}
@@ -847,6 +976,14 @@ Remarks: ${me?.remarks || ""}
                           // value={formatDateTimeLocal(new Date())}
                           name="consultantDateTime"
                           value={formData?.consultantDateTime || ""}
+                          onChange={handleChange}
+                        />
+                      ) : index === 1 ? (
+                        <Input
+                          type="datetime-local"
+                          className="px-2"
+                          name="secondConsultantDateTime"
+                          value={formData?.secondConsultantDateTime || ""}
                           onChange={handleChange}
                         />
                       ) : (
