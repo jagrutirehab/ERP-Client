@@ -53,8 +53,17 @@ const MMSEAssessment = () => {
   const psychologistDetails = useSelector((state) => state.User?.doctor) || [];
   const counselerDetails =
     useSelector((state) => state.User?.counsellors) || [];
+  const physiotherapistDetails =
+    useSelector((state) => state.User?.physiotherapists) || [];
+  const physicianDetails =
+    useSelector((state) => state.User?.physicians) || [];
 
-  const allMedicalStaff = [...psychologistDetails, ...counselerDetails];
+  const allMedicalStaff = [
+    ...psychologistDetails,
+    ...counselerDetails,
+    ...physiotherapistDetails,
+    ...physicianDetails,
+  ];
   const centerId = patient?.center?._id;
 
   useEffect(() => {

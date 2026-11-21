@@ -44,8 +44,17 @@ const GCSAssessment = () => {
   const doctorDetails = useSelector((state) => state.User?.doctor) || [];
   const counselerDetails =
     useSelector((state) => state.User?.counsellors) || [];
+  const physiotherapistDetails =
+    useSelector((state) => state.User?.physiotherapists) || [];
+  const physicianDetails =
+    useSelector((state) => state.User?.physicians) || [];
 
-  const allMedicalStaff = [...doctorDetails, ...counselerDetails];
+  const allMedicalStaff = [
+    ...doctorDetails,
+    ...counselerDetails,
+    ...physiotherapistDetails,
+    ...physicianDetails,
+  ];
   const centerId = patient?.center?._id;
 
   useEffect(() => {
