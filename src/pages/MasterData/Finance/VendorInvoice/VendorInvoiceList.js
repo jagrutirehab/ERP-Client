@@ -3,6 +3,7 @@ import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody, Label } from "reactstrap";
 import { toast } from "react-toastify";
 import {
+  deleteVendorInvoice,
   getVendorInvoices,
   getVendorInvoiceSummary,
   bookVendorInvoice,
@@ -51,6 +52,8 @@ const VendorInvoiceList = ({ onAdd, onEdit }) => {
   const { hasPermission } = usePermissions(token);
   const canWrite = hasPermission("MASTERDATA", "VENDOR_INVOICE", "WRITE");
   const canPay = hasPermission("MASTERDATA", "VENDOR_PAYMENT", "WRITE");
+  const canApprove = hasPermission("MASTERDATA", "VENDOR_INVOICE_APPROVAL", "WRITE"); // like Vendor Approval: a separate right
+  const canDelete = hasPermission("MASTERDATA", "VENDOR_INVOICE", "DELETE");
   const { items: vendors } = useReferenceList("vendorsAll");
   const { items: departments } = useReferenceList("departments");
 
@@ -128,6 +131,11 @@ const VendorInvoiceList = ({ onAdd, onEdit }) => {
     }
   };
 
+  const removeBill = async (row) => {
+    if (!window.confirm(`Delete bill ${row.invoiceRecordNumber} · ${row.vendorInvoiceNumber}? This cannot be undone.`)) return;
+    await act(() => deleteVendorInvoice(row._id), "Bill deleted");
+  };
+
   const confirmHold = async () => {
     if (!holdReason.trim()) return toast.error("Please provide a reason");
     setHolding(true);
@@ -193,8 +201,11 @@ const VendorInvoiceList = ({ onAdd, onEdit }) => {
             {canWrite && direct && a === "draft" && (
               <Button size="sm" color="primary" onClick={() => act(() => submitVendorInvoice(row._id), "Bill sent for approval")}>Submit</Button>
             )}
-            {canWrite && direct && a === "submitted" && (
+            {canApprove && direct && a === "submitted" && (
               <Button size="sm" color="success" onClick={() => setViewId(row._id)}>Review</Button>
+            )}
+            {canDelete && direct && ["draft", "rejected"].includes(a) && !(row.requestedPaise > 0) && (
+              <Button size="sm" color="light" title="Delete" onClick={() => removeBill(row)}><i className="bx bx-trash text-danger"></i></Button>
             )}
             {/* the older GRN-match invoices keep their own buttons */}
             {canWrite && !direct && row.status === "pending_review" && row.matchResult === "matched" && (
@@ -329,6 +340,7 @@ const VendorInvoiceList = ({ onAdd, onEdit }) => {
         <VendorInvoiceView
           invoiceId={viewId}
           canWrite={canWrite}
+          canApprove={canApprove}
           onClose={() => setViewId(null)}
           onChanged={refresh}
           onEdit={(inv) => { setViewId(null); onEdit(inv); }}

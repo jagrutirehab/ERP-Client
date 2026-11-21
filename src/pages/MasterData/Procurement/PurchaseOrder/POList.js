@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import {
   getPOs,
   approvePO,
+  deletePO,
   cancelPO,
   shortClosePO,
 } from "../../../../helpers/backend_helper";
@@ -127,10 +128,11 @@ const closeModeFor = (row) =>
 const POList = ({ onAdd, onOpen }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const { hasPermission } = usePermissions(token);
+  const { hasPermission, hasApproval } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "PO", "WRITE");
-  const canApprove = hasPermission("MASTERDATA", "PO", "WRITE");
+  const canApprove = hasApproval("MASTERDATA", "PO_APPROVAL", "PO");
   const canClose = canApprove;
+  const canDelete = hasPermission("MASTERDATA", "PO", "DELETE"); // a draft PO only
 
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -307,7 +309,7 @@ const POList = ({ onAdd, onOpen }) => {
     },
     {
       name: "Actions",
-      width: "165px",
+      width: "190px",
       right: true,
       cell: (row) => (
         <div className="d-flex gap-2 align-items-center">
@@ -321,6 +323,11 @@ const POList = ({ onAdd, onOpen }) => {
               onClick={() => handleApprove(row._id)}
             >
               Approve
+            </Button>
+          )}
+          {row.status === "draft" && canDelete && (
+            <Button size="sm" color="light" title="Delete draft" onClick={() => handleDelete(row)}>
+              <i className="bx bx-trash text-danger"></i>
             </Button>
           )}
           {row.status === "approved" &&
@@ -339,6 +346,17 @@ const POList = ({ onAdd, onOpen }) => {
       ),
     },
   ];
+
+  const handleDelete = async (row) => {
+    if (!window.confirm(`Delete draft PO ${row.poNumber}? This cannot be undone.`)) return;
+    try {
+      const res = await deletePO(row._id);
+      toast.success(res?.message || "Purchase order deleted");
+      setRefreshFlag((f) => f + 1);
+    } catch (e) {
+      if (!handleAuthError(e)) toast.error(e?.response?.data?.message || e?.message || "Couldn't delete the PO.");
+    }
+  };
 
   const mode = closeTarget ? closeModeFor(closeTarget) : "cancel";
 

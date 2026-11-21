@@ -6569,6 +6569,8 @@ export const approveVendorInvoice = (id, body = {}) =>
   axios.patch(`${url.VI_BASE}/${id}/approve`, body, { headers: { "X-No-Cookie-Token": "true" } });
 export const rejectVendorInvoice = (id, reason) =>
   axios.patch(`${url.VI_BASE}/${id}/reject`, { reason }, { headers: { "X-No-Cookie-Token": "true" } });
+export const deleteVendorInvoice = (id) =>
+  axios.delete(`${url.VI_BASE}/${id}`, { headers: { "X-No-Cookie-Token": "true" } });
 export const getBillPaymentTerm = (params = {}) =>
   axios.get(`${url.VI_BASE}/payment-term`, { params, headers: { "X-No-Cookie-Token": "true" } });
 export const getPoBillingSummary = (poId, exclude) =>

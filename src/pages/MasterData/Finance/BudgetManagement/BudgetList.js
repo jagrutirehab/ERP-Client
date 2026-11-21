@@ -90,11 +90,11 @@ const AmountCard = ({ label, value, sub, color }) => (
 const BudgetList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const { hasPermission } = usePermissions(token);
+  const { hasPermission, hasApproval } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "BUDGET", "WRITE");
   const canEdit = hasPermission("MASTERDATA", "BUDGET", "WRITE");
-  const canApprove = hasPermission("MASTERDATA", "BUDGET", "WRITE");
-  const canDelete = hasPermission("MASTERDATA", "BUDGET", "WRITE");
+  const canApprove = hasApproval("MASTERDATA", "BUDGET_APPROVAL", "BUDGET");
+  const canDelete = hasPermission("MASTERDATA", "BUDGET", "DELETE");
 
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(false);

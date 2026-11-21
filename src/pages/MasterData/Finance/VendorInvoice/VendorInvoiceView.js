@@ -22,7 +22,7 @@ const Fact = ({ label, value }) => (
 const paise = (v) => Math.round((Number(v) || 0) * 100);
 
 // Shows one bill. A bill that is waiting for approval can be approved (with its ledger allocation) or sent back from here.
-const VendorInvoiceView = ({ invoiceId, canWrite, onClose, onChanged, onEdit }) => {
+const VendorInvoiceView = ({ invoiceId, canWrite, canApprove, onClose, onChanged, onEdit }) => {
   const handleAuthError = useAuthError();
   const [inv, setInv] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -187,7 +187,7 @@ const VendorInvoiceView = ({ invoiceId, canWrite, onClose, onChanged, onEdit }) 
                   </tbody>
                 </table>
               </div>
-            ) : needsAllocation && canWrite ? (
+            ) : needsAllocation && canApprove ? (
               <div className="mb-2">
                 <div className="text-muted small mb-2">Not allocated yet. You may say which ledgers this bill belongs to before approving (optional).</div>
                 {lines.map((l, i) => (
@@ -244,13 +244,13 @@ const VendorInvoiceView = ({ invoiceId, canWrite, onClose, onChanged, onEdit }) 
               {canWrite && direct && ["draft", "rejected"].includes(a.status) && (
                 <Button color="primary" disabled={busy} onClick={() => run(() => submitVendorInvoice(inv._id), "Bill sent for approval")}>Submit for approval</Button>
               )}
-              {canWrite && awaiting && !rejecting && (
+              {canApprove && awaiting && !rejecting && (
                 <>
                   <Button color="danger" outline disabled={busy} onClick={() => setRejecting(true)}>Reject</Button>
                   <Button color="success" disabled={busy} onClick={approve}>{busy ? "Approving..." : "Approve"}</Button>
                 </>
               )}
-              {canWrite && awaiting && rejecting && (
+              {canApprove && awaiting && rejecting && (
                 <>
                   <Button color="light" disabled={busy} onClick={() => { setRejecting(false); setReason(""); }}>Back</Button>
                   <Button color="danger" disabled={busy} onClick={reject}>{busy ? "Sending..." : "Send back"}</Button>

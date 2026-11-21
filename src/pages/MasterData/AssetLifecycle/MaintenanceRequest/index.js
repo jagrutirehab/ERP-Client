@@ -50,13 +50,9 @@ const StatusPill = ({ status }) => {
 const MaintenanceRequest = () => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const { hasPermission } = usePermissions(token);
+  const { hasPermission, hasApproval } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "MAINTENANCE_REQUEST", "WRITE");
-  const canApprove = hasPermission(
-    "MASTERDATA",
-    "MAINTENANCE_REQUEST",
-    "WRITE",
-  );
+  const canApprove = hasApproval("MASTERDATA", "MAINTENANCE_APPROVAL", "MAINTENANCE_REQUEST");
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);

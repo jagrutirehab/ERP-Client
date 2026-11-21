@@ -60,10 +60,10 @@ const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const PRList = ({ onAdd, onEdit, onOpen }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const { hasPermission } = usePermissions(token);
+  const { hasPermission, hasApproval } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "PR", "WRITE");
   const canEdit = hasPermission("MASTERDATA", "PR", "WRITE");
-  const canApprove = hasPermission("MASTERDATA", "PR", "WRITE");
+  const canApprove = hasApproval("MASTERDATA", "PR_APPROVAL", "PR");
   const canDelete = hasPermission("MASTERDATA", "PR", "DELETE");
 
   const [prs, setPrs] = useState([]);

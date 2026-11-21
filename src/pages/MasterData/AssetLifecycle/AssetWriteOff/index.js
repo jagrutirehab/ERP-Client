@@ -47,9 +47,9 @@ const AssetWriteOffRequest = () => {
   const handleAuthError = useAuthError();
   const [confirm, confirmDialog] = useConfirm();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const { hasPermission } = usePermissions(token);
+  const { hasPermission, hasApproval } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "ASSET_WRITEOFF", "WRITE");
-  const canApprove = hasPermission("MASTERDATA", "ASSET_WRITEOFF", "WRITE");
+  const canApprove = hasApproval("MASTERDATA", "ASSET_WRITEOFF_APPROVAL", "ASSET_WRITEOFF");
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
