@@ -59,7 +59,7 @@ const MorseFallAssessment = () => {
 
   useEffect(() => {
     if (centerId) {
-      dispatch(fetchDoctors({ center: centerId }));
+      dispatch(fetchDoctors({ center: centerId, includePhysio: true }));
     }
   }, [centerId, dispatch]);
 
